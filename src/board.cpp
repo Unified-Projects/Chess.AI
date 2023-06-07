@@ -56,10 +56,10 @@ void Board::InitBoard(std::string FEN) {
 
         Section 5: Half Clock
             Number of moves since the last capture or pawn advance
-            Also used to draw a mach
+            Also used to draw a match
 
         Section 6: Fullmove number
-            Number of moves that have been played (Incremented after blacks move)
+            Number of moves that have been played (Incremented after black's move)
     */
 
     // TODO: Error Checking on the inputted FEN

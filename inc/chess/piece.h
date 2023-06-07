@@ -46,7 +46,8 @@ class Board;
         Colour GetC() {return c;}
 
         // Predefine so that it can be customised per piece
-        virtual bool ValidMove(Piece* Target) {return false;}
+        virtual bool ValidMove(Piece* Target) {return false;};
+        virtual bool isValidMove(int targetX, int targetY) {return false;}
     };
 //
 
@@ -56,6 +57,7 @@ class Board;
     public:
         Pawn(Colour c) : Piece(c) {t=PAWN;return;}
         bool ValidMove(Piece* Target);
+        bool isValidMove(int targetX, int targetY);
     };
 
     struct Bishop : protected Piece{
