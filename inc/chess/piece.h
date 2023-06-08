@@ -38,8 +38,11 @@ class Board;
         int X;
         int Y;
 
+        // Keeping track, for castling and en-passent
+        int moveCount;
+
         // Setup for board setup
-        Piece(Colour c = NULE) {this->c = c;}
+        Piece(Colour c = NULE) {this->c = c;X=0;Y=0;moveCount=0;}
 
         // To return protected variables to non-board
         Type GetT() {return t;}

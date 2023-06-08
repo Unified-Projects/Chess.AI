@@ -1,4 +1,4 @@
-CXX = g++
+CXX = gcc
 C_FLAGS =
 LD_FLAGS = -lstdc++
 

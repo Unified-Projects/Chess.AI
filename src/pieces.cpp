@@ -10,7 +10,11 @@ bool Pawn::isValidMove(int targetX, int targetY) {
     /*
         Movement:
             Forward 1 (2 if first move)
-            Diagonal 1 if enemy piece present (En passant)
+            Diagonal 1 if enemy piece present
+
+        Speical: En Passent
+            If it's first move and becomes adjasent to another pawn,
+            that pawn can take piece by going diagonal into a empty space.
     */
 
     Board board;
@@ -30,12 +34,12 @@ bool Pawn::isValidMove(int targetX, int targetY) {
             }
         }
     }
-    // Check for En passant
+    // Check for taking
     else {
         // Check if the target is in neighbouring column
         if (targetX == (X + 1) || targetX == (X-1)) {
             // Check if the target is in the next row
-            if (targetY == (Y + 1)) {
+            if (targetY == (Y + ( (-1 * (c == WHITE)) + ( 1 * (c == BLACK)) ))) { // Color correction needed
                 // Check if enemy piece is present at target
                 Piece* targetPiece = board.GetPieceAtPosition(targetX, targetY);
                 if (targetPiece) {
@@ -45,6 +49,8 @@ bool Pawn::isValidMove(int targetX, int targetY) {
                 }
             }
         }
+
+        // TODO: Implement En passent detection (By checking if the piece has moved before)
     }
 
     return false;
