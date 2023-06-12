@@ -2,17 +2,17 @@
 
 // TEMPORARY INCLUDES
     #include <iostream>
-        #define UNIMPLEMENTED std::cout << "Unimplemented " << __LINE__ << std::endl;
+        #define UNIMPLEMENTED std::cout << "Unimplemented " << __FILE__ << ":" << __LINE__ << std::endl;
 //
 
 // Static definition for mapping
-std::map<char, Piece> Board::pieceMapper = {
-        {'r', Rook(BLACK)}, {'R', Rook(WHITE)},
-        {'n', Knight(BLACK)}, {'N', Knight(WHITE)},
-        {'p', Pawn(BLACK)}, {'P', Pawn(WHITE)},
-        {'b', Bishop(BLACK)}, {'B', Bishop(WHITE)},
-        {'q', Queen(BLACK)}, {'Q', Queen(WHITE)},
-        {'k', King(BLACK)}, {'K', King(WHITE)},
+std::map<char, Piece*> Board::pieceMapper = {
+        {'r', new Rook(BLACK)}, {'R', new Rook(WHITE)},
+        {'n', new Knight(BLACK)}, {'N', new Knight(WHITE)},
+        {'p', new Pawn(BLACK)}, {'P', new Pawn(WHITE)},
+        {'b', new Bishop(BLACK)}, {'B', new Bishop(WHITE)},
+        {'q', new Queen(BLACK)}, {'Q', new Queen(WHITE)},
+        {'k', new King(BLACK)}, {'K', new King(WHITE)},
     };
 std::map<char, Type> Board::typeMapper = {
         {'r', ROOK}, {'R', ROOK},
@@ -23,14 +23,14 @@ std::map<char, Type> Board::typeMapper = {
         {'k', KING}, {'K', KING},
     };
 
-void Board::SetPiece(int X, int Y, Piece p){
+void Board::SetPiece(int X, int Y, Piece* p){
     // Load to the board
         // YX as in row then collumn
-        // Yes we map 8 to 1 and 1 to 7 just as it's easier
+        // Yes we map 8 to 1 and 1 to 8 just as it's easier
     board[Y][X] = p;
-    board[Y][X].X = X;
-    board[Y][X].Y = Y;
-    board[Y][X].b = this; // So that pieces can acces the current board (Instead of global so that multiple boards can be active at once (Training AI))
+    board[Y][X]->X = X + 1;
+    board[Y][X]->Y = Y + 1;
+    board[Y][X]->b = this; // So that pieces can acces the current board (Instead of global so that multiple boards can be active at once (Training AI))
 }
 
 void Board::InitBoard(std::string FEN) {
@@ -56,10 +56,10 @@ void Board::InitBoard(std::string FEN) {
 
         Section 5: Half Clock
             Number of moves since the last capture or pawn advance
-            Also used to draw a mach
+            Also used to draw a match
 
         Section 6: Fullmove number
-            Number of moves that have been played (Incremented after blacks move)
+            Number of moves that have been played (Incremented after black's move)
     */
 
     // TODO: Error Checking on the inputted FEN
@@ -81,7 +81,12 @@ void Board::InitBoard(std::string FEN) {
 
         // Check if it is a digit
         if (*FEN_STR >= '1' && *FEN_STR <= '8') {
+            for (int i = 0; i < *FEN_STR - 48; i++) {
+                // board[LocalY][LocalX + i] = new Piece();
+                SetPiece(LocalX + i, 7 - LocalY, new Piece());
+            }
             LocalX += *FEN_STR - 48;
+            continue;
         }
 
         // New board row
@@ -97,7 +102,7 @@ void Board::InitBoard(std::string FEN) {
         }
 
         // Piece assignment according to map
-        SetPiece(LocalX, LocalY, std::move(pieceMapper[*FEN_STR]));
+        SetPiece(LocalX, 7 - LocalY, pieceMapper[*FEN_STR]->Clone());
 
         // Move horizonatally
         LocalX++;
@@ -106,12 +111,16 @@ void Board::InitBoard(std::string FEN) {
 
 void Board::LogBoard(){
     // Iterate both over rows and columns
-    for (int i = 0; i < 8; i++) {
+    for (int i = 7; i >= 0; i--) {
         for (int j = 0; j < 8; j++) {
 
+            // std::cout << '(' << j+1 << ',' << i+1 << ')';
+
+            // continue;
+
             // Get the current pieces colour and type
-            Type t = board[i][j].t;
-            Colour c = board[i][j].c;
+            Type t = board[i][j]->t;
+            Colour c = board[i][j]->c;
 
             // Create a store point for the character
             char type = ' ';
@@ -142,4 +151,37 @@ void Board::LogBoard(){
         // New row so new line
         std::cout << std::endl;
     }
+}
+
+Piece* Board::GetPieceAtPosition(int X, int Y) {
+    // Note as our list goes 0-7 from top to bottom
+    //      We need to map the positions to standards
+    return board[Y-1][X-1];
+}
+
+// Standard using letters for the X-Axis
+Piece* Board::GetPieceAtPosition(char X, int Y) {
+    // Note as our list goes 0-7 from top to bottom
+    //      We need to map the positions to standards
+    return board[8-Y][X - 65]; // Subtract 'A' to perfom mapping
+}
+
+bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
+    // First find the piece that we want to move
+    Piece* targetPiece = GetPieceAtPosition(startX, startY);
+
+    // We want to check if the provided swap is a valid move
+    bool validMove = targetPiece->isValidMove(targetX, targetY);
+    if (!validMove) { // Return as the move impossible (Handler built on other end)
+        return false;
+    }
+
+    // If so we want to move the piece, and then delete the piece that was already there
+    SetPiece(targetX-1, targetY-1, targetPiece);
+
+    // Fill in gap made
+    SetPiece(startX-1, startY-1, new Piece());
+
+    // TODO: UPDATE GAME STATS, IF SPECIAL MOVES ARE ALLOWED, LOOK FOR CHECK, LOOK FOR CHECKMATE
+    return true;
 }

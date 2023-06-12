@@ -7,19 +7,19 @@
 #include <iostream>
 
 // TEMPORARY INCLUDES
-    #define UNIMPLEMENTED std::cout << "Unimplemented " << __LINE__ << std::endl;
+    #define UNIMPLEMENTED std::cout << "Unimplemented " << __FILE__ << ":" << __LINE__ << std::endl;
 //
 
 class Board {
 protected: // Standardised
     // Define standard map to FEN kesy to our defined pieces
-    static std::map<char, Piece> pieceMapper;
+    static std::map<char, Piece*> pieceMapper;
     static std::map<char, Type> typeMapper; // Usefull for the move notation and checking if it is valid
 
 protected: // Private board management
-    Piece board[8][8] = {};
+    Piece* board[8][8] = {};
 
-    void SetPiece(int X, int Y, Piece p);
+    void SetPiece(int X, int Y, Piece* p);
 
 public: // Setup / De-setup
     // Probably should do something with me
@@ -33,10 +33,12 @@ public: // Setup / De-setup
 
 public: // Gameplay
     // Get a piece from the board (Used by pieces for validation purposes)
-    Piece* GetPieceAtPosition(int X, int Y) {UNIMPLEMENTED; return new Piece(/*NULL PIECE / Temporary*/);}
+    Piece* GetPieceAtPosition(int X, int Y);
+    Piece* GetPieceAtPosition(char X, int Y);
 
     // Play a move, independent of colour
-    void PlayMove(std::string notation) {UNIMPLEMENTED}; // Try to use standard notations
+    bool PlayMove(std::string notation) {UNIMPLEMENTED return false;}; // Try to use standard notations
+    bool MovePiece(int startX, int startY, int endX, int endY); // Simpler moving function TODO: REMOVE AND REPLACE WITH BETTER PlayMove
 
 public: // Debuggers
     void LogBoard(); // Print board to console

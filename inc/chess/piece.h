@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <iostream>
 
 // External definition for friend classing
 class Board;
@@ -38,58 +39,75 @@ class Board;
         int X;
         int Y;
 
+        // Keeping track, for castling and en-passent
+        int moveCount;
+
         // Setup for board setup
-        Piece(Colour c = NULE) {this->c = c;}
+        Piece(Colour c = NULE) {this->c = c;X=0;Y=0;moveCount=0;}
 
         // To return protected variables to non-board
         Type GetT() {return t;}
         Colour GetC() {return c;}
 
         // Predefine so that it can be customised per piece
-        virtual bool ValidMove(Piece* Target) {return false;}
+        virtual bool isValidMove(int targetX, int targetY) {return false;}
+
+        // For creating new pieces
+        virtual Piece* Clone() {return new Piece(*this);}
     };
 //
 
 // Type specific definitions
-    struct Pawn : protected Piece{
-        friend class Board;
+    struct Pawn : public Piece{
     public:
         Pawn(Colour c) : Piece(c) {t=PAWN;return;}
-        bool ValidMove(Piece* Target);
+        bool isValidMove(int targetX, int targetY);
+
+        Piece* Clone() {return new Pawn(*this);}
     };
 
     struct Bishop : protected Piece{
         friend class Board;
     public:
         Bishop(Colour c) : Piece(c) {t=BISHOP;return;}
-        bool ValidMove(Piece* Target);
+        bool isValidMove(int targetX, int targetY);
+
+        Piece* Clone() {return new Bishop(*this);}
     };
 
     struct Rook : protected Piece{
         friend class Board;
     public:
         Rook(Colour c) : Piece(c) {t=ROOK;return;}
-        bool ValidMove(Piece* Target);
+        bool isValidMove(int targetX, int targetY);
+
+        Piece* Clone() {return new Rook(*this);}
     };
 
     struct Knight : protected Piece{
         friend class Board;
     public:
         Knight(Colour c) : Piece(c) {t=KNITGHT;return;}
-        bool ValidMove(Piece* Target);
+        bool isValidMove(int targetX, int targetY);
+
+        Piece* Clone() {return new Knight(*this);}
     };
 
     struct Queen : protected Piece{
         friend class Board;
     public:
         Queen(Colour c) : Piece(c) {t=QUEEN;return;}
-        bool ValidMove(Piece* Target);
+        bool isValidMove(int targetX, int targetY);
+
+        Piece* Clone() {return new Queen(*this);}
     };
 
     struct King : protected Piece{
         friend class Board;
     public:
         King(Colour c) : Piece(c) {t=KING;return;}
-        bool ValidMove(Piece* Target);
+        bool isValidMove(int targetX, int targetY);
+
+        Piece* Clone() {return new King(*this);}
     };
 //

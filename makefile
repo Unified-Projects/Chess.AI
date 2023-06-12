@@ -1,5 +1,5 @@
-CXX = g++
-C_FLAGS =
+CXX = gcc
+C_FLAGS = -Wall -Wextra -fno-exceptions -fno-rtti -Wno-write-strings -Wno-unused-parameter -Wno-sign-compare
 LD_FLAGS = -lstdc++
 
 SRC_DIR = src
