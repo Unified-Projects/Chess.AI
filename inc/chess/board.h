@@ -17,9 +17,9 @@ protected: // Standardised
     static std::map<char, Type> typeMapper; // Usefull for the move notation and checking if it is valid
 
 protected: // Private board management
-    Piece board[8][8] = {};
+    Piece* board[8][8] = {};
 
-    void SetPiece(int X, int Y, Piece p);
+    void SetPiece(int X, int Y, Piece* p);
 
 public: // Setup / De-setup
     // Probably should do something with me
@@ -33,7 +33,8 @@ public: // Setup / De-setup
 
 public: // Gameplay
     // Get a piece from the board (Used by pieces for validation purposes)
-    Piece* GetPieceAtPosition(int X, int Y) {UNIMPLEMENTED; return new Piece(/*NULL PIECE / Temporary*/);}
+    Piece* GetPieceAtPosition(int X, int Y);
+    Piece* GetPieceAtPosition(char X, int Y);
 
     // Play a move, independent of colour
     void PlayMove(std::string notation) {UNIMPLEMENTED}; // Try to use standard notations

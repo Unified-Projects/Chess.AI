@@ -8,19 +8,22 @@ int main() {
 
     Board.LogBoard();
 
-    int startX = 0;
-    int startY = 1;
-    int targetX = 0;
-    int targetY = 2;
+    int startX = 1;
+    int startY = 2;
+    int targetX = 1;
+    int targetY = 3;
 
     Piece* p = Board.GetPieceAtPosition(startX, startY);
 
-    std::cout << Colour (p->GetC()) << std::endl;
+    std::cout << p->GetT() << std::endl;
+    std::cout << p->GetC() << std::endl;
 
-    if (p->isValidMove(targetX, targetY)) {
-        std::cout << "Valid Move" << std::endl;
+    bool result = p->isValidMove(targetX, targetY);
+
+    if (result) {
+        std::cout << "Valid Move " << result << std::endl;
     } else {
-        std::cout << "Invalid Move" << std::endl;
+        std::cout << "Invalid Move " << result << std::endl;
     }
 
     return 0;

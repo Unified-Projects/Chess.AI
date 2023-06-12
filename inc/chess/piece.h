@@ -55,8 +55,7 @@ class Board;
 //
 
 // Type specific definitions
-    struct Pawn : protected Piece{
-        friend class Board;
+    struct Pawn : public Piece{
     public:
         Pawn(Colour c) : Piece(c) {t=PAWN;return;}
         bool ValidMove(Piece* Target);

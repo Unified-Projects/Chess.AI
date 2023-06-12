@@ -20,19 +20,17 @@ bool Pawn::isValidMove(int targetX, int targetY) {
     Board board;
     Piece* targetPiece = board.GetPieceAtPosition(targetX, targetY);
 
+    std::cout << "Type: " << targetPiece->GetT() << std::endl;
+
+    // Piece not moved
+    if (targetX == X && targetY == Y){
+        return false;
+    }
+
     // Check if piece can move forward
     // Check if the target is in the same column
-    if (targetX == X) {
-        // Check if the target is in the next two rows
-        if (targetY == (Y + 1) || targetY == (Y + 2)) {
-            // Check if enemy piece is present at target
-            for (int i = Y; i < targetY; i++) {
-                Piece* targetPiece = board.GetPieceAtPosition(targetX, i);
-                if (targetPiece) {
-                    return false;
-                }
-            }
-        }
+    if (targetX == X && targetPiece->GetT() == NULE_T) {
+        return true;
     }
     // Check for taking
     else {
