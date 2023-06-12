@@ -3,7 +3,7 @@
 
 // TEMPORARY INCLUDES
     #include <iostream>
-        #define UNIMPLEMENTED std::cout << "Unimplemented " << __LINE__ << std::endl;
+    #define UNIMPLEMENTED std::cout << "Unimplemented " << __FILE__ << ":" << __LINE__ << std::endl;
 //
 
 bool Pawn::isValidMove(int targetX, int targetY) {
@@ -17,10 +17,12 @@ bool Pawn::isValidMove(int targetX, int targetY) {
             that pawn can take piece by going diagonal into a empty space.
     */
 
-    Board board;
-    Piece* targetPiece = board.GetPieceAtPosition(targetX, targetY);
+    Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
 
-    std::cout << "Type: " << targetPiece->GetT() << std::endl;
+    std::cout << "Type: " << /*targetPiece->GetT()*/ 0 << std::endl;
+    std::cout << targetX << " " << X << std::endl;
+    std::cout << targetY << " " << Y << std::endl;
+    // std::cout << targetPiece << std::endl;
 
     // Piece not moved
     if (targetX == X && targetY == Y){
@@ -38,13 +40,13 @@ bool Pawn::isValidMove(int targetX, int targetY) {
         if (targetX == (X + 1) || targetX == (X-1)) {
             // Check if the target is in the next row
             if (targetY == (Y + ( (-1 * (c == WHITE)) + ( 1 * (c == BLACK)) ))) { // Color correction needed
-                // Check if enemy piece is present at target
-                Piece* targetPiece = board.GetPieceAtPosition(targetX, targetY);
-                if (targetPiece) {
-                    if (Colour (targetPiece->GetC()) != c) {
-                        return true;
-                    }
-                }
+            //     // Check if enemy piece is present at target
+            //     int targetX, int targetYPiece = b->GetPieceAtPosition(targetX, targetY);
+            //     if (targetPiece) {
+            //         if (Colour (targetPiece->GetC()) != c) {
+            //             return true;
+            //         }
+            //     }
             }
         }
 
@@ -54,32 +56,27 @@ bool Pawn::isValidMove(int targetX, int targetY) {
     return false;
 }
 
-bool Pawn::ValidMove(Piece* Target) {
+bool Knight::isValidMove(int targetX, int targetY) {
     UNIMPLEMENTED
     return false;
 }
 
-bool Knight::ValidMove(Piece* Target) {
+bool Rook::isValidMove(int targetX, int targetY) {
     UNIMPLEMENTED
     return false;
 }
 
-bool Rook::ValidMove(Piece* Target) {
+bool Bishop::isValidMove(int targetX, int targetY) {
     UNIMPLEMENTED
     return false;
 }
 
-bool Bishop::ValidMove(Piece* Target) {
+bool Queen::isValidMove(int targetX, int targetY) {
     UNIMPLEMENTED
     return false;
 }
 
-bool Queen::ValidMove(Piece* Target) {
-    UNIMPLEMENTED
-    return false;
-}
-
-bool King::ValidMove(Piece* Target) {
+bool King::isValidMove(int targetX, int targetY) {
     UNIMPLEMENTED
     return false;
 }

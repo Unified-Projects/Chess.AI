@@ -9,7 +9,7 @@ int main() {
     Board.LogBoard();
 
     int startX = 1;
-    int startY = 2;
+    int startY = 1;
     int targetX = 1;
     int targetY = 3;
 

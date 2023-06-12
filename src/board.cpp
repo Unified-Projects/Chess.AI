@@ -2,17 +2,17 @@
 
 // TEMPORARY INCLUDES
     #include <iostream>
-        #define UNIMPLEMENTED std::cout << "Unimplemented " << __LINE__ << std::endl;
+        #define UNIMPLEMENTED std::cout << "Unimplemented " << __FILE__ << ":" << __LINE__ << std::endl;
 //
 
 // Static definition for mapping
-std::map<char, Piece> Board::pieceMapper = {
-        {'r', Rook(BLACK)}, {'R', Rook(WHITE)},
-        {'n', Knight(BLACK)}, {'N', Knight(WHITE)},
-        {'p', Pawn(BLACK)}, {'P', Pawn(WHITE)},
-        {'b', Bishop(BLACK)}, {'B', Bishop(WHITE)},
-        {'q', Queen(BLACK)}, {'Q', Queen(WHITE)},
-        {'k', King(BLACK)}, {'K', King(WHITE)},
+std::map<char, Piece*> Board::pieceMapper = {
+        {'r', new Rook(BLACK)}, {'R', new Rook(WHITE)},
+        {'n', new Knight(BLACK)}, {'N', new Knight(WHITE)},
+        {'p', new Pawn(BLACK)}, {'P', new Pawn(WHITE)},
+        {'b', new Bishop(BLACK)}, {'B', new Bishop(WHITE)},
+        {'q', new Queen(BLACK)}, {'Q', new Queen(WHITE)},
+        {'k', new King(BLACK)}, {'K', new King(WHITE)},
     };
 std::map<char, Type> Board::typeMapper = {
         {'r', ROOK}, {'R', ROOK},
@@ -26,10 +26,10 @@ std::map<char, Type> Board::typeMapper = {
 void Board::SetPiece(int X, int Y, Piece* p){
     // Load to the board
         // YX as in row then collumn
-        // Yes we map 8 to 1 and 1 to 7 just as it's easier
+        // Yes we map 8 to 1 and 1 to 8 just as it's easier
     board[Y][X] = p;
-    board[Y][X]->X = X;
-    board[Y][X]->Y = Y;
+    board[Y][X]->X = X + 1;
+    board[Y][X]->Y = Y + 1;
     board[Y][X]->b = this; // So that pieces can acces the current board (Instead of global so that multiple boards can be active at once (Training AI))
 }
 
@@ -82,7 +82,8 @@ void Board::InitBoard(std::string FEN) {
         // Check if it is a digit
         if (*FEN_STR >= '1' && *FEN_STR <= '8') {
             for (int i = 0; i < *FEN_STR - 48; i++) {
-                board[LocalY][LocalX + i] = new Piece();
+                // board[LocalY][LocalX + i] = new Piece();
+                SetPiece(LocalX + i, LocalY, new Piece());
             }
             LocalX += *FEN_STR - 48;
             continue;
@@ -101,10 +102,12 @@ void Board::InitBoard(std::string FEN) {
         }
 
         // Piece assignment according to map
-        Piece* NewPiece = (Piece*)malloc(sizeof(pieceMapper[*FEN_STR]));
-        memcpy(NewPiece, &pieceMapper[*FEN_STR], sizeof(pieceMapper[*FEN_STR]));
+        // Piece* NewPiece = (Piece*)malloc(sizeof(pieceMapper[*FEN_STR]));
+        // memcpy(NewPiece, &pieceMapper[*FEN_STR], sizeof(pieceMapper[*FEN_STR]));
 
-        SetPiece(LocalX, LocalY, NewPiece);
+        // Piece* NewPiece = new Piece(pieceMapper[*FEN_STR]);
+        SetPiece(LocalX, LocalY, (Piece*)(pieceMapper[*FEN_STR]->Clone()));
+        // SetPiece(LocalX, LocalY, new Pawn(WHITE));
 
         // Move horizonatally
         LocalX++;
@@ -113,8 +116,12 @@ void Board::InitBoard(std::string FEN) {
 
 void Board::LogBoard(){
     // Iterate both over rows and columns
-    for (int i = 0; i < 8; i++) {
+    for (int i = 7; i >= 0; i--) {
         for (int j = 0; j < 8; j++) {
+
+            // std::cout << '(' << j+1 << ',' << i+1 << ')';
+
+            // continue;
 
             // Get the current pieces colour and type
             Type t = board[i][j]->t;
@@ -154,7 +161,7 @@ void Board::LogBoard(){
 Piece* Board::GetPieceAtPosition(int X, int Y) {
     // Note as our list goes 0-7 from top to bottom
     //      We need to map the positions to standards
-    return board[8-Y][X - 1];
+    return board[Y-1][X-1];
 }
 
 // Standard using letters for the X-Axis
