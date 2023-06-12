@@ -17,12 +17,8 @@ bool Pawn::isValidMove(int targetX, int targetY) {
             that pawn can take piece by going diagonal into a empty space.
     */
 
+    // Get the piece at position we aim for
     Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
-
-    std::cout << "Type: " << /*targetPiece->GetT()*/ 0 << std::endl;
-    std::cout << targetX << " " << X << std::endl;
-    std::cout << targetY << " " << Y << std::endl;
-    // std::cout << targetPiece << std::endl;
 
     // Piece not moved
     if (targetX == X && targetY == Y){
@@ -32,26 +28,33 @@ bool Pawn::isValidMove(int targetX, int targetY) {
     // Check if piece can move forward
     // Check if the target is in the same column
     if (targetX == X && targetPiece->GetT() == NULE_T) {
-        return true;
+        // Calculate the pieces forward (Depending on colour)
+        int diff = (targetY - Y) * ((c == WHITE) ? 1 : -1);
+
+        // Make sure it's valid for the mvo
+        if (diff <= ((moveCount == 0) ? 2 : 1) && diff > 0){
+            return true;
+        }
     }
     // Check for taking
     else {
         // Check if the target is in neighbouring column
-        if (targetX == (X + 1) || targetX == (X-1)) {
+        if (targetX == (X+1) || targetX == (X-1)) {
             // Check if the target is in the next row
-            if (targetY == (Y + ( (-1 * (c == WHITE)) + ( 1 * (c == BLACK)) ))) { // Color correction needed
-            //     // Check if enemy piece is present at target
-            //     int targetX, int targetYPiece = b->GetPieceAtPosition(targetX, targetY);
-            //     if (targetPiece) {
-            //         if (Colour (targetPiece->GetC()) != c) {
-            //             return true;
-            //         }
-            //     }
+            if (targetY == Y + ((c == WHITE) ? 1 : -1)) {
+                // Check if enemy piece is present at target
+                if (targetPiece->GetT() != NULE_T) {
+                    if (Colour (targetPiece->GetC()) != c) {
+                        return true;
+                    }
+                }
             }
         }
 
         // TODO: Implement En passent detection (By checking if the piece has moved before)
     }
+
+    // TODO: Implement promotion
 
     return false;
 }

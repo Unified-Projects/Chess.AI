@@ -37,7 +37,8 @@ public: // Gameplay
     Piece* GetPieceAtPosition(char X, int Y);
 
     // Play a move, independent of colour
-    void PlayMove(std::string notation) {UNIMPLEMENTED}; // Try to use standard notations
+    bool PlayMove(std::string notation) {UNIMPLEMENTED return false;}; // Try to use standard notations
+    bool MovePiece(int startX, int startY, int endX, int endY); // Simpler moving function TODO: REMOVE AND REPLACE WITH BETTER PlayMove
 
 public: // Debuggers
     void LogBoard(); // Print board to console

@@ -83,7 +83,7 @@ void Board::InitBoard(std::string FEN) {
         if (*FEN_STR >= '1' && *FEN_STR <= '8') {
             for (int i = 0; i < *FEN_STR - 48; i++) {
                 // board[LocalY][LocalX + i] = new Piece();
-                SetPiece(LocalX + i, LocalY, new Piece());
+                SetPiece(LocalX + i, 7 - LocalY, new Piece());
             }
             LocalX += *FEN_STR - 48;
             continue;
@@ -102,12 +102,7 @@ void Board::InitBoard(std::string FEN) {
         }
 
         // Piece assignment according to map
-        // Piece* NewPiece = (Piece*)malloc(sizeof(pieceMapper[*FEN_STR]));
-        // memcpy(NewPiece, &pieceMapper[*FEN_STR], sizeof(pieceMapper[*FEN_STR]));
-
-        // Piece* NewPiece = new Piece(pieceMapper[*FEN_STR]);
-        SetPiece(LocalX, LocalY, (Piece*)(pieceMapper[*FEN_STR]->Clone()));
-        // SetPiece(LocalX, LocalY, new Pawn(WHITE));
+        SetPiece(LocalX, 7 - LocalY, pieceMapper[*FEN_STR]->Clone());
 
         // Move horizonatally
         LocalX++;
@@ -169,4 +164,24 @@ Piece* Board::GetPieceAtPosition(char X, int Y) {
     // Note as our list goes 0-7 from top to bottom
     //      We need to map the positions to standards
     return board[8-Y][X - 65]; // Subtract 'A' to perfom mapping
+}
+
+bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
+    // First find the piece that we want to move
+    Piece* targetPiece = GetPieceAtPosition(startX, startY);
+
+    // We want to check if the provided swap is a valid move
+    bool validMove = targetPiece->isValidMove(targetX, targetY);
+    if (!validMove) { // Return as the move impossible (Handler built on other end)
+        return false;
+    }
+
+    // If so we want to move the piece, and then delete the piece that was already there
+    SetPiece(targetX-1, targetY-1, targetPiece);
+
+    // Fill in gap made
+    SetPiece(startX-1, startY-1, new Piece());
+
+    // TODO: UPDATE GAME STATS, IF SPECIAL MOVES ARE ALLOWED, LOOK FOR CHECK, LOOK FOR CHECKMATE
+    return true;
 }
