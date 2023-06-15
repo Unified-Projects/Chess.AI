@@ -1,3 +1,8 @@
+# Temporary definition to fix usage on my system.
+ifeq ($(OS),Windows_NT)
+	SHELL := cmd
+endif
+
 CXX = gcc
 C_FLAGS = -Wall -Wextra -fno-exceptions -fno-rtti -Wno-write-strings -Wno-unused-parameter -Wno-sign-compare
 LD_FLAGS = -lstdc++
