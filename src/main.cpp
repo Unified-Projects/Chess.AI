@@ -4,8 +4,8 @@
 
 int main() {
     Board Board;
-    // Board.InitBoard();
-    Board.InitBoard("8/8/8/8/rnbqkbnr/pppppppp/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    Board.InitBoard();
+    // Board.InitBoard("8/8/8/8/rnbqkbnr/pppppppp/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     // Board.InitBoard("8/8/8/rnbqkbnr/pppppppp/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     // Board.InitBoard("8/8/rnbqkbnr/pppppppp/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     // Board.InitBoard("8/rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -13,10 +13,10 @@ int main() {
 
     Board.LogBoard();
 
-    int startX = 2;
-    int startY = 2;
+    int startX = 1;
+    int startY = 1;
     int targetX = 1;
-    int targetY = 1;
+    int targetY = 3;
 
     bool movedPiece = Board.MovePiece(startX, startY, targetX, targetY);
 
@@ -24,22 +24,6 @@ int main() {
             << (movedPiece ? "True" : "False") << std::endl;
 
     Board.LogBoard();
-
-    // Piece* p = Board.GetPieceAtPosition(startX, startY);
-
-    // std::cout << p->GetT() << std::endl;
-    // std::cout << p->GetC() << std::endl;
-
-    // bool result = p->isValidMove(targetX, targetY);
-
-    // if (result) {
-    //     std::cout << "Valid Move " << result << std::endl;
-
-    //     Board.MovePiece(startX, startY, targetX, targetY);
-
-    // } else {
-    //     std::cout << "Invalid Move " << result << std::endl;
-    // }
 
     return 0;
 }
