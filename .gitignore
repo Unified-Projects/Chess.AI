@@ -1,6 +1,12 @@
+# Reject build directories
 build/
 obj/
 
+# Sample file
 chess-fen-infographics.png
 
+# Editor cache
 .vscode/
+
+# Allow cmake debug file
+!.vscode/launch.json
