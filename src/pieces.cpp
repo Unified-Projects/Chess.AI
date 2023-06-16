@@ -20,11 +20,6 @@ bool Pawn::isValidMove(int targetX, int targetY) {
     // Get the piece at position we aim for
     Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
 
-    // Piece not moved
-    if (targetX == X && targetY == Y && targetPiece->GetC() == this->c){
-        return false;
-    }
-
     // Check if piece can move forward
     // Check if the target is in the same column
     if (targetX == X && targetPiece->GetT() == NULE_T) {
@@ -49,13 +44,13 @@ bool Pawn::isValidMove(int targetX, int targetY) {
             }
         }
 
-        // TODO: Implement En passent detection (By checking if the piece has moved before) 
+        // TODO: Implement En passent detection (By checking if the piece has moved before)
             /* Requirements
                 The capturing pawn must have already moved exactly three ranks to perform this move.
                 The captured pawn must have moved two squares in one move, landing right next to the capturing pawn. (First move)
                 The en passant capture must be performed on the turn immediately after the pawn being captured moves.
             */
-            
+
     }
 
     // TODO: Implement promotion
@@ -67,11 +62,6 @@ bool Pawn::isValidMove(int targetX, int targetY) {
 bool Knight::isValidMove(int targetX, int targetY) {
     // Get the piece at position we aim for
     Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
-
-    // Piece not moved
-    if (targetX == X && targetY == Y && targetPiece->GetC() == this->c){
-        return false;
-    }
 
     // Basic shape is the only requirment
     int dx = abs(targetX - X);
@@ -88,20 +78,13 @@ bool Rook::isValidMove(int targetX, int targetY) {
     // Get the piece at position we aim for
     Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
 
-    // Piece not moved
-    if (targetX == X && targetY == Y || targetPiece && targetPiece->GetC() == this->c){
-        return false;
-    }
-
     // Direction
     int dx = (targetX - X > 0) ? 1 : -1;
     int dy = (targetY - Y > 0) ? 1 : -1;
 
-    std::cout << "Rook: " << dx << " " << dy << std::endl;
-    
     if(0 == targetX - X && 0 != targetY - Y){
         // Now follow in direction of y +- depending on dy
-        for (int y = Y; y != targetY - Y; y += dy){
+        for (int y = dy; y < targetY - Y; y += dy){
             if (b->GetPieceAtPosition(X, Y + y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
                 return false;
             }
@@ -110,7 +93,7 @@ bool Rook::isValidMove(int targetX, int targetY) {
     }
     else if(0 != targetX - X && 0 == targetY - Y){
         // Now follow in direction of x +- depending on dx
-        for (int x = X; x != targetX - X; x += dx){
+        for (int x = dx; x < targetX - X; x += dx){
             if (b->GetPieceAtPosition(X + x, Y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
                 return false;
             }
@@ -122,16 +105,110 @@ bool Rook::isValidMove(int targetX, int targetY) {
 }
 
 bool Bishop::isValidMove(int targetX, int targetY) {
-    UNIMPLEMENTED
+    // Get the piece at position we aim for
+    Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
+
+    // Direction
+    int dirx = (targetX - X > 0) ? 1 : -1;
+    int diry = (targetY - Y > 0) ? 1 : -1;
+    int dx = abs(targetX - X);
+    int dy = abs(targetY - Y);
+
+    // Check if move is diagonal
+    if(dx == dy) {
+        for (int distance = 1; distance <= dy; distance++) { // Look in diagonal distance
+            if (b->GetPieceAtPosition(X + (distance*dirx), Y + (distance*diry))->GetT() != NULE_T) { // Piece present and we are not trying to capture
+                return false;
+            }
+        }
+        return true;
+    }
+
     return false;
 }
 
 bool Queen::isValidMove(int targetX, int targetY) {
-    UNIMPLEMENTED
+    // Get the piece at position we aim for
+    Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
+
+    // Direction
+    int dirx = (targetX - X > 0) ? 1 : -1;
+    int diry = (targetY - Y > 0) ? 1 : -1;
+    int dx = targetX - X;
+    int dy = targetY - Y;
+
+    if(0 == dx && 0 != dy){
+        // Now follow in direction of y +- depending on dy
+        for (int y = diry; y < dy; y += diry){
+            if (b->GetPieceAtPosition(X, Y + y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
+                return false;
+            }
+        }
+        return true;
+    }
+    else if(0 != dx && 0 == dy){
+        // Now follow in direction of x +- depending on dx
+        for (int x = dirx; x < dx; x += dirx){
+            if (b->GetPieceAtPosition(X + x, Y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
+                return false;
+            }
+        }
+        return true;
+    }
+    else if(abs(dx) == abs(dy)){
+        for (int distance = 1; distance <= abs(dy); distance ++){ // Look in diagonal distance
+            if (b->GetPieceAtPosition(X + (distance*dirx), Y + (distance*diry))->GetT() != NULE_T){ // Piece present and we are not trying to capture
+                return false;
+            }
+        }
+        return true;
+    }
+
     return false;
 }
 
 bool King::isValidMove(int targetX, int targetY) {
-    UNIMPLEMENTED
+    // Get the piece at position we aim for
+    Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
+
+    // Direction
+    int dirx = (targetX - X > 0) ? 1 : -1;
+    int diry = (targetY - Y > 0) ? 1 : -1;
+    int dx = targetX - X;
+    int dy = targetY - Y;
+
+    if (abs(dx) > 1 || abs(dy) > 1){
+        return false;
+    }
+
+    if(0 == dx && 0 != dy){
+        // Now follow in direction of y +- depending on dy
+        for (int y = diry; y < dy; y += diry){
+            if (b->GetPieceAtPosition(X, Y + y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
+                return false;
+            }
+        }
+        return true;
+    }
+    else if(0 != dx && 0 == dy){
+        // Now follow in direction of x +- depending on dx
+        for (int x = dirx; x < dx; x += dirx){
+            if (b->GetPieceAtPosition(X + x, Y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
+                return false;
+            }
+        }
+        return true;
+    }
+    else if(abs(dx) == abs(dy)){
+        for (int distance = 1; distance <= abs(dy); distance ++){ // Look in diagonal distance
+            if (b->GetPieceAtPosition(X + (distance*dirx), Y + (distance*diry))->GetT() != NULE_T){ // Piece present and we are not trying to capture
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Castling
+
     return false;
 }

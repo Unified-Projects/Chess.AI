@@ -11,19 +11,31 @@ int main() {
     // Board.InitBoard("8/rnbqkbnr/pppppppp/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     // Board.InitBoard("rnbqkbnr/pppppppp/PPPPPPPP/8/8/8/8/RNBQKBNR w KQkq - 0 1");
 
-    Board.LogBoard();
+    // return 0;
 
-    int startX = 1;
-    int startY = 1;
-    int targetX = 1;
-    int targetY = 3;
+    while (true){
+        Board.LogBoard();
 
-    bool movedPiece = Board.MovePiece(startX, startY, targetX, targetY);
+        int startX = 0;
+        int startY = 0;
+        std::cout << "StartX: ";
+        std::cin >> startX;
+        std::cout << "StartY: ";
+        std::cin >> startY;
 
-    std::cout << "Moved piece: "
-            << (movedPiece ? "True" : "False") << std::endl;
+        int moveX = 0;
+        int moveY = 0;
+        std::cout << "MoveX: ";
+        std::cin >> moveX;
+        std::cout << "MoveY: ";
+        std::cin >> moveY;
 
-    Board.LogBoard();
+        Board.LogBoard();
+
+        bool movedPiece = Board.MovePiece(startX, startY, moveX, moveY);
+
+        std::cout << "Moved! :)" << std::endl;
+    }
 
     return 0;
 }

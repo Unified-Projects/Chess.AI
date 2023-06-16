@@ -169,6 +169,17 @@ Piece* Board::GetPieceAtPosition(char X, int Y) {
 bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
     // First find the piece that we want to move
     Piece* targetPiece = GetPieceAtPosition(startX, startY);
+    Piece* endPiece = GetPieceAtPosition(targetX, targetY);
+
+    // Check if the target location is within the board
+    if (targetX < 1 || targetX > 8 || targetY < 1 || targetY > 8) {
+        return false;
+    }
+
+    // Piece not moved or Attacking team-mate or Attacking team-mate
+    if ((startX == targetX && startY == targetY) || endPiece->GetC() == targetPiece->GetC()){
+        return false;
+    }
 
     // We want to check if the provided swap is a valid move
     bool validMove = targetPiece->isValidMove(targetX, targetY);
