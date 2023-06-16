@@ -116,7 +116,7 @@ bool Bishop::isValidMove(int targetX, int targetY) {
 
     // Check if move is diagonal
     if(dx == dy) {
-        for (int distance = 1; distance <= dy; distance++) { // Look in diagonal distance
+        for (int distance = 1; distance < dy; distance++) { // Look in diagonal distance
             if (b->GetPieceAtPosition(X + (distance*dirx), Y + (distance*diry))->GetT() != NULE_T) { // Piece present and we are not trying to capture
                 return false;
             }
@@ -156,7 +156,7 @@ bool Queen::isValidMove(int targetX, int targetY) {
         return true;
     }
     else if(abs(dx) == abs(dy)){
-        for (int distance = 1; distance <= abs(dy); distance ++){ // Look in diagonal distance
+        for (int distance = 1; distance < abs(dy); distance ++){ // Look in diagonal distance
             if (b->GetPieceAtPosition(X + (distance*dirx), Y + (distance*diry))->GetT() != NULE_T){ // Piece present and we are not trying to capture
                 return false;
             }
@@ -177,7 +177,46 @@ bool King::isValidMove(int targetX, int targetY) {
     int dx = targetX - X;
     int dy = targetY - Y;
 
-    if (abs(dx) > 1 || abs(dy) > 1){
+    // Castling
+    /*
+        Direction dependent
+        The king or castle cant move before
+        Must not be in check, or have the move go through being in check
+        No pieces in between
+    */
+    // TODO: see if currently in check
+    if(abs(dx) == 2 && dy == 0 && moveCount == 0){
+        int dist = 0;
+        if(dx < 0){
+            dist = -4;
+        }
+        else{
+            dist = 3;
+        }
+
+        // Check the castle has not moved
+        Piece* castle = b->GetPieceAtPosition(X + dist, Y);
+        if(castle->moveCount != 0 && castle->GetT() == ROOK && castle->GetC() == c){
+            return false;
+        }
+
+        // Now follow in direction of x +- depending on dx
+        for (int x = dirx; x != dist; x += dirx){
+            if (b->GetPieceAtPosition(X + x, Y)->GetT() != NULE_T){ // Piece present and there cant be
+                return false;
+            }
+        }
+
+        if(dx < 0){
+            b->MovePiece(1, Y, 4, Y);
+        }
+        else{
+            b->MovePiece(8, Y, 6, Y);
+        }
+
+        return true;
+    }
+    else if (abs(dx) > 1 || abs(dy) > 1){
         return false;
     }
 
@@ -199,16 +238,15 @@ bool King::isValidMove(int targetX, int targetY) {
         }
         return true;
     }
-    else if(abs(dx) == abs(dy)){
-        for (int distance = 1; distance <= abs(dy); distance ++){ // Look in diagonal distance
+    else if(abs(dx) == abs(dy) && abs(dx)){
+        for (int distance = 1; distance < abs(dy); distance ++){ // Look in diagonal distance
             if (b->GetPieceAtPosition(X + (distance*dirx), Y + (distance*diry))->GetT() != NULE_T){ // Piece present and we are not trying to capture
                 return false;
             }
         }
         return true;
     }
-
-    // Castling
+   
 
     return false;
 }

@@ -102,10 +102,48 @@ void Board::InitBoard(std::string FEN) {
         }
 
         // Piece assignment according to map
-        SetPiece(LocalX, 7 - LocalY, pieceMapper[*FEN_STR]->Clone());
+        Piece* newPiece = pieceMapper[*FEN_STR]->Clone();
+        SetPiece(LocalX, 7 - LocalY, newPiece);
+
+        if (newPiece->t == KING){
+            if (newPiece->c == WHITE){
+                WhiteKing = newPiece;
+            }
+            else{
+                BlackKing = newPiece;
+            }
+        }
 
         // Move horizonatally
         LocalX++;
+    }
+
+    for(int x = 1; x <= 8; x++){
+        for (int y = 1; y <= 8; y++){
+            Piece* targetPiece = GetPieceAtPosition(x, y);
+            if(targetPiece->GetC() == NULE){
+                continue;
+            }
+
+            bool PrevW = WhiteCheck;
+            bool PrevB = BlackCheck;
+
+            // Piece not moved or Attacking team-mate or Attacking team-mate
+            if (!(targetPiece->X == WhiteKing->X && targetPiece->Y == WhiteKing->Y) && targetPiece->GetC() != WHITE){
+                WhiteCheck = targetPiece->isValidMove(WhiteKing->X, WhiteKing->Y); // WHITE
+            }
+            // Piece not moved or Attacking team-mate or Attacking team-mate
+            if (!(targetPiece->X == BlackKing->X && targetPiece->Y == BlackKing->Y) && targetPiece->GetC() != BLACK){
+                BlackCheck = targetPiece->isValidMove(BlackKing->X, BlackKing->Y); // BLACK
+            }
+
+            if(WhiteCheck || BlackCheck){
+                break;
+            }
+        }
+        if(WhiteCheck || BlackCheck){
+            break;
+        }
     }
 }
 
@@ -193,6 +231,62 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
     // Fill in gap made
     SetPiece(startX-1, startY-1, new Piece());
 
-    // TODO: UPDATE GAME STATS, IF SPECIAL MOVES ARE ALLOWED, LOOK FOR CHECK, LOOK FOR CHECKMATE
+    // TODO: UPDATE GAME STATS, IF SPECIAL MOVES ARE ALLOWED, LOOK FOR CHECKMATE
+
+    // Im going to do a SUPER in-efficient check checker because im lazy and want the functionality now
+        // The better option would be to check all move optiosn out of the kings position
+        // and see if they are a opposing piece capable of the move (Dont search further than it if it blocks other)
+    bool PrevW = WhiteCheck;
+    bool PrevB = BlackCheck;
+
+    WhiteCheck = 0;
+    BlackCheck = 0;
+
+    for(int x = 1; x <= 8; x++){
+        for (int y = 1; y <= 8; y++){
+            Piece* tp = GetPieceAtPosition(x, y);
+            if(tp->GetC() == NULE){
+                continue;
+            }
+
+
+            // Piece not moved or Attacking team-mate or Attacking team-mate
+            if (!(tp->X == WhiteKing->X && tp->Y == WhiteKing->Y) && tp->GetC() != WHITE){
+                WhiteCheck = tp->isValidMove(WhiteKing->X, WhiteKing->Y); // WHITE
+            }
+            // Piece not moved or Attacking team-mate or Attacking team-mate
+            if (!(tp->X == BlackKing->X && tp->Y == BlackKing->Y) && tp->GetC() != BLACK){
+                BlackCheck = tp->isValidMove(BlackKing->X, BlackKing->Y); // BLACK
+            }
+
+            if(WhiteCheck){
+                if(PrevW){
+                    Piece* empty = GetPieceAtPosition(startX, startY);
+                    SetPiece(startX-1, startY-1, targetPiece);
+                    SetPiece(targetX-1, targetY-1, endPiece);
+
+                    delete empty;
+                }
+                else{
+                    break;
+                }
+            }
+            if(BlackCheck){
+                if(PrevB){
+                    Piece* empty = GetPieceAtPosition(startX, startY);
+                    SetPiece(startX-1, startY-1, targetPiece);
+                    SetPiece(targetX-1, targetY-1, endPiece);
+
+                    delete empty;
+                }
+                else{
+                    break;
+                }
+            }
+        }
+        if(WhiteCheck || BlackCheck){
+            break;
+        }
+    }
     return true;
 }

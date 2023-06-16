@@ -21,6 +21,14 @@ protected: // Private board management
 
     void SetPiece(int X, int Y, Piece* p);
 
+    // Check management
+    bool WhiteCheck = false;
+    bool BlackCheck = false;
+    
+    // King savings
+    Piece* WhiteKing = nullptr;
+    Piece* BlackKing = nullptr;
+
 public: // Setup / De-setup
     // Probably should do something with me
     Board() {return;}
