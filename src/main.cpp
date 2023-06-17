@@ -3,7 +3,9 @@
 #include <chess/piece.h>
 #include <time.h>
 
-int PossibleMoves(Board* b, Colour c = NULE, Type t = NULE_T, int x = -1, int y = -1){
+// TODO: REALISE THAT THE FEN COULD HAVE ROLES REVERSED SO BLACK START ON BOTTOM NOT TOP (HANDLING FOR THIS!)
+
+int PossibleMoves(Board* b, int LayerCount = 1, Colour c = NULE, Type t = NULE_T, int x = -1, int y = -1){
     if(x > 0 && y > 0 && x <= 8 && y <= 8){
         // Single piece
         //TODO
@@ -37,7 +39,7 @@ int PossibleMoves(Board* b, Colour c = NULE, Type t = NULE_T, int x = -1, int y 
 int main() {
     Board Board;
     // Board.InitBoard();
-    Board.InitBoard("7K/8/8/8/8/2Q5/8/k7 w - - 0 1");
+    Board.InitBoard("7K/P7/8/8/8/2Q5/8/k7 w - - 0 1");
     // Board.InitBoard("8/8/8/8/rnbqkbnr/pppppppp/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     // Board.InitBoard("8/8/8/rnbqkbnr/pppppppp/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     // Board.InitBoard("8/8/rnbqkbnr/pppppppp/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");

@@ -2,6 +2,7 @@
 #include <string>
 #include <chess/piece.h>
 #include <stdint.h>
+#include <vector>
 #include <map>
 #include <algorithm>
 #include <iostream>
@@ -10,7 +11,21 @@
     #define UNIMPLEMENTED std::cout << "Unimplemented " << __FILE__ << ":" << __LINE__ << std::endl;
 //
 
+// For caching previous moves
+struct MoveCache{
+    // Pieces
+    Piece* MovedPiece;
+    Piece* TargetPiece;
+
+    // Positions
+    int StartX;
+    int StartY;
+    int EndX;
+    int EndY;
+};
+
 class Board {
+    friend struct Piece;
 protected: // Standardised
     // Define standard map to FEN kesy to our defined pieces
     static std::map<char, Piece*> pieceMapper;
@@ -29,6 +44,9 @@ protected: // Private board management
     Piece* WhiteKing = nullptr;
     Piece* BlackKing = nullptr;
 
+    // Caching
+    std::vector<MoveCache> PlayedMoves;
+
 public: // Setup / De-setup
     // Probably should do something with me
     Board() {return;}
@@ -45,8 +63,12 @@ public: // Gameplay
     Piece* GetPieceAtPosition(char X, int Y);
 
     // Play a move, independent of colour
-    bool PlayMove(std::string notation) {UNIMPLEMENTED return false;}; // Try to use standard notations
-    bool MovePiece(int startX, int startY, int endX, int endY); // Simpler moving function TODO: REMOVE AND REPLACE WITH BETTER PlayMove
+    bool PlayMove(std::string notation) {UNIMPLEMENTED return false;}; // Try to use standard notations //TODO: Pipe into MovePiece after translating
+    bool MovePiece(int startX, int startY, int endX, int endY); // Simpler moving function
+    void UndoMove(); // Simple undo previous move
+
+    // Check Updater
+    void UpdateCheck();
 
 public: // Debuggers
     void LogBoard(); // Print board to console

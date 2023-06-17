@@ -26,8 +26,14 @@ bool Pawn::isValidMove(int targetX, int targetY) {
         // Calculate the pieces forward (Depending on colour)
         int diff = (targetY - Y) * ((c == WHITE) ? 1 : -1);
 
-        // Make sure it's valid for the mvo
+        // Make sure it's valid for the move
         if (diff <= ((moveCount == 0) ? 2 : 1) && diff > 0){
+            // TODO: Implement promotion
+                // Requires implementaion of a changer (not difficult)
+            if((c == WHITE && targetY == 8) || (c == BLACK && targetY == 1)){
+                //TODO: Capability to choose the piece to become
+                t = QUEEN;
+            }
             return true;
         }
     }
@@ -52,9 +58,6 @@ bool Pawn::isValidMove(int targetX, int targetY) {
             */
 
     }
-
-    // TODO: Implement promotion
-        // Requires implementaion of a changer (not difficult)
 
     return false;
 }
@@ -185,6 +188,8 @@ bool King::isValidMove(int targetX, int targetY) {
         No pieces in between
     */
     // TODO: see if currently in check
+        // Perfom the partion (going through check), then check check
+        // then undo move if in check and return that the move is invalid
     if(abs(dx) == 2 && dy == 0 && moveCount == 0){
         int dist = 0;
         if(dx < 0){

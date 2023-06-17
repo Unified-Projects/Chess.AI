@@ -118,15 +118,29 @@ void Board::InitBoard(std::string FEN) {
         LocalX++;
     }
 
+    // See if either in check
+    UpdateCheck();
+
+    return;
+}
+
+void Board::UpdateCheck(){
+    // Im going to do a in-efficient check checker because im lazy and want the functionality now
+        // The better option would be to check all move optiosn out of the kings position
+        // and see if they are a opposing piece capable of the move (Dont search further than it if it blocks other)
+
+    bool PrevW = WhiteCheck;
+    bool PrevB = BlackCheck;
+
+    WhiteCheck = false;
+    BlackCheck = false;
+
     for(int x = 1; x <= 8; x++){
         for (int y = 1; y <= 8; y++){
             Piece* targetPiece = GetPieceAtPosition(x, y);
             if(targetPiece->GetC() == NULE){
                 continue;
             }
-
-            bool PrevW = WhiteCheck;
-            bool PrevB = BlackCheck;
 
             // Piece not moved or Attacking team-mate or Attacking team-mate
             if (!(targetPiece->X == WhiteKing->X && targetPiece->Y == WhiteKing->Y) && targetPiece->GetC() != WHITE){
@@ -141,10 +155,12 @@ void Board::InitBoard(std::string FEN) {
                 break;
             }
         }
-        if(WhiteCheck || BlackCheck){
+        if(WhiteCheck || BlackCheck){ // May lead to issue by seeing if only one is in check, but standard should be this
             break;
         }
     }
+
+    return;
 }
 
 void Board::LogBoard(){
@@ -189,6 +205,8 @@ void Board::LogBoard(){
         // New row so new line
         std::cout << std::endl;
     }
+
+    return;
 }
 
 Piece* Board::GetPieceAtPosition(int X, int Y) {
@@ -209,6 +227,9 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
     Piece* targetPiece = GetPieceAtPosition(startX, startY);
     Piece* endPiece = GetPieceAtPosition(targetX, targetY);
 
+    // Record the type
+    Type t = targetPiece->t;
+
     // Check if the target location is within the board
     if (targetX < 1 || targetX > 8 || targetY < 1 || targetY > 8) {
         return false;
@@ -225,6 +246,27 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
         return false;
     }
 
+    // See if the pawn changed piece
+    if(t == PAWN && targetPiece->t != PAWN){
+        // TODO: Change depending on new type
+        // Piece* Changed = ((Queen*)targetPiece)->Clone();
+        Piece* Changed = new Queen(*((Queen*)targetPiece));
+
+        // Store Pawn for move undo
+        Piece* Old = targetPiece;
+        Old->t = PAWN;
+
+        // Replace Pawn
+        targetPiece = Changed;
+
+        // Store Move with old piece
+        PlayedMoves.push_back(MoveCache{Old, endPiece, startX, startY, targetX, targetY});
+    }
+    else{
+        // Store Move normally
+        PlayedMoves.push_back(MoveCache{targetPiece, endPiece, startX, startY, targetX, targetY});
+    }
+
     // If so we want to move the piece, and then delete the piece that was already there
     SetPiece(targetX-1, targetY-1, targetPiece);
 
@@ -233,60 +275,33 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
 
     // TODO: UPDATE GAME STATS, IF SPECIAL MOVES ARE ALLOWED, LOOK FOR CHECKMATE
 
-    // Im going to do a SUPER in-efficient check checker because im lazy and want the functionality now
-        // The better option would be to check all move optiosn out of the kings position
-        // and see if they are a opposing piece capable of the move (Dont search further than it if it blocks other)
+    // Used for seeing if the check condition does not change
     bool PrevW = WhiteCheck;
     bool PrevB = BlackCheck;
 
-    WhiteCheck = 0;
-    BlackCheck = 0;
+    // Check Check
+    UpdateCheck();
 
-    for(int x = 1; x <= 8; x++){
-        for (int y = 1; y <= 8; y++){
-            Piece* tp = GetPieceAtPosition(x, y);
-            if(tp->GetC() == NULE){
-                continue;
-            }
-
-
-            // Piece not moved or Attacking team-mate or Attacking team-mate
-            if (!(tp->X == WhiteKing->X && tp->Y == WhiteKing->Y) && tp->GetC() != WHITE){
-                WhiteCheck = tp->isValidMove(WhiteKing->X, WhiteKing->Y); // WHITE
-            }
-            // Piece not moved or Attacking team-mate or Attacking team-mate
-            if (!(tp->X == BlackKing->X && tp->Y == BlackKing->Y) && tp->GetC() != BLACK){
-                BlackCheck = tp->isValidMove(BlackKing->X, BlackKing->Y); // BLACK
-            }
-
-            if(WhiteCheck){
-                if(PrevW){
-                    Piece* empty = GetPieceAtPosition(startX, startY);
-                    SetPiece(startX-1, startY-1, targetPiece);
-                    SetPiece(targetX-1, targetY-1, endPiece);
-
-                    delete empty;
-                }
-                else{
-                    break;
-                }
-            }
-            if(BlackCheck){
-                if(PrevB){
-                    Piece* empty = GetPieceAtPosition(startX, startY);
-                    SetPiece(startX-1, startY-1, targetPiece);
-                    SetPiece(targetX-1, targetY-1, endPiece);
-
-                    delete empty;
-                }
-                else{
-                    break;
-                }
-            }
-        }
-        if(WhiteCheck || BlackCheck){
-            break;
-        }
+    // If the check condition does not change then the move is invalid
+    if((WhiteCheck && PrevW && targetPiece->c == WHITE) || (BlackCheck && PrevB && targetPiece->c == BLACK)){
+        UndoMove();
+        return false;
     }
+
     return true;
+}
+
+void Board::UndoMove(){
+    // Simple check to see if moves have been played
+    if (PlayedMoves.empty()){
+        return; // No move to undo
+    }
+
+    // Lets to a simple usage
+    MoveCache Move = PlayedMoves.back();
+    PlayedMoves.pop_back();
+    SetPiece(Move.StartX-1, Move.StartY-1, Move.MovedPiece);
+    SetPiece(Move.EndX-1, Move.EndY-1, Move.TargetPiece);
+
+    return;
 }
