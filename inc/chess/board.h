@@ -56,9 +56,6 @@ protected: // Private board management
     Piece* WhiteKing = nullptr;
     Piece* BlackKing = nullptr;
 
-    // Caching
-    std::vector<MoveCache> PlayedMoves;
-
 public: // Setup / De-setup
     // Probably should do something with me
     Board() {return;}
@@ -81,6 +78,9 @@ public: // Gameplay
 
     // Check Updater
     void UpdateCheck();
+
+    // Current Played Moves
+    std::vector<MoveCache> PlayedMoves;
 
 public: // Debuggers
     void LogBoard(); // Print board to console

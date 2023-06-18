@@ -5,29 +5,33 @@
 
 // TODO: REALISE THAT THE FEN COULD HAVE ROLES REVERSED SO BLACK START ON BOTTOM NOT TOP (HANDLING FOR THIS!)
 
-int PossibleMoves(Board* b, int LayerCount = 1, Colour c = NULE, Type t = NULE_T, int x = -1, int y = -1){
+uint64_t Iterations = 0;
+
+int PossibleMoves(Board* b, int LayerNuber = 1, Colour c = NULE, Type t = NULE_T, int x = -1, int y = -1){
     if(x > 0 && y > 0 && x <= 8 && y <= 8){
         // Single piece
         //TODO
     }
 
+    if(LayerNuber == 0){
+        return 0;
+    }
+
+    //TODO: DEBUG Not sure its playing moves correctly?
     for(int x = 1; x <= 8; x++){
         for (int y = 1; y <= 8; y++){
             for(int nx = 1; nx <= 8; nx++){
                 for(int ny = 1; ny <= 8; ny++){
-                    Piece* targetPiece = b->GetPieceAtPosition(x, y);
-                    if(c != NULE){
-                        if(targetPiece->GetC() != c){
-                            continue;
-                        }
-                    }
-                    if(t != NULE_T){
-                        if(targetPiece->GetT() != t){
-                            continue;
-                        }
+                    bool movedPiece = b->MovePiece(x, y, nx, ny);
+
+                    if(movedPiece){
+                        PossibleMoves(b, LayerNuber-1);
                     }
 
-                    targetPiece->isValidMove(nx, ny);
+                    Iterations++;
+
+                    if(movedPiece)
+                        b->UndoMove();
                 }
             }
         }
@@ -48,7 +52,7 @@ int main() {
 
     // return 0;
 
-    while (true){
+    while (false){
         Board.LogBoard();
 
 
@@ -86,13 +90,20 @@ int main() {
 
     std::cout << "Timing Tests" << std::endl;
 
-    {
+    int Test = 0;
+    std::cout << "What Test?: ";
+    std::cin >> Test;
+
+    if (Test == 0){
         clock_t start = clock();
-        PossibleMoves(&Board);
+        int Layers = 5;
+        PossibleMoves(&Board, Layers);
         clock_t end = clock();
         double time = (double) (end-start) / CLOCKS_PER_SEC * 1000.0;
 
-        std::cout << "All Move Calculations took: " << time << "ms" << std::endl;
+        std::cout << "All Move Calculations took: " << time << "ms for " << Layers << " Layers and " << Iterations << " Iterations" << std::endl;
+    
+        Iterations = 0;
     }
 
     return 0;

@@ -19,7 +19,6 @@ bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
 
     // Get the piece at position we aim for
     Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
-    printf("Pawn\n");
 
     // Check if piece can move forward
     // Check if the target is in the same column
@@ -96,7 +95,7 @@ bool Rook::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
 
     if(0 == targetX - X && 0 != targetY - Y){
         // Now follow in direction of y +- depending on dy
-        for (int y = dy; y < targetY - Y; y += dy){
+        for (int y = dy; y != targetY - Y; y += dy){
             if (b->GetPieceAtPosition(X, Y + y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
                 return false;
             }
@@ -105,7 +104,7 @@ bool Rook::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     }
     else if(0 != targetX - X && 0 == targetY - Y){
         // Now follow in direction of x +- depending on dx
-        for (int x = dx; x < targetX - X; x += dx){
+        for (int x = dx; x != targetX - X; x += dx){
             if (b->GetPieceAtPosition(X + x, Y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
                 return false;
             }
@@ -151,7 +150,7 @@ bool Queen::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
 
     if(0 == dx && 0 != dy){
         // Now follow in direction of y +- depending on dy
-        for (int y = diry; y < dy; y += diry){
+        for (int y = diry; abs(y) < abs(dy); y += diry){
             if (b->GetPieceAtPosition(X, Y + y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
                 return false;
             }
@@ -160,7 +159,7 @@ bool Queen::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     }
     else if(0 != dx && 0 == dy){
         // Now follow in direction of x +- depending on dx
-        for (int x = dirx; x < dx; x += dirx){
+        for (int x = dirx; abs(x) < abs(dx); x += dirx){
             if (b->GetPieceAtPosition(X + x, Y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
                 return false;
             }
