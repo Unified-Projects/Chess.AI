@@ -11,6 +11,16 @@
     #define UNIMPLEMENTED std::cout << "Unimplemented " << __FILE__ << ":" << __LINE__ << std::endl;
 //
 
+// Extras for special moves
+struct MoveExtra{ // TODO: Maybe integrate to make a better Promotion system or try to remove
+    int type = 0;
+
+    int x = 0;
+    int y = 0;
+
+    Piece* change = nullptr;
+};
+
 // For caching previous moves
 struct MoveCache{
     // Pieces
@@ -22,6 +32,8 @@ struct MoveCache{
     int StartY;
     int EndX;
     int EndY;
+
+    MoveExtra Extra;
 };
 
 class Board {

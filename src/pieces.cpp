@@ -6,7 +6,7 @@
     #define UNIMPLEMENTED std::cout << "Unimplemented " << __FILE__ << ":" << __LINE__ << std::endl;
 //
 
-bool Pawn::isValidMove(int targetX, int targetY) {
+bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     /*
         Movement:
             Forward 1 (2 if first move)
@@ -19,6 +19,7 @@ bool Pawn::isValidMove(int targetX, int targetY) {
 
     // Get the piece at position we aim for
     Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
+    printf("Pawn\n");
 
     // Check if piece can move forward
     // Check if the target is in the same column
@@ -28,8 +29,6 @@ bool Pawn::isValidMove(int targetX, int targetY) {
 
         // Make sure it's valid for the move
         if (diff <= ((moveCount == 0) ? 2 : 1) && diff > 0){
-            // TODO: Implement promotion
-                // Requires implementaion of a changer (not difficult)
             if((c == WHITE && targetY == 8) || (c == BLACK && targetY == 1)){
                 //TODO: Capability to choose the piece to become
                 t = QUEEN;
@@ -50,19 +49,29 @@ bool Pawn::isValidMove(int targetX, int targetY) {
             }
         }
 
-        // TODO: Implement En passent detection (By checking if the piece has moved before)
-            /* Requirements
-                The capturing pawn must have already moved exactly three ranks to perform this move.
-                The captured pawn must have moved two squares in one move, landing right next to the capturing pawn. (First move)
-                The en passant capture must be performed on the turn immediately after the pawn being captured moves.
-            */
+        /* Requirements
+            The capturing pawn must have already moved exactly three ranks to perform this move.
+            The captured pawn must have moved two squares in one move, landing right next to the capturing pawn. (First move)
+            The en passant capture must be performed on the turn immediately after the pawn being captured moves.
+        */
+        // TODO: Only works from standard board layout!
+        Piece* EnPassentPiece = b->GetPieceAtPosition(X, Y + ((c) ? 1 : -1));
 
+        if(((EnPassentPiece->GetC() == BLACK && EnPassentPiece->Y == 5) || (EnPassentPiece->GetC() == WHITE && EnPassentPiece->Y == 4)) && EnPassentPiece->moveCount == 1){
+            if(EnPassentPiece->X == X){
+                if(targetY == EnPassentPiece->Y && targetX != EnPassentPiece->X && abs(X - targetX) == 1){ // Ensure that the target is infront, and we are moving next to it
+                    // En-passent possible
+                    (*Extra) = {1 /*En Passent*/, EnPassentPiece->X, EnPassentPiece->Y, EnPassentPiece};
+                    return true;
+                }
+            }
+        }
     }
 
     return false;
 }
 
-bool Knight::isValidMove(int targetX, int targetY) {
+bool Knight::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     // Get the piece at position we aim for
     Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
 
@@ -77,7 +86,7 @@ bool Knight::isValidMove(int targetX, int targetY) {
     return false;
 }
 
-bool Rook::isValidMove(int targetX, int targetY) {
+bool Rook::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     // Get the piece at position we aim for
     Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
 
@@ -107,7 +116,7 @@ bool Rook::isValidMove(int targetX, int targetY) {
     return false;
 }
 
-bool Bishop::isValidMove(int targetX, int targetY) {
+bool Bishop::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     // Get the piece at position we aim for
     Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
 
@@ -130,7 +139,7 @@ bool Bishop::isValidMove(int targetX, int targetY) {
     return false;
 }
 
-bool Queen::isValidMove(int targetX, int targetY) {
+bool Queen::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     // Get the piece at position we aim for
     Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
 
@@ -170,7 +179,7 @@ bool Queen::isValidMove(int targetX, int targetY) {
     return false;
 }
 
-bool King::isValidMove(int targetX, int targetY) {
+bool King::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     // Get the piece at position we aim for
     Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
 

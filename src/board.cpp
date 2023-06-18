@@ -240,10 +240,19 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
         return false;
     }
 
+    MoveExtra Change = {};
+
     // We want to check if the provided swap is a valid move
-    bool validMove = targetPiece->isValidMove(targetX, targetY);
+    bool validMove = targetPiece->isValidMove(targetX, targetY, &Change);
     if (!validMove) { // Return as the move impossible (Handler built on other end)
         return false;
+    }
+
+    // Extras / Special Moves
+    if(Change.type){
+        if (Change.type == 1){
+            SetPiece(Change.x-1, Change.y-1, new Piece());
+        }
     }
 
     // See if the pawn changed piece
@@ -260,11 +269,11 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
         targetPiece = Changed;
 
         // Store Move with old piece
-        PlayedMoves.push_back(MoveCache{Old, endPiece, startX, startY, targetX, targetY});
+        PlayedMoves.push_back(MoveCache{Old, endPiece, startX, startY, targetX, targetY, Change});
     }
     else{
         // Store Move normally
-        PlayedMoves.push_back(MoveCache{targetPiece, endPiece, startX, startY, targetX, targetY});
+        PlayedMoves.push_back(MoveCache{targetPiece, endPiece, startX, startY, targetX, targetY, Change});
     }
 
     // If so we want to move the piece, and then delete the piece that was already there
@@ -288,6 +297,9 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
         return false;
     }
 
+    // Increment move count
+    targetPiece->moveCount++;
+
     return true;
 }
 
@@ -302,6 +314,16 @@ void Board::UndoMove(){
     PlayedMoves.pop_back();
     SetPiece(Move.StartX-1, Move.StartY-1, Move.MovedPiece);
     SetPiece(Move.EndX-1, Move.EndY-1, Move.TargetPiece);
+
+    // Extras / Special Move Undoing
+    if(Move.Extra.type){
+        if (Move.Extra.type == 1){
+            SetPiece(Move.Extra.x-1, Move.Extra.y-1, Move.Extra.change);
+        }
+    }
+
+    // Decrease move count
+    Move.MovedPiece->moveCount--;
 
     return;
 }

@@ -2,8 +2,9 @@
 #include <string>
 #include <iostream>
 
-// External definition for friend classing
+// Pre-Definitions
 class Board;
+struct MoveExtra;
 
 //Enums for piece configurations
     enum Colour{
@@ -50,7 +51,7 @@ class Board;
         Colour GetC() {return c;}
 
         // Predefine so that it can be customised per piece
-        virtual bool isValidMove(int targetX, int targetY) {return false;}
+        virtual bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr) {return false;}
 
         // For creating new pieces
         virtual Piece* Clone() {return new Piece(*this);}
@@ -61,7 +62,7 @@ class Board;
     struct Pawn : public Piece{
     public:
         Pawn(Colour c) : Piece(c) {t=PAWN;return;}
-        bool isValidMove(int targetX, int targetY);
+        bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
 
         Piece* Clone() {return new Pawn(*this);}
     };
@@ -70,7 +71,7 @@ class Board;
         friend class Board;
     public:
         Bishop(Colour c) : Piece(c) {t=BISHOP;return;}
-        bool isValidMove(int targetX, int targetY);
+        bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
 
         Piece* Clone() {return new Bishop(*this);}
     };
@@ -79,7 +80,7 @@ class Board;
         friend class Board;
     public:
         Rook(Colour c) : Piece(c) {t=ROOK;return;}
-        bool isValidMove(int targetX, int targetY);
+        bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
 
         Piece* Clone() {return new Rook(*this);}
     };
@@ -88,7 +89,7 @@ class Board;
         friend class Board;
     public:
         Knight(Colour c) : Piece(c) {t=KNITGHT;return;}
-        bool isValidMove(int targetX, int targetY);
+        bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
 
         Piece* Clone() {return new Knight(*this);}
     };
@@ -97,7 +98,7 @@ class Board;
         friend class Board;
     public:
         Queen(Colour c) : Piece(c) {t=QUEEN;return;}
-        bool isValidMove(int targetX, int targetY);
+        bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
 
         Piece* Clone() {return new Queen(*this);}
     };
@@ -106,7 +107,7 @@ class Board;
         friend class Board;
     public:
         King(Colour c) : Piece(c) {t=KING;return;}
-        bool isValidMove(int targetX, int targetY);
+        bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
 
         Piece* Clone() {return new King(*this);}
     };

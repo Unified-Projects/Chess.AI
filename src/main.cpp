@@ -38,8 +38,8 @@ int PossibleMoves(Board* b, int LayerCount = 1, Colour c = NULE, Type t = NULE_T
 
 int main() {
     Board Board;
-    // Board.InitBoard();
-    Board.InitBoard("7K/P7/8/8/8/2Q5/8/k7 w - - 0 1");
+    Board.InitBoard();
+    // Board.InitBoard("7K/P7/8/8/8/2Q5/8/k7 w - - 0 1");
     // Board.InitBoard("8/8/8/8/rnbqkbnr/pppppppp/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     // Board.InitBoard("8/8/8/rnbqkbnr/pppppppp/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     // Board.InitBoard("8/8/rnbqkbnr/pppppppp/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -50,6 +50,16 @@ int main() {
 
     while (true){
         Board.LogBoard();
+
+
+        char Undo = 0;
+        std::cout << "Undo: ";
+        std::cin >> Undo;
+
+        if(Undo == 'Y'){
+            Board.UndoMove();
+            continue;
+        }
 
         int startX = 0;
         int startY = 0;
@@ -69,7 +79,7 @@ int main() {
 
         bool movedPiece = Board.MovePiece(startX, startY, moveX, moveY);
 
-        std::cout << "Moved! :)" << std::endl;
+        std::cout << "Moved: " << ((movedPiece) ? "Yes" : "No") << std::endl;
     }
 
     // Efficency testings
