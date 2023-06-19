@@ -5,33 +5,49 @@
 
 // TODO: REALISE THAT THE FEN COULD HAVE ROLES REVERSED SO BLACK START ON BOTTOM NOT TOP (HANDLING FOR THIS!)
 
+#include <stack>
+
 uint64_t Iterations = 0;
 
-int PossibleMoves(Board* b, int LayerNuber = 1, Colour c = NULE, Type t = NULE_T, int x = -1, int y = -1){
-    if(x > 0 && y > 0 && x <= 8 && y <= 8){
-        // Single piece
-        //TODO
-    }
+struct Move {
+    int x, y, nx, ny;
+};
 
-    if(LayerNuber == 0){
-        return 0;
-    }
+int PossibleMoves(Board* b, int LayerNumber = 1, Colour c = NULE, Type t = NULE_T, int x = -1, int y = -1) {
+    std::stack<std::pair<Move, int>> moveStack;
+    moveStack.push({ {x, y, -1, -1}, LayerNumber });
 
-    //TODO: DEBUG Not sure its playing moves correctly?
-    for(int x = 1; x <= 8; x++){
-        for (int y = 1; y <= 8; y++){
-            for(int nx = 1; nx <= 8; nx++){
-                for(int ny = 1; ny <= 8; ny++){
-                    bool movedPiece = b->MovePiece(x, y, nx, ny);
+    while (!moveStack.empty()) {
+        Move currentMove = moveStack.top().first;
+        int currentLayer = moveStack.top().second;
+        moveStack.pop();
 
-                    if(movedPiece){
-                        PossibleMoves(b, LayerNuber-1);
+        if (currentLayer == 0) {
+            continue;
+        }
+
+        if (currentMove.x > 0 && currentMove.y > 0 && currentMove.x <= 8 && currentMove.y <= 8) {
+            // TODO: Handle single piece logic
+        }
+
+        for (int x = 1; x <= 8; x++) {
+            for (int y = 1; y <= 8; y++) {
+                for (int nx = 1; nx <= 8; nx++) {
+                    for (int ny = 1; ny <= 8; ny++) {
+                        bool movedPiece = b->MovePiece(x, y, nx, ny);
+
+                        if (movedPiece) {
+                            moveStack.push({ {x, y, nx, ny}, currentLayer - 1 });
+                            
+                            if(currentLayer == 1)
+                                b->LogBoard();
+                        }
+
+                        Iterations++;
+
+                        if (movedPiece)
+                            b->UndoMove();
                     }
-
-                    Iterations++;
-
-                    if(movedPiece)
-                        b->UndoMove();
                 }
             }
         }
@@ -96,7 +112,7 @@ int main() {
 
     if (Test == 0){
         clock_t start = clock();
-        int Layers = 5;
+        int Layers = 2;
         PossibleMoves(&Board, Layers);
         clock_t end = clock();
         double time = (double) (end-start) / CLOCKS_PER_SEC * 1000.0;
