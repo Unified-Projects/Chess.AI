@@ -2,55 +2,136 @@
 #include <chess/board.h>
 #include <chess/piece.h>
 #include <time.h>
+#include <stack>
 
 // TODO: REALISE THAT THE FEN COULD HAVE ROLES REVERSED SO BLACK START ON BOTTOM NOT TOP (HANDLING FOR THIS!)
 
-#include <stack>
-
 uint64_t Iterations = 0;
+uint64_t Moves = 0;
 
-struct Move {
-    int x, y, nx, ny;
-};
+int RecursedPossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
+    if(LayerNumber == 0){
+        return 0;
+    }
 
-int PossibleMoves(Board* b, int LayerNumber = 1, Colour c = NULE, Type t = NULE_T, int x = -1, int y = -1) {
-    std::stack<std::pair<Move, int>> moveStack;
-    moveStack.push({ {x, y, -1, -1}, LayerNumber });
+    //TODO: DEBUG Not sure its playing moves correctly? Definitly not!
+    for(int x = 1; x <= 8; x++){
+        for (int y = 1; y <= 8; y++){
+            for(int nx = 1; nx <= 8; nx++){
+                for(int ny = 1; ny <= 8; ny++){
+                    Piece* p = b->GetPieceAtPosition(x, y);
+                    if(p->GetC() != c){
+                        continue;
+                    }
 
-    while (!moveStack.empty()) {
-        Move currentMove = moveStack.top().first;
-        int currentLayer = moveStack.top().second;
-        moveStack.pop();
+                    bool movedPiece = b->MovePiece(x, y, nx, ny);
 
-        if (currentLayer == 0) {
-            continue;
-        }
+                    if(movedPiece){
+                        RecursedPossibleMoves(b, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
+                    }
 
-        if (currentMove.x > 0 && currentMove.y > 0 && currentMove.x <= 8 && currentMove.y <= 8) {
-            // TODO: Handle single piece logic
-        }
+                    Iterations++;
 
-        for (int x = 1; x <= 8; x++) {
-            for (int y = 1; y <= 8; y++) {
-                for (int nx = 1; nx <= 8; nx++) {
-                    for (int ny = 1; ny <= 8; ny++) {
-                        bool movedPiece = b->MovePiece(x, y, nx, ny);
-
-                        if (movedPiece) {
-                            moveStack.push({ {x, y, nx, ny}, currentLayer - 1 });
-                            
-                            if(currentLayer == 1)
-                                b->LogBoard();
-                        }
-
-                        Iterations++;
-
-                        if (movedPiece)
-                            b->UndoMove();
+                    if(movedPiece){
+                        Moves++;
+                        b->UndoMove();
                     }
                 }
             }
         }
+    }
+
+    return 0;
+}
+
+struct LayerRecord{
+    int x, y, nx, ny;
+};
+
+int PossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
+    if(LayerNumber == 0){
+        return 0;
+    }
+
+    // Previous Layers
+    std::stack<LayerRecord> records;
+    bool Restoring = false;
+
+    // Method to remove recursiom
+Recurse:
+    for(int x = 1; x <= 8; x++){
+        for (int y = 1; y <= 8; y++){
+            for(int nx = 1; nx <= 8; nx++){
+                for(int ny = 1; ny <= 8; ny++){
+                    
+                    // If we changed layer, this would be true
+                    bool movedPiece = true;
+
+                    // Normal Execution
+                    if(!Restoring){
+                        Piece* p = b->GetPieceAtPosition(x, y);
+                        if(p->GetC() != c){
+                            continue;
+                        }
+
+                        movedPiece = b->MovePiece(x, y, nx, ny);
+
+                        // Next Layer
+                        if(movedPiece && LayerNumber > 1){
+                            // PossibleMoves(b, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
+                            records.push(LayerRecord{x, y, nx, ny});
+                            LayerNumber -= 1;
+
+                            // TODO: CHECKMATE Detection
+                            // if(b->IsCheck()){
+                            //     b->LogBoard();
+                            // }
+
+                            // Swap the colour
+                            c = (c == 0xFF) ? BLACK : WHITE;
+
+                            goto Recurse;
+                        }
+                    }
+
+                    // Return point
+                    else{ // Prevent normal execution
+
+                        // Get previous layer
+                        LayerRecord r = records.top();
+                        records.pop();
+
+                        // Restore
+                        x = r.x;
+                        y = r.y;
+                        nx = r.nx;
+                        ny = r.ny;
+
+                        // New Layer Number
+                        LayerNumber += 1;
+
+                        Restoring = false;
+
+                        // Revert the colour? For some reason dissabling this messes up Undoing??? // TODO: Look into?
+                        c = (c == 0xFF) ? BLACK : WHITE;
+                    }
+
+                    // Standard to both
+                    Iterations++;
+                    
+
+                    if(movedPiece){
+                        Moves++;
+                        b->UndoMove();
+                    }
+                }
+            }
+        }
+    }
+
+    if(!records.empty()){
+        Restoring = true;
+        goto Recurse;
     }
 
     return 0;
@@ -103,23 +184,53 @@ int main() {
     }
 
     // Efficency testings
+    int Repetitions = 5;
+    int MaxLayers = 5;
 
-    std::cout << "Timing Tests" << std::endl;
+    std::cout << "Non-Recursed Timing Tests:" << std::endl;
 
-    int Test = 0;
-    std::cout << "What Test?: ";
-    std::cin >> Test;
+    {
+        for ( int Layers = 1; Layers <= MaxLayers; Layers++){
+            double Sum = 0;
 
-    if (Test == 0){
-        clock_t start = clock();
-        int Layers = 2;
-        PossibleMoves(&Board, Layers);
-        clock_t end = clock();
-        double time = (double) (end-start) / CLOCKS_PER_SEC * 1000.0;
+            for(int i = 1; i <= Repetitions; i++){
+                clock_t start = clock();
+                PossibleMoves(&Board, Layers);
+                clock_t end = clock();
+                double time = (double) (end-start) / CLOCKS_PER_SEC * 1000.0;
+                Sum += time;
+            }
+            double time = Sum / Repetitions;
 
-        std::cout << "All Move Calculations took: " << time << "ms for " << Layers << " Layers and " << Iterations << " Iterations" << std::endl;
-    
-        Iterations = 0;
+            std::cout << "All Move Calculations took: " << time << "ms for " << Layers << " Layers and " << Moves/Repetitions << " Moves" << std::endl;
+            std::cout << "      And a average of " << time/(Iterations/Repetitions/1000) << "ms per 1000 Iterations" << std::endl;
+            Iterations = 0;
+            Moves = 0;
+        }
+    }
+
+    // Board.LogBoard();
+
+    std::cout << "\n\nRecursed Timing Tests:" << std::endl;
+
+    {
+        for ( int Layers = 1; Layers <= MaxLayers; Layers++){
+            double Sum = 0;
+
+            for(int i = 1; i <= Repetitions; i++){
+                clock_t start = clock();
+                RecursedPossibleMoves(&Board, Layers);
+                clock_t end = clock();
+                double time = (double) (end-start) / CLOCKS_PER_SEC * 1000.0;
+                Sum += time;
+            }
+            double time = Sum / Repetitions;
+
+            std::cout << "All Move Calculations took: " << time << "ms for " << Layers << " Layers and " << Moves/Repetitions << " Moves" << std::endl;
+            std::cout << "      And a average of " << time/(Iterations/Repetitions/1000) << "ms per 1000 Iterations" << std::endl;
+            Iterations = 0;
+            Moves = 0;
+        }
     }
 
     return 0;

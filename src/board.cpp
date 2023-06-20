@@ -124,7 +124,7 @@ void Board::InitBoard(std::string FEN) {
     return;
 }
 
-void Board::UpdateCheck(){
+bool Board::UpdateCheck(){
     // Im going to do a in-efficient check checker because im lazy and want the functionality now
         // The better option would be to check all move optiosn out of the kings position
         // and see if they are a opposing piece capable of the move (Dont search further than it if it blocks other)
@@ -151,16 +151,13 @@ void Board::UpdateCheck(){
                 BlackCheck = targetPiece->isValidMove(BlackKing->X, BlackKing->Y); // BLACK
             }
 
-            if(WhiteCheck || BlackCheck){
-                break;
+            if(WhiteCheck || BlackCheck){ // May lead to issue by seeing if only one is in check, but standard should be this
+                return true;
             }
-        }
-        if(WhiteCheck || BlackCheck){ // May lead to issue by seeing if only one is in check, but standard should be this
-            break;
         }
     }
 
-    return;
+    return false;
 }
 
 void Board::LogBoard(){

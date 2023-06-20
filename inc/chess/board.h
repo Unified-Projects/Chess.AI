@@ -77,7 +77,8 @@ public: // Gameplay
     void UndoMove(); // Simple undo previous move
 
     // Check Updater
-    void UpdateCheck();
+    bool UpdateCheck();
+    bool IsCheck(){return (WhiteCheck || BlackCheck);}
 
     // Current Played Moves
     std::vector<MoveCache> PlayedMoves;
