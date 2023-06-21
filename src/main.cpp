@@ -17,13 +17,13 @@ int RecursedPossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
     //TODO: DEBUG Not sure its playing moves correctly? Definitly not!
     for(int x = 1; x <= 8; x++){
         for (int y = 1; y <= 8; y++){
+            Piece* p = b->GetPieceAtPosition(x, y);
             for(int nx = 1; nx <= 8; nx++){
                 for(int ny = 1; ny <= 8; ny++){
-                    Piece* p = b->GetPieceAtPosition(x, y);
                     if(p->GetC() != c){
                         continue;
                     }
-
+                    
                     bool movedPiece = b->MovePiece(x, y, nx, ny);
 
                     if(movedPiece){
@@ -69,11 +69,17 @@ Recurse:
 
                     // Normal Execution
                     if(!Restoring){
-                        Piece* p = b->GetPieceAtPosition(x, y);
+                        Piece* p = b->GetPieceAtPosition(x, y); // TODO: Move down to X, Y so we dont keep initialisng it (Add to LayerRecord)
                         if(p->GetC() != c){
                             continue;
                         }
 
+                        // TODO: PUT INTO BOARD AND NOT HERE!!
+                        if(b->UpdateCheckmate()){
+                            Restoring = true;
+                            goto Recurse;
+                        }
+                        
                         movedPiece = b->MovePiece(x, y, nx, ny);
 
                         // Next Layer
@@ -91,6 +97,10 @@ Recurse:
                             c = (c == 0xFF) ? BLACK : WHITE;
 
                             goto Recurse;
+                        }
+
+                        if(movedPiece && LayerNumber == 1){
+                            Moves++;
                         }
                     }
 
@@ -121,7 +131,6 @@ Recurse:
                     
 
                     if(movedPiece){
-                        Moves++;
                         b->UndoMove();
                     }
                 }

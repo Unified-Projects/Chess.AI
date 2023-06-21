@@ -49,8 +49,12 @@ protected: // Private board management
     void SetPiece(int X, int Y, Piece* p);
 
     // Check management
-    bool WhiteCheck = false;
-    bool BlackCheck = false;
+    bool Check = false;
+    bool Stale = false;
+    bool Mate = false;
+
+    // Color
+    Colour CheckedColour = NULE;
     
     // King savings
     Piece* WhiteKing = nullptr;
@@ -78,7 +82,9 @@ public: // Gameplay
 
     // Check Updater
     bool UpdateCheck();
-    bool IsCheck(){return (WhiteCheck || BlackCheck);}
+    bool UpdateCheckmate();
+    bool UpdateStalemate();
+    bool IsCheck(){return Check;}
 
     // Current Played Moves
     std::vector<MoveCache> PlayedMoves;

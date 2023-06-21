@@ -55,17 +55,18 @@ bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
         */
         // TODO: Only works from standard board layout!
         // TODO: SEGMENT FAULTS OCCOUR WITHIN TESTINGS!
-        // Piece* EnPassentPiece = b->GetPieceAtPosition(X, Y + ((c) ? 1 : -1));
 
-        // if(((EnPassentPiece->GetC() == BLACK && EnPassentPiece->Y == 5) || (EnPassentPiece->GetC() == WHITE && EnPassentPiece->Y == 4)) && EnPassentPiece->moveCount == 1){
-        //     if(EnPassentPiece->X == X){
-        //         if(targetY == EnPassentPiece->Y && targetX != EnPassentPiece->X && abs(X - targetX) == 1){ // Ensure that the target is infront, and we are moving next to it
-        //             // En-passent possible
-        //             (*Extra) = {1 /*En Passent*/, EnPassentPiece->X, EnPassentPiece->Y, EnPassentPiece};
-        //             return true;
-        //         }
-        //     }
-        // }
+        Piece* EnPassentPiece = b->GetPieceAtPosition(X, Y + ((c) ? 1 : -1));
+
+        if(((EnPassentPiece->GetC() == BLACK && EnPassentPiece->Y == 5) || (EnPassentPiece->GetC() == WHITE && EnPassentPiece->Y == 4)) && EnPassentPiece->moveCount == 1){
+            if(EnPassentPiece->X == X){
+                if(targetY == EnPassentPiece->Y && targetX != EnPassentPiece->X && abs(X - targetX) == 1){ // Ensure that the target is infront, and we are moving next to it
+                    // En-passent possible
+                    (*Extra) = {1 /*En Passent*/, EnPassentPiece->X, EnPassentPiece->Y, EnPassentPiece};
+                    return true;
+                }
+            }
+        }
     }
 
     return false;

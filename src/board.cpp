@@ -129,11 +129,8 @@ bool Board::UpdateCheck(){
         // The better option would be to check all move optiosn out of the kings position
         // and see if they are a opposing piece capable of the move (Dont search further than it if it blocks other)
 
-    bool PrevW = WhiteCheck;
-    bool PrevB = BlackCheck;
-
-    WhiteCheck = false;
-    BlackCheck = false;
+    Check = false;
+    CheckedColour = NULE;
 
     for(int x = 1; x <= 8; x++){
         for (int y = 1; y <= 8; y++){
@@ -144,20 +141,70 @@ bool Board::UpdateCheck(){
 
             // Piece not moved or Attacking team-mate or Attacking team-mate
             if (!(targetPiece->X == WhiteKing->X && targetPiece->Y == WhiteKing->Y) && targetPiece->GetC() != WHITE){
-                WhiteCheck = targetPiece->isValidMove(WhiteKing->X, WhiteKing->Y); // WHITE
+                Check = targetPiece->isValidMove(WhiteKing->X, WhiteKing->Y); // WHITE
             }
             // Piece not moved or Attacking team-mate or Attacking team-mate
             if (!(targetPiece->X == BlackKing->X && targetPiece->Y == BlackKing->Y) && targetPiece->GetC() != BLACK){
-                BlackCheck = targetPiece->isValidMove(BlackKing->X, BlackKing->Y); // BLACK
+                Check = targetPiece->isValidMove(BlackKing->X, BlackKing->Y); // BLACK
             }
 
-            if(WhiteCheck || BlackCheck){ // May lead to issue by seeing if only one is in check, but standard should be this
+            if(Check){ // May lead to issue by seeing if only one is in check, but standard should be this
+                CheckedColour = targetPiece->GetC();
                 return true;
             }
         }
     }
 
     return false;
+}
+
+bool Board::UpdateCheckmate(){
+    // TODO: Efficiency?
+
+    if(!Check){
+        return false; // We dont need to do anything, we are not in check so no need for mate
+    }
+
+    // Ok so quite in-efficeint warning
+        // Ima make every move for the piece in check and see if it saves them
+        // If nope then we are in checkmate
+
+    Mate = false;
+
+    for(int x = 1; x <= 8; x++){
+        for (int y = 1; y <= 8; y++){
+            Piece* targetPiece = GetPieceAtPosition(x, y);
+            for(int nx = 1; nx <= 8; nx++){
+                for (int ny = 1; ny <= 8; ny++){
+
+                    // Ensure we only move pieces that could save us from check
+                    if(targetPiece->GetC() != CheckedColour){
+                        continue;
+                    }
+
+                    // Play the move
+                    bool Valid = MovePiece(x, y, nx, ny);
+
+                    // Still in check?
+                    UpdateCheck();
+
+                    if (Valid){
+                        // No, so we found the move to save us so we exit.
+                        if(!IsCheck() && CheckedColour != targetPiece->GetC()){
+                            return false;
+                        }
+
+                        UndoMove();
+                    }
+                }
+            }
+        }
+    }
+
+    // We are Checkmate
+    Mate = true;
+
+    return true;
 }
 
 void Board::LogBoard(){
@@ -207,6 +254,8 @@ void Board::LogBoard(){
 }
 
 Piece* Board::GetPieceAtPosition(int X, int Y) {
+    // If 
+
     // Note as our list goes 0-7 from top to bottom
     //      We need to map the positions to standards
     return board[Y-1][X-1];
@@ -220,6 +269,12 @@ Piece* Board::GetPieceAtPosition(char X, int Y) {
 }
 
 bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
+    // TODO: IMPLEMENT A END-GAME HANDLER!!!! AND FOR TESTER
+    // if (Mate){
+    //     // LogBoard();
+    //     return false;
+    // }
+
     // First find the piece that we want to move
     Piece* targetPiece = GetPieceAtPosition(startX, startY);
     Piece* endPiece = GetPieceAtPosition(targetX, targetY);
@@ -282,14 +337,14 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
     // TODO: UPDATE GAME STATS, IF SPECIAL MOVES ARE ALLOWED, LOOK FOR CHECKMATE
 
     // Used for seeing if the check condition does not change
-    bool PrevW = WhiteCheck;
-    bool PrevB = BlackCheck;
+    bool Prev = Check;
+    Colour PrevC = CheckedColour;
 
-    // Check Check
+    // Check Checks
     UpdateCheck();
 
     // If the check condition does not change then the move is invalid
-    if((WhiteCheck && PrevW && targetPiece->c == WHITE) || (BlackCheck && PrevB && targetPiece->c == BLACK)){
+    if(Check && Prev && PrevC == CheckedColour){
         UndoMove();
         return false;
     }
