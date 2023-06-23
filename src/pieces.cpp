@@ -6,6 +6,8 @@
     #define UNIMPLEMENTED std::cout << "Unimplemented " << __FILE__ << ":" << __LINE__ << std::endl;
 //
 
+// TODO: For the MoveExtra when we need to use it we need to see if it exits!!
+
 bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     /*
         Movement:
@@ -36,31 +38,52 @@ bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
                 }
             }
 
-            // if((c == WHITE && targetY == 8) || (c == BLACK && targetY == 1)){
-            //     //TODO: Capability to choose the piece to become
-            //     t = QUEEN;
-            // }
+            if((c == WHITE && targetY == 8) || (c == BLACK && targetY == 1)){
+                //TODO: Capability to choose the piece to become
+                t = QUEEN;
+            }
             return true;
         }
     }
     // Check for taking
     else { //TODO: Implement a taking system to keep track of whats been taken for all pieces
         // Check if the target is in neighbouring column
-        if (targetX == (X+1) || targetX == (X-1)) {
+        if (abs(targetX - X) == 1) {
             // Check if the target is in the next row
             if (targetY == Y + ((c == WHITE) ? 1 : -1)) {
                 // Check if enemy piece is present at target
                 if (targetPiece->GetT() != NULE_T) {
                     return true;
                 }
+
+                // En Passent
+                /* Requirements
+                    The capturing pawn must have already moved exactly three ranks to perform this move.
+                    The captured pawn must have moved two squares in one move, landing right next to the capturing pawn. (First move)
+                    The en passant capture must be performed on the turn immediately after the pawn being captured moves.
+                */
+                Piece* EnPassentPiece = b->GetPieceAtPosition(targetX, targetY + ((c) ? -1 : 1));
+
+                // Check piece is valid
+                if(!EnPassentPiece || EnPassentPiece->GetT() != PAWN){
+                    return false;
+                }
+
+                // See if piece has only just moved and moved 2
+                if(b->PlayedMoves.back().MovedPiece == EnPassentPiece){
+                    if (((EnPassentPiece->GetC() == BLACK && EnPassentPiece->Y == 5) || (EnPassentPiece->GetC() == WHITE && EnPassentPiece->Y == 4)) && EnPassentPiece->moveCount == 1){
+                        if(!Extra){
+                            return true; // Still a valid move
+                        }
+                        
+                        // En-passent possible
+                        (*Extra) = {1 /*En Passent*/, EnPassentPiece->X, EnPassentPiece->Y, EnPassentPiece};
+                        return true;
+                    }
+                }
             }
         }
 
-        /* Requirements
-            The capturing pawn must have already moved exactly three ranks to perform this move.
-            The captured pawn must have moved two squares in one move, landing right next to the capturing pawn. (First move)
-            The en passant capture must be performed on the turn immediately after the pawn being captured moves.
-        */
         // TODO: Only works from standard board layout!
         // TODO: SEGMENT FAULTS OCCOUR WITHIN TESTINGS!
 

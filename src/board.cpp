@@ -149,7 +149,7 @@ bool Board::UpdateCheck(){
             }
 
             if(Check){ // May lead to issue by seeing if only one is in check, but standard should be this
-                CheckedColour = targetPiece->GetC();
+                CheckedColour = (targetPiece->GetC() == WHITE) ? BLACK : WHITE;
                 return true;
             }
         }
@@ -174,26 +174,50 @@ bool Board::UpdateCheckmate(){
     for(int x = 1; x <= 8; x++){
         for (int y = 1; y <= 8; y++){
             Piece* targetPiece = GetPieceAtPosition(x, y);
+            // Ensure we only move pieces that could save us from check
+            if(targetPiece->c != CheckedColour){
+                continue;
+            }
+
             for(int nx = 1; nx <= 8; nx++){
                 for (int ny = 1; ny <= 8; ny++){
-
-                    // Ensure we only move pieces that could save us from check
-                    if(targetPiece->GetC() != CheckedColour){
-                        continue;
-                    }
-
                     // Play the move
                     bool Valid = MovePiece(x, y, nx, ny);
 
+                    // TODO: INVALID
+                    /*
+                        Current Debug:
+                        Here some layouts are being treated as checkmate because they make it throught the for loop
+                        without registering as !Checked. An example is a board where the knight can block the check
+                        but it does not seem to see the movement and thinks checkmate. This is proved by no boards being
+                        logged by the:
+
+                        if(Checked){
+                            LogBoard();
+                        }
+
+                        yet it will log outside of the forloop.
+
+                        CURRENT OUTPUT
+                        Checkmate count of 12
+                        
+                        EXPECTED OUTPUT
+                        Checkmate count of 8
+                    */
                     if (Valid){
                         // Still in check?
-                        UpdateCheck();
+                        bool Checked = UpdateCheck();
+                        Colour CheckedC = CheckedColour;
+
+                        if(Checked){
+                            LogBoard();
+                        }
 
                         // Undo the move
-                        UndoMove();
+                        UndoMove(); // Restores check so we need to store it instead
 
-                        // No, so we found the move to save us so we exit.
-                        if(!IsCheck() && CheckedColour != targetPiece->GetC()){
+                        // Not in check, so we found the move to save us so we exit.
+                        if(!Checked || (CheckedC != targetPiece->c)){
                             return false;
                         }
                     }
@@ -201,6 +225,9 @@ bool Board::UpdateCheckmate(){
             }
         }
     }
+
+    std::cout << "Checkmate?" << std::endl;
+    // LogBoard();
 
     // We are Checkmate
     Mate = true;
@@ -374,6 +401,9 @@ void Board::UndoMove(){
             SetPiece(Move.Extra.x-1, Move.Extra.y-1, Move.Extra.change);
         }
     }
+
+    // Resort Check
+    UpdateCheck();
 
     // Decrease move count
     Move.MovedPiece->moveCount--;
