@@ -18,7 +18,7 @@ struct MoveExtra;
         PAWN = 0,
         BISHOP = 1,
         ROOK = 2,
-        KNITGHT = 3,
+        KNIGHT = 3,
         QUEEN = 4,
         KING = 5
     };
@@ -88,7 +88,7 @@ struct MoveExtra;
     struct Knight : protected Piece{
         friend class Board;
     public:
-        Knight(Colour c) : Piece(c) {t=KNITGHT;return;}
+        Knight(Colour c) : Piece(c) {t=KNIGHT;return;}
         bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
 
         Piece* Clone() {return new Knight(*this);}

@@ -75,7 +75,7 @@ bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
                         if(!Extra){
                             return true; // Still a valid move
                         }
-                        
+
                         // En-passent possible
                         (*Extra) = {1 /*En Passent*/, EnPassentPiece->X, EnPassentPiece->Y, EnPassentPiece};
                         return true;

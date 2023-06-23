@@ -85,7 +85,7 @@ Recurse:
                         //     goto Recurse;
                         // }
 
-                        movedPiece = b->MovePiece(x, y, nx, ny);
+                        movedPiece = b->MovePiece(x, y, nx, ny, true);
 
                         // Next Layer
                         if(movedPiece && LayerNumber > 1 && !b->UpdateCheckmate()){
@@ -104,12 +104,12 @@ Recurse:
                             goto Recurse;
                         }
 
-                        if((movedPiece && LayerNumber == 1) || b->UpdateCheckmate()){
+                        if((movedPiece && LayerNumber == 1 && !b->UpdateCheckmate())){
                             Moves++;
+                        }
 
-                            if(b->UpdateCheckmate()){
-                                Checkmates++;
-                            }
+                        if(b->UpdateCheckmate()){
+                            Checkmates++;
                         }
                     }
 
@@ -159,7 +159,7 @@ int main() {
         const char* FENS[] {
             // Initial
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1",
-            
+
             // Checks and mates
             "rnbqkbnr/ppp1pppp/8/3p4/Q7/2P5/PP1PPPPP/RNB1KBNR w - - 0 1",
             "r1pbkbnr/p1b1pppp/8/3p4/Q7/2P5/PP1PPPPP/RNB1KBNR w - - 0 1", // Mate

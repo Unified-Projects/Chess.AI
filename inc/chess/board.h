@@ -55,7 +55,7 @@ protected: // Private board management
 
     // Color
     Colour CheckedColour = NULE;
-    
+
     // King savings
     Piece* WhiteKing = nullptr;
     Piece* BlackKing = nullptr;
@@ -77,7 +77,7 @@ public: // Gameplay
 
     // Play a move, independent of colour
     bool PlayMove(std::string notation) {UNIMPLEMENTED return false;}; // Try to use standard notations //TODO: Pipe into MovePiece after translating
-    bool MovePiece(int startX, int startY, int endX, int endY); // Simpler moving function
+    bool MovePiece(int startX, int startY, int endX, int endY, bool ignoreCheck=false); // Simpler moving function
     void UndoMove(); // Simple undo previous move
 
     // Check Updater

@@ -16,7 +16,7 @@ std::map<char, Piece*> Board::pieceMapper = {
     };
 std::map<char, Type> Board::typeMapper = {
         {'r', ROOK}, {'R', ROOK},
-        {'n', KNITGHT}, {'N', KNITGHT},
+        {'n', KNIGHT}, {'N', KNIGHT},
         {'p', PAWN}, {'P', PAWN},
         {'b', BISHOP}, {'B', BISHOP},
         {'q', QUEEN}, {'Q', QUEEN},
@@ -135,33 +135,31 @@ bool Board::UpdateCheck(){
     for(int x = 1; x <= 8; x++){
         for (int y = 1; y <= 8; y++){
             Piece* targetPiece = GetPieceAtPosition(x, y);
-            if(targetPiece->GetC() == NULE){
+            if(targetPiece->GetT() == KING){
                 continue;
             }
 
-            // Piece not moved or Attacking team-mate
-            if (!(targetPiece->X == WhiteKing->X && targetPiece->Y == WhiteKing->Y) && targetPiece->GetC() != WHITE){
-                Check = targetPiece->isValidMove(WhiteKing->X, WhiteKing->Y); // WHITE
+            // Check if the piece can move to the king
+            else if (targetPiece->GetC() == WHITE && targetPiece->isValidMove(BlackKing->X, BlackKing->Y)){
+                Check = true;
+                CheckedColour = BLACK;
+                return Check;
             }
-            // Piece not moved or Attacking team-mate
-            if (!(targetPiece->X == BlackKing->X && targetPiece->Y == BlackKing->Y) && targetPiece->GetC() != BLACK){
-                Check = targetPiece->isValidMove(BlackKing->X, BlackKing->Y); // BLACK
-            }
-
-            if(Check){ // May lead to issue by seeing if only one is in check, but standard should be this
-                CheckedColour = (targetPiece->GetC() == WHITE) ? BLACK : WHITE;
-                return true;
+            else if (targetPiece->GetC() == BLACK && targetPiece->isValidMove(WhiteKing->X, WhiteKing->Y)){
+                Check = true;
+                CheckedColour = WHITE;
+                return Check;
             }
         }
     }
 
-    return false;
+    return Check;
 }
 
 bool Board::UpdateCheckmate(){
     // TODO: Efficiency?
 
-    if(!Check){
+    if(!UpdateCheck()){
         return false; // We dont need to do anything, we are not in check so no need for mate
     }
 
@@ -182,7 +180,7 @@ bool Board::UpdateCheckmate(){
             for(int nx = 1; nx <= 8; nx++){
                 for (int ny = 1; ny <= 8; ny++){
                     // Play the move
-                    bool Valid = MovePiece(x, y, nx, ny);
+                    bool Valid = MovePiece(x, y, nx, ny, true);
 
                     // TODO: INVALID
                     /*
@@ -198,16 +196,22 @@ bool Board::UpdateCheckmate(){
 
                         yet it will log outside of the forloop.
 
+                        Update:
+                        Seems to be outputting the correct checkmate boards, but dubplicating them. This is likely
+                        because the moves are being played in different orders, but arriving at the same outcome.
+                        E.g. Piece A moves then B or B moves then A.
+
+                        Also the number of moves have now increased and the above issues are still present. GL :)
+
                         CURRENT OUTPUT
-                        Checkmate count of 12
-                        
+                        Checkmate count of 16
+
                         EXPECTED OUTPUT
                         Checkmate count of 8
                     */
                     if (Valid){
                         // Still in check?
                         bool Checked = UpdateCheck();
-                        Colour CheckedC = CheckedColour;
 
                         if(Checked){
                             LogBoard();
@@ -217,7 +221,7 @@ bool Board::UpdateCheckmate(){
                         UndoMove(); // Restores check so we need to store it instead
 
                         // Not in check, so we found the move to save us so we exit.
-                        if(!Checked || (CheckedC != targetPiece->c)){
+                        if(!Checked){
                             return false;
                         }
                     }
@@ -227,7 +231,7 @@ bool Board::UpdateCheckmate(){
     }
 
     std::cout << "Checkmate?" << std::endl;
-    // LogBoard();
+    LogBoard();
 
     // We are Checkmate
     Mate = true;
@@ -296,7 +300,7 @@ Piece* Board::GetPieceAtPosition(char X, int Y) {
     return board[8-Y][X - 65]; // Subtract 'A' to perfom mapping
 }
 
-bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
+bool Board::MovePiece(int startX, int startY, int targetX, int targetY, bool ignoreCheck) {
     // TODO: IMPLEMENT A END-GAME HANDLER!!!! AND FOR TESTER
     // if (Mate){
     //     // LogBoard();
@@ -375,7 +379,7 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
     targetPiece->moveCount++;
 
     // If the check condition does not change then the move is invalid
-    if(Check && Prev && PrevC == CheckedColour){
+    if(Check && Prev && PrevC == CheckedColour && !ignoreCheck){
         UndoMove();
         return false;
     }
