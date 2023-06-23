@@ -23,7 +23,7 @@ int RecursedPossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
                     if(p->GetC() != c){
                         continue;
                     }
-                    
+
                     bool movedPiece = b->MovePiece(x, y, nx, ny);
 
                     if(movedPiece){
@@ -63,7 +63,7 @@ Recurse:
         for (int y = 1; y <= 8; y++){
             for(int nx = 1; nx <= 8; nx++){
                 for(int ny = 1; ny <= 8; ny++){
-                    
+
                     // If we changed layer, this would be true
                     bool movedPiece = true;
 
@@ -75,11 +75,11 @@ Recurse:
                         }
 
                         // TODO: PUT INTO BOARD AND NOT HERE!!
-                        if(b->UpdateCheckmate()){
+                        if(b->UpdateCheckmate() && !records.empty()){
                             Restoring = true;
                             goto Recurse;
                         }
-                        
+
                         movedPiece = b->MovePiece(x, y, nx, ny);
 
                         // Next Layer
@@ -128,7 +128,7 @@ Recurse:
 
                     // Standard to both
                     Iterations++;
-                    
+
 
                     if(movedPiece){
                         b->UndoMove();
@@ -194,7 +194,7 @@ int main() {
 
     // Efficency testings
     int Repetitions = 5;
-    int MaxLayers = 5;
+    int MaxLayers = 3;
 
     std::cout << "Non-Recursed Timing Tests:" << std::endl;
 
@@ -218,7 +218,7 @@ int main() {
         }
     }
 
-    // Board.LogBoard();
+    Board.LogBoard();
 
     std::cout << "\n\nRecursed Timing Tests:" << std::endl;
 

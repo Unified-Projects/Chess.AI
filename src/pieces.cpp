@@ -28,10 +28,18 @@ bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
 
         // Make sure it's valid for the move
         if (diff <= ((moveCount == 0) ? 2 : 1) && diff > 0){
-            if((c == WHITE && targetY == 8) || (c == BLACK && targetY == 1)){
-                //TODO: Capability to choose the piece to become
-                t = QUEEN;
+
+            if (moveCount == 0 && diff == 2) {
+                // Check if there is a piece in the way
+                if (b->GetPieceAtPosition(X, Y + ((c == WHITE) ? 1 : -1))->GetT() != NULE_T) {
+                    return false;
+                }
             }
+
+            // if((c == WHITE && targetY == 8) || (c == BLACK && targetY == 1)){
+            //     //TODO: Capability to choose the piece to become
+            //     t = QUEEN;
+            // }
             return true;
         }
     }
@@ -56,17 +64,17 @@ bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
         // TODO: Only works from standard board layout!
         // TODO: SEGMENT FAULTS OCCOUR WITHIN TESTINGS!
 
-        Piece* EnPassentPiece = b->GetPieceAtPosition(X, Y + ((c) ? 1 : -1));
+        // Piece* EnPassentPiece = b->GetPieceAtPosition(X, Y + ((c) ? 1 : -1));
 
-        if(((EnPassentPiece->GetC() == BLACK && EnPassentPiece->Y == 5) || (EnPassentPiece->GetC() == WHITE && EnPassentPiece->Y == 4)) && EnPassentPiece->moveCount == 1){
-            if(EnPassentPiece->X == X){
-                if(targetY == EnPassentPiece->Y && targetX != EnPassentPiece->X && abs(X - targetX) == 1){ // Ensure that the target is infront, and we are moving next to it
-                    // En-passent possible
-                    (*Extra) = {1 /*En Passent*/, EnPassentPiece->X, EnPassentPiece->Y, EnPassentPiece};
-                    return true;
-                }
-            }
-        }
+        // if(((EnPassentPiece->GetC() == BLACK && EnPassentPiece->Y == 5) || (EnPassentPiece->GetC() == WHITE && EnPassentPiece->Y == 4)) && EnPassentPiece->moveCount == 1){
+        //     if(EnPassentPiece->X == X){
+        //         if(targetY == EnPassentPiece->Y && targetX != EnPassentPiece->X && abs(X - targetX) == 1){ // Ensure that the target is infront, and we are moving next to it
+        //             // En-passent possible
+        //             (*Extra) = {1 /*En Passent*/, EnPassentPiece->X, EnPassentPiece->Y, EnPassentPiece};
+        //             return true;
+        //         }
+        //     }
+        // }
     }
 
     return false;
@@ -261,7 +269,7 @@ bool King::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
         }
         return true;
     }
-   
+
 
     return false;
 }

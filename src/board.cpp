@@ -139,11 +139,11 @@ bool Board::UpdateCheck(){
                 continue;
             }
 
-            // Piece not moved or Attacking team-mate or Attacking team-mate
+            // Piece not moved or Attacking team-mate
             if (!(targetPiece->X == WhiteKing->X && targetPiece->Y == WhiteKing->Y) && targetPiece->GetC() != WHITE){
                 Check = targetPiece->isValidMove(WhiteKing->X, WhiteKing->Y); // WHITE
             }
-            // Piece not moved or Attacking team-mate or Attacking team-mate
+            // Piece not moved or Attacking team-mate
             if (!(targetPiece->X == BlackKing->X && targetPiece->Y == BlackKing->Y) && targetPiece->GetC() != BLACK){
                 Check = targetPiece->isValidMove(BlackKing->X, BlackKing->Y); // BLACK
             }
@@ -185,16 +185,17 @@ bool Board::UpdateCheckmate(){
                     // Play the move
                     bool Valid = MovePiece(x, y, nx, ny);
 
-                    // Still in check?
-                    UpdateCheck();
-
                     if (Valid){
+                        // Still in check?
+                        UpdateCheck();
+
+                        // Undo the move
+                        UndoMove();
+
                         // No, so we found the move to save us so we exit.
                         if(!IsCheck() && CheckedColour != targetPiece->GetC()){
                             return false;
                         }
-
-                        UndoMove();
                     }
                 }
             }
@@ -254,7 +255,7 @@ void Board::LogBoard(){
 }
 
 Piece* Board::GetPieceAtPosition(int X, int Y) {
-    // If 
+    // If
 
     // Note as our list goes 0-7 from top to bottom
     //      We need to map the positions to standards
@@ -343,14 +344,14 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY) {
     // Check Checks
     UpdateCheck();
 
+    // Increment move count
+    targetPiece->moveCount++;
+
     // If the check condition does not change then the move is invalid
     if(Check && Prev && PrevC == CheckedColour){
         UndoMove();
         return false;
     }
-
-    // Increment move count
-    targetPiece->moveCount++;
 
     return true;
 }
