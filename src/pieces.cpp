@@ -239,37 +239,10 @@ bool King::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
 
         return true;
     }
-    else if (abs(dx) > 1 || abs(dy) > 1){
-        return false;
-    }
 
-    if(0 == dx && 0 != dy){
-        // Now follow in direction of y +- depending on dy
-        for (int y = diry; y < dy; y += diry){
-            if (b->GetPieceAtPosition(X, Y + y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
-                return false;
-            }
-        }
+    if (abs(dx) == 1 && abs(dy) == 1 ||  abs(dx) == 0 && abs(dy) == 1 || abs(dx) == 1 && abs(dy) == 0){
         return true;
     }
-    else if(0 != dx && 0 == dy){
-        // Now follow in direction of x +- depending on dx
-        for (int x = dirx; x < dx; x += dirx){
-            if (b->GetPieceAtPosition(X + x, Y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
-                return false;
-            }
-        }
-        return true;
-    }
-    else if(abs(dx) == abs(dy) && abs(dx)){
-        for (int distance = 1; distance < abs(dy); distance ++){ // Look in diagonal distance
-            if (b->GetPieceAtPosition(X + (distance*dirx), Y + (distance*diry))->GetT() != NULE_T){ // Piece present and we are not trying to capture
-                return false;
-            }
-        }
-        return true;
-    }
-
 
     return false;
 }
