@@ -188,7 +188,7 @@ int main() {
     board.InitBoard();
 
     if(1 == 0){ // Gameplay
-        while (false){
+        while (true){
             board.LogBoard();
 
 
@@ -223,7 +223,7 @@ int main() {
         }
     }
 
-    {// Efficency testings
+    if(1==1){// Efficency testings
         int Repetitions = 1;
         int MaxLayers = 4;
 
@@ -242,6 +242,8 @@ int main() {
                 }
                 double time = Sum / Repetitions;
 
+                // Usefull Debug URL: https://en.wikipedia.org/wiki/Shannon_number
+
                 std::cout << "All Move Calculations took: " << time << "ms for " << Layers << " Layers and " << Moves/Repetitions << " Moves and " << Checkmates / Repetitions << " Checkmates" << std::endl;
                 std::cout << "      And a average of " << time/(Iterations/Repetitions/1000) << "ms per 1000 Iterations" << std::endl;
                 Iterations = 0;
@@ -249,6 +251,8 @@ int main() {
                 Checkmates = 0;
             }
         }
+
+        // Skip Recursed
         return 0;
 
         // Log the board

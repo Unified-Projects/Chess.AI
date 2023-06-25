@@ -54,7 +54,7 @@ protected: // Private board management
     bool Mate = false;
 
     // Color
-    Colour CheckedColour = NULE;
+    Colour CheckedColour = NULL_COLOUR;
 
     // King savings
     Piece* WhiteKing = nullptr;

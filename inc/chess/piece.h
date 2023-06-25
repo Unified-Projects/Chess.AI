@@ -10,11 +10,11 @@ struct MoveExtra;
     enum Colour{
         BLACK = 0x00,
         WHITE = 0xFF,
-        NULE = 0xFFF
+        NULL_COLOUR = 0xFFF
     };
 
     enum Type{
-        NULE_T = -1,
+        NULL_TYPE = -1,
         PAWN = 0,
         BISHOP = 1,
         ROOK = 2,
@@ -29,8 +29,8 @@ struct MoveExtra;
         friend class Board;
     protected:
         // Typing
-        Type t = NULE_T;
-        Colour c;
+        Type t = NULL_TYPE;
+        Colour c = NULL_COLOUR;
 
         // Parent referece
         Board* b;
@@ -44,7 +44,7 @@ struct MoveExtra;
         int moveCount;
 
         // Setup for board setup
-        Piece(Colour c = NULE) {this->c = c;X=0;Y=0;moveCount=0;}
+        Piece(Colour c = NULL_COLOUR) {this->c = c;X=0;Y=0;moveCount=0;}
 
         // To return protected variables to non-board
         Type GetT() {return t;}

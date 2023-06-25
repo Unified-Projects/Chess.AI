@@ -130,7 +130,7 @@ bool Board::UpdateCheck(){
         // and see if they are a opposing piece capable of the move (Dont search further than it if it blocks other)
 
     Check = false;
-    CheckedColour = NULE;
+    CheckedColour = NULL_COLOUR;
 
     for(int x = 1; x <= 8; x++){
         for (int y = 1; y <= 8; y++){
@@ -213,10 +213,6 @@ bool Board::UpdateCheckmate(){
                         // Still in check?
                         bool Checked = UpdateCheck();
 
-                        if(Checked){
-                            LogBoard();
-                        }
-
                         // Undo the move
                         UndoMove(); // Restores check so we need to store it instead
 
@@ -230,8 +226,8 @@ bool Board::UpdateCheckmate(){
         }
     }
 
-    std::cout << "Checkmate?" << std::endl;
-    LogBoard();
+    // std::cout << "Checkmate?" << std::endl;
+    // LogBoard();
 
     // We are Checkmate
     Mate = true;
@@ -378,8 +374,8 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY, bool ign
     // Increment move count
     targetPiece->moveCount++;
 
-    // If the check condition does not change then the move is invalid
-    if(Check && Prev && PrevC == CheckedColour && !ignoreCheck){
+    // If the check condition does not change then the move is invalid or we go into check
+    if(((Check && Prev && PrevC == CheckedColour) || (Check && CheckedColour == targetPiece->c)) && !ignoreCheck){
         UndoMove();
         return false;
     }

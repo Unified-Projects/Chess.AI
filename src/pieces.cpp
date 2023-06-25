@@ -8,6 +8,18 @@
 
 // TODO: For the MoveExtra when we need to use it we need to see if it exits!!
 
+// Partial Tests
+bool SlideTest(int xDir, int yDir, int Distance, Piece* TargetPiece, Board* b){
+    // Check over the direction
+    for(int i = 1; i < Distance; i++){
+        if(b->GetPieceAtPosition(TargetPiece->X + (xDir*i), TargetPiece->Y + (yDir*i))->GetT() != NULL_TYPE){
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     /*
         Movement:
@@ -24,7 +36,7 @@ bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
 
     // Check if piece can move forward
     // Check if the target is in the same column
-    if (targetX == X && targetPiece->GetT() == NULE_T) {
+    if (targetX == X && targetPiece->GetT() == NULL_TYPE) {
         // Calculate the pieces forward (Depending on colour)
         int diff = (targetY - Y) * ((c == WHITE) ? 1 : -1);
 
@@ -33,13 +45,14 @@ bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
 
             if (moveCount == 0 && diff == 2) {
                 // Check if there is a piece in the way
-                if (b->GetPieceAtPosition(X, Y + ((c == WHITE) ? 1 : -1))->GetT() != NULE_T) {
+                if (b->GetPieceAtPosition(X, Y + ((c == WHITE) ? 1 : -1))->GetT() != NULL_TYPE) {
                     return false;
                 }
             }
 
             if((c == WHITE && targetY == 8) || (c == BLACK && targetY == 1)){
                 //TODO: Capability to choose the piece to become
+                //TODO: MOVE TO USE Extra Not change type
                 t = QUEEN;
             }
             return true;
@@ -52,7 +65,7 @@ bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
             // Check if the target is in the next row
             if (targetY == Y + ((c == WHITE) ? 1 : -1)) {
                 // Check if enemy piece is present at target
-                if (targetPiece->GetT() != NULE_T) {
+                if (targetPiece->GetT() != NULL_TYPE) {
                     return true;
                 }
 
@@ -71,7 +84,7 @@ bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
 
                 // See if piece has only just moved and moved 2
                 if(b->PlayedMoves.back().MovedPiece == EnPassentPiece){
-                    if (((EnPassentPiece->GetC() == BLACK && EnPassentPiece->Y == 5) || (EnPassentPiece->GetC() == WHITE && EnPassentPiece->Y == 4)) && EnPassentPiece->moveCount == 1){
+                    if (((EnPassentPiece->GetC() == BLACK && EnPassentPiece->Y == 5) || (EnPassentPiece->GetC() == WHITE && EnPassentPiece->Y == 4)) && EnPassentPiece->moveCount == 1 && EnPassentPiece->GetC() != c){
                         if(!Extra){
                             return true; // Still a valid move
                         }
@@ -83,21 +96,6 @@ bool Pawn::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
                 }
             }
         }
-
-        // TODO: Only works from standard board layout!
-        // TODO: SEGMENT FAULTS OCCOUR WITHIN TESTINGS!
-
-        // Piece* EnPassentPiece = b->GetPieceAtPosition(X, Y + ((c) ? 1 : -1));
-
-        // if(((EnPassentPiece->GetC() == BLACK && EnPassentPiece->Y == 5) || (EnPassentPiece->GetC() == WHITE && EnPassentPiece->Y == 4)) && EnPassentPiece->moveCount == 1){
-        //     if(EnPassentPiece->X == X){
-        //         if(targetY == EnPassentPiece->Y && targetX != EnPassentPiece->X && abs(X - targetX) == 1){ // Ensure that the target is infront, and we are moving next to it
-        //             // En-passent possible
-        //             (*Extra) = {1 /*En Passent*/, EnPassentPiece->X, EnPassentPiece->Y, EnPassentPiece};
-        //             return true;
-        //         }
-        //     }
-        // }
     }
 
     return false;
@@ -123,29 +121,30 @@ bool Rook::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     Piece* targetPiece = b->GetPieceAtPosition(targetX, targetY);
 
     // Direction
-    int dx = (targetX - X > 0) ? 1 : -1;
-    int dy = (targetY - Y > 0) ? 1 : -1;
+    int dirx = (targetX - X > 0) ? 1 : -1;
+    int diry = (targetY - Y > 0) ? 1 : -1;
+    int dx = abs(targetX - X);
+    int dy = abs(targetY - Y);
+    int DirBlock = 0;
 
-    if(0 == targetX - X && 0 != targetY - Y){
+    if(dx && dy){
+        return false;
+    }
+
+    if(0 == dx && 0 != dy){
         // Now follow in direction of y +- depending on dy
-        for (int y = dy; y != targetY - Y; y += dy){
-            if (b->GetPieceAtPosition(X, Y + y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
-                return false;
-            }
-        }
-        return true;
+        DirBlock = 1;
     }
-    else if(0 != targetX - X && 0 == targetY - Y){
+    else if(0 != dx && 0 == dy){
         // Now follow in direction of x +- depending on dx
-        for (int x = dx; x != targetX - X; x += dx){
-            if (b->GetPieceAtPosition(X + x, Y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
-                return false;
-            }
-        }
-        return true;
+        DirBlock = 2;
     }
 
-    return false;
+    if(!SlideTest(dirx * (DirBlock != 1), diry * (DirBlock != 2), (dx) ? dx : dy, this, b)){
+        return false;
+    }
+
+    return true;
 }
 
 bool Bishop::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
@@ -159,16 +158,14 @@ bool Bishop::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     int dy = abs(targetY - Y);
 
     // Check if move is diagonal
-    if(dx == dy) {
-        for (int distance = 1; distance < dy; distance++) { // Look in diagonal distance
-            if (b->GetPieceAtPosition(X + (distance*dirx), Y + (distance*diry))->GetT() != NULE_T) { // Piece present and we are not trying to capture
-                return false;
-            }
-        }
-        return true;
+    if(dx != dy) {
+        return false;
     }
 
-    return false;
+    if(!SlideTest(dirx, diry, dx, this, b)){
+        return false;
+    }
+    return true;
 }
 
 bool Queen::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
@@ -178,37 +175,27 @@ bool Queen::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     // Direction
     int dirx = (targetX - X > 0) ? 1 : -1;
     int diry = (targetY - Y > 0) ? 1 : -1;
-    int dx = targetX - X;
-    int dy = targetY - Y;
+    int dx = abs(targetX - X);
+    int dy = abs(targetY - Y);
+    int DirBlock = 0;
 
     if(0 == dx && 0 != dy){
         // Now follow in direction of y +- depending on dy
-        for (int y = diry; abs(y) < abs(dy); y += diry){
-            if (b->GetPieceAtPosition(X, Y + y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
-                return false;
-            }
-        }
-        return true;
+        DirBlock = 1;
     }
     else if(0 != dx && 0 == dy){
         // Now follow in direction of x +- depending on dx
-        for (int x = dirx; abs(x) < abs(dx); x += dirx){
-            if (b->GetPieceAtPosition(X + x, Y)->GetT() != NULE_T){ // Piece present and we are not trying to capture
-                return false;
-            }
-        }
-        return true;
+        DirBlock = 2;
     }
-    else if(abs(dx) == abs(dy)){
-        for (int distance = 1; distance < abs(dy); distance ++){ // Look in diagonal distance
-            if (b->GetPieceAtPosition(X + (distance*dirx), Y + (distance*diry))->GetT() != NULE_T){ // Piece present and we are not trying to capture
-                return false;
-            }
-        }
-        return true;
+    else if(dx != dy) {
+        return false;
+    }
+    
+    if(!SlideTest(dirx * (DirBlock != 1), diry * (DirBlock != 2), (dx) ? dx : dy, this, b)){
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 bool King::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
@@ -231,37 +218,46 @@ bool King::isValidMove(int targetX, int targetY, MoveExtra* Extra) {
     // TODO: see if currently in check
         // Perfom the partion (going through check), then check check
         // then undo move if in check and return that the move is invalid
-    if(abs(dx) == 2 && dy == 0 && moveCount == 0){
-        int dist = 0;
-        if(dx < 0){
-            dist = -4;
-        }
-        else{
-            dist = 3;
-        }
+    // TODO: Fix the checking along the board (Distance is to the castle not to where the king goes!)
+    // if(abs(dx) == 2 && dy == 0 && moveCount == 0){
+    //     int dist = 0;
+    //     if(dx < 0){
+    //         dist = -4;
+    //     }
+    //     else{
+    //         dist = 3;
+    //     }
 
-        // Check the castle has not moved
-        Piece* castle = b->GetPieceAtPosition(X + dist, Y);
-        if(castle->moveCount != 0 && castle->GetT() == ROOK && castle->GetC() == c){
-            return false;
-        }
+    //     // Check the castle has not moved
+    //     Piece* castle = b->GetPieceAtPosition(X + dist, Y);
+    //     if(castle->moveCount != 0 && castle->GetT() == ROOK && castle->GetC() == c){
+    //         return false;
+    //     }
 
-        // Now follow in direction of x +- depending on dx
-        for (int x = dirx; x != dist; x += dirx){
-            if (b->GetPieceAtPosition(X + x, Y)->GetT() != NULE_T){ // Piece present and there cant be
-                return false;
-            }
-        }
+    //     // Now follow in direction of x +- depending on dx
+    //     for (int x = dirx; x != dist; x += dirx){
+    //         if (b->GetPieceAtPosition(X + x, Y)->GetT() != NULL_TYPE){ // Piece present and there cant be
+    //             return false;
+    //         }
 
-        if(dx < 0){
-            b->MovePiece(1, Y, 4, Y);
-        }
-        else{
-            b->MovePiece(8, Y, 6, Y);
-        }
+    //         // See if we move into check
+    //         bool Valid = b->MovePiece(X, Y, X + x, Y);
 
-        return true;
-    }
+    //         if(Valid){
+    //             b->UndoMove();
+    //         }
+    //     }
+
+    //     // MOVE CASTLES BIG ISSUE UNDOOOOOO // TODO: MOVEEXTRAS
+    //     if(dx < 0){
+    //         b->MovePiece(1, Y, 4, Y);
+    //     }
+    //     else{
+    //         b->MovePiece(8, Y, 6, Y);
+    //     }
+
+    //     return true;
+    // }
 
     if (abs(dx) == 1 && abs(dy) == 1 ||  abs(dx) == 0 && abs(dy) == 1 || abs(dx) == 1 && abs(dy) == 0){
         return true;
