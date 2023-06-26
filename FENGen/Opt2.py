@@ -23,6 +23,6 @@ def generate_all_fens_json():
     fens_data = {"fens": fens}
 
     with open("all_fens.json", "w", encoding="utf-8") as f:
-        json.dump(fens_data, f, indnt=4)
+        json.dump(fens_data, f, indent=4)
 
 generate_all_fens_json()
