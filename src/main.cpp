@@ -3,8 +3,147 @@
 #include <chess/piece.h>
 #include <time.h>
 #include <stack>
+#include <List>
+#include <stdio.h>
+#include <fstream>
+#include <sstream>
+#include <cstring>
 
 // TODO: REALISE THAT THE FEN COULD HAVE ROLES REVERSED SO BLACK START ON BOTTOM NOT TOP (HANDLING FOR THIS!)
+
+// Sacrafice to the chess gods
+/*
+                      🕯️
+              🕯️             🕯️
+        🕯️                          🕯️
+
+    🕯️               🗡️🕴️                🕯️
+
+        🕯️                          🕯️
+              🕯️             🕯️
+                      🕯️
+*/
+
+std::list<std::string> ValidFens = {};
+
+void LoadFens(const char* FilePath){
+    std::ifstream inputFile(FilePath);  // Replace "file.txt" with the actual file path
+
+    if (!inputFile.is_open()) {
+        std::cout << "Oppsie You FUCKED Up" << std::endl;
+        return;
+    }
+
+    std::string line;
+
+    while (std::getline(inputFile, line)) {
+        std::stringstream ss(line);
+        std::string item;
+
+        while (std::getline(ss, item, ',')) {
+            ValidFens.push_back(item);
+            // std::cout << item << std::endl;  // Log each item
+        }
+    }
+
+    inputFile.close();
+
+    // DEBUG: DEBUG PERPOSES ONLY
+    std::ofstream outputFile("../FENGen/Load.txt");  // Replace "file.txt" with the actual file path
+
+    if (!outputFile.is_open()) {
+        std::cout << "Oppsie You FUCKED Up" << std::endl;
+        return;
+    }
+
+    // Recombine the items and write to the file
+    for (const std::string& item : ValidFens) {
+        outputFile << item << '\n';
+    }
+
+    outputFile.close();
+
+    return;
+}
+
+std::string ConvertToFen(Board* b) {
+    std::string fen = "";
+    int nullCounter = 0;
+    for (int y=8; y>=1; y--) {
+        for (int x=1; x<=8; x++) {
+            // Get piece at position
+            Type type = b->GetPieceAtPosition(x, y)->GetT();
+            Colour colour = b->GetPieceAtPosition(x, y)->GetC();
+
+            if (type == NULL_TYPE) {
+                nullCounter++;
+                continue;
+            }
+            if (nullCounter) {
+                fen += std::to_string(nullCounter);
+                nullCounter = 0;
+            }
+            char t = Board::typeMapper[type] + ((colour == WHITE) ? ('A' - 'a') : 0);
+            fen += t;
+
+            // TODO: Other FEN Sections Needed!
+        }
+        if (nullCounter) {
+            fen += std::to_string(nullCounter);
+            nullCounter = 0;
+        }
+        if (y != 1) {
+            fen += "/";
+        }
+    }
+
+    return fen;
+}
+
+std::list<std::string> duplicateProtection;
+int DupeCount = 0;
+
+bool ValidateFen(Board* b){
+
+    if (ValidFens.empty()) {
+        LoadFens("../FENGen/fens.txt");
+        std::cout << "Loaded Fens" << std::endl;
+    }
+
+    // Convert board to fen
+    std::string boardFen = ConvertToFen(b);
+
+    // Get str length
+    int i = boardFen.size();
+
+    for(std::string fen : ValidFens){
+
+        // if(boardFen == std::string(fen, i)){
+        //     return true;
+        // }
+        if(fen.find(boardFen) != std::string::npos){
+            // int dpB = DupeCount;
+
+            // for(std::string f : duplicateProtection){
+            //     if(f.find(boardFen) != std::string::npos){
+            //         std::cout << DupeCount << std::endl;
+            //         DupeCount++;
+            //         break;
+            //     }
+            // }
+
+            // if(dpB == DupeCount){
+            //     duplicateProtection.push_back(fen);
+            // }
+
+            return true;
+        }
+    }
+    // std::cout << result << std::endl;
+    std::cout << boardFen << std::endl;
+    // std::cout << std::string(fen, i) << std::endl;
+    return false;
+}
 
 uint64_t Iterations = 0;
 uint64_t Moves = 0;
@@ -49,6 +188,8 @@ int RecursedPossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
     return 0;
 }
 
+int PreMoves = 0;
+
 struct LayerRecord{
     int x, y, nx, ny;
 };
@@ -58,12 +199,14 @@ int PossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
         return 0;
     }
 
+    int BackupLayerNumber = LayerNumber;
+
     // Previous Layers
     std::stack<LayerRecord> records;
     bool Restoring = false;
 
     // Method to remove recursiom
-Recurse:
+    Recurse:
     for(int x = 1; x <= 8; x++){
         for (int y = 1; y <= 8; y++){
             for(int nx = 1; nx <= 8; nx++){
@@ -87,6 +230,16 @@ Recurse:
 
                         movedPiece = b->MovePiece(x, y, nx, ny, true);
 
+                        if(movedPiece && BackupLayerNumber == 4 && LayerNumber == 1){
+                            bool i = ValidateFen(b);
+
+                            // return 0;
+
+                            if(!i){
+                                b->LogBoard();
+                            }
+                        }
+
                         // Next Layer
                         if(movedPiece && LayerNumber > 1 && !b->UpdateCheckmate()){
                             // PossibleMoves(b, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
@@ -106,6 +259,11 @@ Recurse:
 
                         if((movedPiece && LayerNumber == 1 && !b->UpdateCheckmate())){
                             Moves++;
+
+                            if(Moves-PreMoves >= 100){
+                                std::cout << Moves << std::endl;
+                                PreMoves = Moves;
+                            }
                         }
 
                         if(b->UpdateCheckmate()){
@@ -155,73 +313,8 @@ Recurse:
 }
 
 int main() {
-    if(1 == 0){ // Board checks
-        const char* FENS[] {
-            // Initial
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1",
-
-            // Checks and mates
-            "rnbqkbnr/ppp1pppp/8/3p4/Q7/2P5/PP1PPPPP/RNB1KBNR w - - 0 1",
-            "r1pbkbnr/p1b1pppp/8/3p4/Q7/2P5/PP1PPPPP/RNB1KBNR w - - 0 1", // Mate
-            "k7/8/8/r7/8/2q5/8/K3r3 w - - 0 1", // Mate
-            "k7/6K1/8/r7/8/2q5/8/4r3 w - - 0 1",
-            "rnbqkbnr/pppp1ppp/4R3/4p3/8/8/PPPPPPPP/RNBQKBN1 w - - 0 1",
-
-            // Random
-            "3n4/P6B/2Np1K2/2Nk2P1/q7/1b1P4/3P2rp/2Q5 w - - 0 1",
-            "7r/1qN3B1/4pbp1/8/5P1p/2RP4/2K3pR/k1n5 w - - 0 1",
-            "6B1/P3NP1p/p6P/4pR1P/p3K3/8/3Bp1k1/q7 w - - 0 1",
-            "4b2N/4R1Q1/3PP2B/2P1pk2/1P6/KP4P1/B7/4N3 w - - 0 1"
-        };
-        for (int i = 2; i < 3; i++){
-            Board board2;
-            board2.InitBoard(FENS[i]);
-
-            if(board2.UpdateCheckmate()){
-                board2.LogBoard();
-                std::cout << "CHECKMATE!" << std::endl;
-            }
-        }
-    }
-
     Board board;
     board.InitBoard();
-
-    if(1 == 0){ // Gameplay
-        while (true){
-            board.LogBoard();
-
-
-            char Undo = 0;
-            std::cout << "Undo: ";
-            std::cin >> Undo;
-
-            if(Undo == 'Y'){
-                board.UndoMove();
-                continue;
-            }
-
-            int startX = 0;
-            int startY = 0;
-            std::cout << "StartX: ";
-            std::cin >> startX;
-            std::cout << "StartY: ";
-            std::cin >> startY;
-
-            int moveX = 0;
-            int moveY = 0;
-            std::cout << "MoveX: ";
-            std::cin >> moveX;
-            std::cout << "MoveY: ";
-            std::cin >> moveY;
-
-            board.LogBoard();
-
-            bool movedPiece = board.MovePiece(startX, startY, moveX, moveY);
-
-            std::cout << "Moved: " << ((movedPiece) ? "Yes" : "No") << std::endl;
-        }
-    }
 
     if(1==1){// Efficency testings
         int Repetitions = 1;
@@ -248,6 +341,7 @@ int main() {
                 std::cout << "      And a average of " << time/(Iterations/Repetitions/1000) << "ms per 1000 Iterations" << std::endl;
                 Iterations = 0;
                 Moves = 0;
+                PreMoves = 0;
                 Checkmates = 0;
             }
         }
@@ -277,6 +371,7 @@ int main() {
                 std::cout << "      And a average of " << time/(Iterations/Repetitions/1000) << "ms per 1000 Iterations" << std::endl;
                 Iterations = 0;
                 Moves = 0;
+                PreMoves = 0;
                 Checkmates = 0;
             }
         }

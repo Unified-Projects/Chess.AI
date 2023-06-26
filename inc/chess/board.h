@@ -38,10 +38,10 @@ struct MoveCache{
 
 class Board {
     friend struct Piece;
-protected: // Standardised
+public: // Standardised
     // Define standard map to FEN kesy to our defined pieces
     static std::map<char, Piece*> pieceMapper;
-    static std::map<char, Type> typeMapper; // Usefull for the move notation and checking if it is valid
+    static std::map<Type, char> typeMapper; // Usefull for the move notation and checking if it is valid
 
 protected: // Private board management
     Piece* board[8][8] = {};

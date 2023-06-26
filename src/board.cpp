@@ -14,13 +14,14 @@ std::map<char, Piece*> Board::pieceMapper = {
         {'q', new Queen(BLACK)}, {'Q', new Queen(WHITE)},
         {'k', new King(BLACK)}, {'K', new King(WHITE)},
     };
-std::map<char, Type> Board::typeMapper = {
-        {'r', ROOK}, {'R', ROOK},
-        {'n', KNIGHT}, {'N', KNIGHT},
-        {'p', PAWN}, {'P', PAWN},
-        {'b', BISHOP}, {'B', BISHOP},
-        {'q', QUEEN}, {'Q', QUEEN},
-        {'k', KING}, {'K', KING},
+std::map<Type, char> Board::typeMapper = {
+        {ROOK, 'r'}, {ROOK, 'R'},
+        {KNIGHT, 'n'}, {KNIGHT, 'N'},
+        {PAWN, 'p'}, {PAWN, 'P'},
+        {BISHOP, 'b'}, {BISHOP, 'B'},
+        {QUEEN, 'q'}, {QUEEN, 'Q'},
+        {KING, 'k'}, {KING, 'K'},
+        {NULL_TYPE, ' '}
     };
 
 void Board::SetPiece(int X, int Y, Piece* p){
@@ -249,18 +250,7 @@ void Board::LogBoard(){
             Colour c = board[i][j]->c;
 
             // Create a store point for the character
-            char type = ' ';
-
-            // Reverse the map to get the character linking to the specified type
-            std::for_each(typeMapper.begin(), typeMapper.end(),
-                        /*Reference points for returning the values out of the embed*/[&t, &type](const std::pair<char, Type> &p)
-                        {
-                            // Simple compare until found
-                            if (p.second == t)
-                            {
-                                type = p.first;
-                            }
-                        });
+            char type = this->typeMapper[t];
 
             // Colour formatting dependent of the pieces colour
             const char* ColorMod = "";
@@ -316,7 +306,7 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY, bool ign
     }
 
     // Piece not moved or Attacking team-mate or Attacking team-mate
-    if ((startX == targetX && startY == targetY) || endPiece->GetC() == targetPiece->GetC()){
+    if (endPiece->GetC() == targetPiece->GetC()){
         return false;
     }
 
@@ -336,25 +326,25 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY, bool ign
     }
 
     // See if the pawn changed piece
-    if(t == PAWN && targetPiece->t != PAWN){
-        // TODO: Change depending on new type
-        // Piece* Changed = ((Queen*)targetPiece)->Clone();
-        Piece* Changed = new Queen(*((Queen*)targetPiece));
+    // if(t == PAWN && targetPiece->t != PAWN){
+    //     // TODO: Change depending on new type
+    //     // Piece* Changed = ((Queen*)targetPiece)->Clone();
+    //     Piece* Changed = new Queen(*((Queen*)targetPiece));
 
-        // Store Pawn for move undo
-        Piece* Old = targetPiece;
-        Old->t = PAWN;
+    //     // Store Pawn for move undo
+    //     Piece* Old = targetPiece;
+    //     Old->t = PAWN;
 
-        // Replace Pawn
-        targetPiece = Changed;
+    //     // Replace Pawn
+    //     targetPiece = Changed;
 
-        // Store Move with old piece
-        PlayedMoves.push_back(MoveCache{Old, endPiece, startX, startY, targetX, targetY, Change});
-    }
-    else{
+    //     // Store Move with old piece
+    //     PlayedMoves.push_back(MoveCache{Old, endPiece, startX, startY, targetX, targetY, Change});
+    // }
+    // else{
         // Store Move normally
         PlayedMoves.push_back(MoveCache{targetPiece, endPiece, startX, startY, targetX, targetY, Change});
-    }
+    // }
 
     // If so we want to move the piece, and then delete the piece that was already there
     SetPiece(targetX-1, targetY-1, targetPiece);

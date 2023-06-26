@@ -31,11 +31,8 @@ def generate_fens_after_half_moves(half_moves):
 half_moves = 4  # Number of half-moves
 fens = generate_fens_after_half_moves(half_moves)
 
-# Create a dictionary with FENs as keys and their indices as values
-fens_dict = {fen: fen for _, fen in enumerate(fens)}
-
 # Save the dictionary as a JSON file with nicely formatted structure
-with open('fens.json', 'w', encoding='utf-8') as f:
-    json.dump(fens_dict, f, indent=4)
+with open('fens.txt', 'w', encoding='utf-8') as f:
+    f.write(",".join(set(fens)))
 
 print(f"Generated FENs saved in fens.json")
