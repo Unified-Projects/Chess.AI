@@ -1,38 +1,41 @@
 import chess
 import json
 
-def generate_all_fens_json():
-    initial_position = chess.Board()
+def generate_fens_after_half_moves(half_moves):
+    board = chess.Board()
     fens = []
+    total_positions = 0
 
-    total_moves = 0
-    completed_moves = 0
+    def generate_fens_recursive(board, half_moves_left, position_count):
+        nonlocal total_positions
+        if half_moves_left == 0:
+            fens.append(board.fen())
+            position_count += 1
+            total_positions += 1
+            if total_positions % 1000 == 0:
+                print(f"Generated {total_positions} FENs")
+            return position_count
 
-    stack = [(initial_position.copy(), [])]
+        for move in board.legal_moves:
+            board.push(move)
+            position_count = generate_fens_recursive(board, half_moves_left - 1, position_count)
+            board.pop()
 
-    while stack:
-        position, moves = stack.pop()
+        return position_count
 
-        legal_moves = position.legal_moves
+    total_positions = generate_fens_recursive(board, half_moves, total_positions)
+    print(f"Generated {total_positions} FENs in total")
+    return fens
 
-        if not legal_moves:
-            fens.append(position.fen())
-        else:
-            for move in legal_moves:
-                new_position = position.copy()
-                new_position.push(move)
-                stack.append((new_position, moves + [move]))
-                total_moves += 1
+# Example usage
+half_moves = 4  # Number of half-moves
+fens = generate_fens_after_half_moves(half_moves)
 
-                if total_moves % 100000 == 0:
-                    completed_moves += 100000
-                    print(f"Progress: {completed_moves / total_moves * 100:.2f}%")  # Print percentage completion
+# Create a dictionary with FENs as keys and their indices as values
+fens_dict = {fen: fen for _, fen in enumerate(fens)}
 
-    print("All FEN positions generated. Total:", len(fens))  # Print total number of FEN positions
+# Save the dictionary as a JSON file with nicely formatted structure
+with open('fens.json', 'w', encoding='utf-8') as f:
+    json.dump(fens_dict, f, indent=4)
 
-    fens_data = {"fens": fens}
-
-    with open("all_fens.json", "w", encoding="utf-8") as f:
-        json.dump(fens_data, f, indent=4)
-
-generate_all_fens_json()
+print(f"Generated FENs saved in fens.json")
