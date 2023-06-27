@@ -142,9 +142,9 @@ bool Board::UpdateCheck() {
     int blackKingX = BlackKing->X;
     int blackKingY = BlackKing->Y;
 
-    // See if black in check
+    // See if Black is in check
     for (Piece* targetPiece : WhitePieces) {
-        // Check if the piece can move to the king
+        // Check if the piece can move to the opponent's king
         if (targetPiece->isValidMove(blackKingX, blackKingY)) {
             Check = true;
             CheckedColour = BLACK;
@@ -152,9 +152,9 @@ bool Board::UpdateCheck() {
         }
     }
 
-    // See if White in check
+    // See if White is in check
     for (Piece* targetPiece : BlackPieces) {
-        // Check if the piece can move to the king
+        // Check if the piece can move to the opponent's king
         if (targetPiece->isValidMove(whiteKingX, whiteKingY)) {
             Check = true;
             CheckedColour = WHITE;
@@ -192,7 +192,6 @@ bool Board::UpdateCheckmate() {
                 if (validMove && !UpdateCheck()) {
                     // Move eliminates the check, so it's not checkmate
                     UndoMove();
-                    Mate = false;
                     return false;
                 }
 

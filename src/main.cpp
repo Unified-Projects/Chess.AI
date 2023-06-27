@@ -230,32 +230,32 @@ int PossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
 
                         movedPiece = b->MovePiece(x, y, nx, ny);
 
-                        // if(movedPiece && BackupLayerNumber == 4 && LayerNumber == 1){
-                        //     bool i = ValidateFen(b);
+                        if(movedPiece && BackupLayerNumber == 5 && LayerNumber == 1){
+                            bool i = ValidateFen(b);
 
-                        //     // return 0;
+                            // return 0;
 
-                        //     if(!i){
-                        //         std::ofstream fileOUT("InvlaidFens.txt", std::ios::app); // open filename.txt in append mode
+                            if(!i){
+                                std::ofstream fileOUT("InvlaidFens.txt", std::ios::app); // open filename.txt in append mode
 
-                        //         // Convert Board Moves to String
-                        //         std::string Moves = "";
+                                // Convert Board Moves to String
+                                std::string Moves = "";
 
-                        //         for (MoveCache m : b->PlayedMoves){
-                        //             Moves += Board::typeMapper[m.MovedPiece->GetT()];
-                        //             Moves += "." + std::string((m.MovedPiece->GetC() == WHITE) ? "W" : "B");
-                        //             Moves += ":";
-                        //             Moves += std::to_string(m.StartX) + ", " + std::to_string(m.StartY);
-                        //             Moves += ":";
-                        //             Moves += std::to_string(m.EndX) + ", " + std::to_string(m.EndY);
-                        //             Moves += "\n";
-                        //         }
+                                for (MoveCache m : b->PlayedMoves){
+                                    Moves += Board::typeMapper[m.MovedPiece->GetT()];
+                                    Moves += "." + std::string((m.MovedPiece->GetC() == WHITE) ? "W" : "B");
+                                    Moves += ":";
+                                    Moves += std::to_string(m.StartX) + ", " + std::to_string(m.StartY);
+                                    Moves += ":";
+                                    Moves += std::to_string(m.EndX) + ", " + std::to_string(m.EndY);
+                                    Moves += "\n";
+                                }
 
-                        //         fileOUT << ConvertToFen(b) << "\n" << Moves << std::endl; // append "some stuff" to the end of the file
+                                fileOUT << ConvertToFen(b) << "\n" << Moves << std::endl; // append "some stuff" to the end of the file
 
-                        //         fileOUT.close(); // close the file
-                        //     }
-                        // }
+                                fileOUT.close(); // close the file
+                            }
+                        }
 
                         // Next Layer
                         if(movedPiece && LayerNumber > 1 && !b->UpdateCheckmate()){
