@@ -228,17 +228,17 @@ int PossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
                         //     goto Recurse;
                         // }
 
-                        movedPiece = b->MovePiece(x, y, nx, ny, true);
+                        movedPiece = b->MovePiece(x, y, nx, ny);
 
-                        if(movedPiece && BackupLayerNumber == 4 && LayerNumber == 1){
-                            bool i = ValidateFen(b);
+                        // if(movedPiece && BackupLayerNumber == 4 && LayerNumber == 1){
+                        //     bool i = ValidateFen(b);
 
-                            // return 0;
+                        //     // return 0;
 
-                            if(!i){
-                                b->LogBoard();
-                            }
-                        }
+                        //     if(!i){
+                        //         b->LogBoard();
+                        //     }
+                        // }
 
                         // Next Layer
                         if(movedPiece && LayerNumber > 1 && !b->UpdateCheckmate()){
@@ -260,13 +260,14 @@ int PossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
                         if((movedPiece && LayerNumber == 1 && !b->UpdateCheckmate())){
                             Moves++;
 
-                            if(Moves-PreMoves >= 100){
-                                std::cout << Moves << std::endl;
-                                PreMoves = Moves;
-                            }
+                            // if(Moves-PreMoves >= 100){
+                            //     std::cout << Moves << std::endl;
+                            //     PreMoves = Moves;
+                            // }
                         }
 
-                        if(b->UpdateCheckmate()){
+                        if(b->UpdateCheckmate() && LayerNumber == 1){
+                            Moves++;
                             Checkmates++;
                         }
                     }
@@ -318,7 +319,7 @@ int main() {
 
     if(1==1){// Efficency testings
         int Repetitions = 1;
-        int MaxLayers = 4;
+        int MaxLayers = 5;
 
         std::cout << "Non-Recursed Timing Tests:" << std::endl;
 
