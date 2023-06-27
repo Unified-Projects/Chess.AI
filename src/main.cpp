@@ -228,17 +228,34 @@ int PossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
                         //     goto Recurse;
                         // }
 
-                        movedPiece = b->MovePiece(x, y, nx, ny);
+                        movedPiece = b->MovePiece(x, y, nx, ny, true);
 
-                        // if(movedPiece && BackupLayerNumber == 4 && LayerNumber == 1){
-                        //     bool i = ValidateFen(b);
+                        if(movedPiece && BackupLayerNumber == 4 && LayerNumber == 1){
+                            bool i = ValidateFen(b);
 
-                        //     // return 0;
+                            // return 0;
 
-                        //     if(!i){
-                        //         b->LogBoard();
-                        //     }
-                        // }
+                            if(!i){
+                                std::ofstream fileOUT("InvlaidFens.txt", std::ios::app); // open filename.txt in append mode
+
+                                // Convert Board Moves to String
+                                std::string Moves = "";
+
+                                for (MoveCache m : b->PlayedMoves){
+                                    Moves += Board::typeMapper[m.MovedPiece->GetT()];
+                                    Moves += "." + std::string((m.MovedPiece->GetC() == WHITE) ? "W" : "B");
+                                    Moves += ":";
+                                    Moves += std::to_string(m.StartX) + ", " + std::to_string(m.StartY);
+                                    Moves += ":";
+                                    Moves += std::to_string(m.EndX) + ", " + std::to_string(m.EndY);
+                                    Moves += "\n";
+                                }
+
+                                fileOUT << ConvertToFen(b) << "\n" << Moves << std::endl; // append "some stuff" to the end of the file
+
+                                fileOUT.close(); // close the file
+                            }
+                        }
 
                         // Next Layer
                         if(movedPiece && LayerNumber > 1 && !b->UpdateCheckmate()){
@@ -260,10 +277,10 @@ int PossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
                         if((movedPiece && LayerNumber == 1 && !b->UpdateCheckmate())){
                             Moves++;
 
-                            // if(Moves-PreMoves >= 100){
-                            //     std::cout << Moves << std::endl;
-                            //     PreMoves = Moves;
-                            // }
+                            if(Moves-PreMoves >= 100){
+                                std::cout << Moves << std::endl;
+                                PreMoves = Moves;
+                            }
                         }
 
                         if(b->UpdateCheckmate() && LayerNumber == 1){
@@ -319,7 +336,7 @@ int main() {
 
     if(1==1){// Efficency testings
         int Repetitions = 1;
-        int MaxLayers = 5;
+        int MaxLayers = 4;
 
         std::cout << "Non-Recursed Timing Tests:" << std::endl;
 

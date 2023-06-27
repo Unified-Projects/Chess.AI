@@ -10,3 +10,7 @@ chess-fen-infographics.png
 
 # Allow cmake debug file
 !.vscode/launch.json
+
+# Generated Texts used for debugging
+FENGen/fens.txt
+FENGen/Load.txt
