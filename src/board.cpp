@@ -115,6 +115,13 @@ void Board::InitBoard(std::string FEN) {
             }
         }
 
+        if (newPiece->c == WHITE){
+            WhitePieces.push_back(newPiece);
+        }
+        else{
+            BlackPieces.push_back(newPiece);
+        }
+
         // Move horizonatally
         LocalX++;
     }
@@ -125,114 +132,79 @@ void Board::InitBoard(std::string FEN) {
     return;
 }
 
-bool Board::UpdateCheck(){
-    // Im going to do a in-efficient check checker because im lazy and want the functionality now
-        // The better option would be to check all move optiosn out of the kings position
-        // and see if they are a opposing piece capable of the move (Dont search further than it if it blocks other)
-
+bool Board::UpdateCheck() {
     Check = false;
     CheckedColour = NULL_COLOUR;
 
-    for(int x = 1; x <= 8; x++){
-        for (int y = 1; y <= 8; y++){
-            Piece* targetPiece = GetPieceAtPosition(x, y);
-            if(targetPiece->GetT() == KING){
-                continue;
-            }
+    // Find the opponent's king position
+    int whiteKingX = WhiteKing->X;
+    int whiteKingY = WhiteKing->Y;
+    int blackKingX = BlackKing->X;
+    int blackKingY = BlackKing->Y;
 
-            // Check if the piece can move to the king
-            else if (targetPiece->GetC() == WHITE && targetPiece->isValidMove(BlackKing->X, BlackKing->Y)){
-                Check = true;
-                CheckedColour = BLACK;
-                return Check;
-            }
-            else if (targetPiece->GetC() == BLACK && targetPiece->isValidMove(WhiteKing->X, WhiteKing->Y)){
-                Check = true;
-                CheckedColour = WHITE;
-                return Check;
-            }
+    // See if black in check
+    for (Piece* targetPiece : WhitePieces) {
+        // Check if the piece can move to the king
+        if (targetPiece->isValidMove(blackKingX, blackKingY)) {
+            Check = true;
+            CheckedColour = BLACK;
+            return Check;
+        }
+    }
+
+    // See if White in check
+    for (Piece* targetPiece : BlackPieces) {
+        // Check if the piece can move to the king
+        if (targetPiece->isValidMove(whiteKingX, whiteKingY)) {
+            Check = true;
+            CheckedColour = WHITE;
+            return Check;
         }
     }
 
     return Check;
 }
 
-bool Board::UpdateCheckmate(){
-    // TODO: Efficiency?
-
-    if(!UpdateCheck()){
-        return false; // We dont need to do anything, we are not in check so no need for mate
+bool Board::UpdateCheckmate() {
+    if (!UpdateCheck()) {
+        return false;
     }
-
-    // Ok so quite in-efficeint warning
-        // Ima make every move for the piece in check and see if it saves them
-        // If nope then we are in checkmate
 
     Mate = false;
 
-    for(int x = 1; x <= 8; x++){
-        for (int y = 1; y <= 8; y++){
-            Piece* targetPiece = GetPieceAtPosition(x, y);
-            // Ensure we only move pieces that could save us from check
-            if(targetPiece->c != CheckedColour){
-                continue;
-            }
+    // Generate moves for the pieces of the color under check
+    std::list<Piece*> pieces = (CheckedColour == WHITE) ? WhitePieces : BlackPieces;
 
-            for(int nx = 1; nx <= 8; nx++){
-                for (int ny = 1; ny <= 8; ny++){
-                    // Play the move
-                    bool Valid = MovePiece(x, y, nx, ny, true);
+    for (Piece* targetPiece : pieces) {
+        int startX = targetPiece->X;
+        int startY = targetPiece->Y;
 
-                    // TODO: INVALID
-                    /*
-                        Current Debug:
-                        Here some layouts are being treated as checkmate because they make it throught the for loop
-                        without registering as !Checked. An example is a board where the knight can block the check
-                        but it does not seem to see the movement and thinks checkmate. This is proved by no boards being
-                        logged by the:
+        for (int targetX = 1; targetX <= 8; targetX++) {
+            for (int targetY = 1; targetY <= 8; targetY++) {
+                // Skip if the target position is the same as the current position
+                if (targetX == startX && targetY == startY) {
+                    continue;
+                }
 
-                        if(Checked){
-                            LogBoard();
-                        }
+                // Play the move
+                bool validMove = MovePiece(startX, startY, targetX, targetY, true);
 
-                        yet it will log outside of the forloop.
+                if (validMove && !UpdateCheck()) {
+                    // Move eliminates the check, so it's not checkmate
+                    UndoMove();
+                    Mate = false;
+                    return false;
+                }
 
-                        Update:
-                        Seems to be outputting the correct checkmate boards, but dubplicating them. This is likely
-                        because the moves are being played in different orders, but arriving at the same outcome.
-                        E.g. Piece A moves then B or B moves then A.
-
-                        Also the number of moves have now increased and the above issues are still present. GL :)
-
-                        CURRENT OUTPUT
-                        Checkmate count of 16
-
-                        EXPECTED OUTPUT
-                        Checkmate count of 8
-                    */
-                    if (Valid){
-                        // Still in check?
-                        bool Checked = UpdateCheck();
-
-                        // Undo the move
-                        UndoMove(); // Restores check so we need to store it instead
-
-                        // Not in check, so we found the move to save us so we exit.
-                        if(!Checked){
-                            return false;
-                        }
-                    }
+                // Undo the move if it was valid
+                if (validMove) {
+                    UndoMove();
                 }
             }
         }
     }
 
-    // std::cout << "Checkmate?" << std::endl;
-    // LogBoard();
-
-    // We are Checkmate
     Mate = true;
-
     return true;
 }
 
@@ -346,6 +318,11 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY, bool ign
         PlayedMoves.push_back(MoveCache{targetPiece, endPiece, startX, startY, targetX, targetY, Change});
     // }
 
+    if(endPiece->t != NULL_TYPE){
+        std::list<Piece*>* pieces = (endPiece->c == WHITE) ? &WhitePieces : &BlackPieces;
+        pieces->remove(endPiece);
+    }
+
     // If so we want to move the piece, and then delete the piece that was already there
     SetPiece(targetX-1, targetY-1, targetPiece);
 
@@ -390,6 +367,12 @@ void Board::UndoMove(){
         if (Move.Extra.type == 1){
             SetPiece(Move.Extra.x-1, Move.Extra.y-1, Move.Extra.change);
         }
+    }
+
+    // Load the piece back if taken
+    if(Move.TargetPiece->t != NULL_TYPE){
+        std::list<Piece*>* pieces = (Move.TargetPiece->c == WHITE) ? &WhitePieces : &BlackPieces;
+        pieces->push_back(Move.TargetPiece);
     }
 
     // Resort Check

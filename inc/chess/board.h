@@ -3,6 +3,7 @@
 #include <chess/piece.h>
 #include <stdint.h>
 #include <vector>
+#include <list>
 #include <map>
 #include <algorithm>
 #include <iostream>
@@ -59,6 +60,10 @@ protected: // Private board management
     // King savings
     Piece* WhiteKing = nullptr;
     Piece* BlackKing = nullptr;
+
+    // Pieces
+    std::list<Piece*> WhitePieces = {};
+    std::list<Piece*> BlackPieces = {};
 
 public: // Setup / De-setup
     // Probably should do something with me
