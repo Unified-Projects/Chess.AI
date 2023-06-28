@@ -126,30 +126,106 @@ void Board::InitBoard(std::string FEN) {
 }
 
 bool Board::UpdateCheck(){
-    // Im going to do a in-efficient check checker because im lazy and want the functionality now
-        // The better option would be to check all move optiosn out of the kings position
-        // and see if they are a opposing piece capable of the move (Dont search further than it if it blocks other)
 
     Check = false;
     CheckedColour = NULL_COLOUR;
 
-    for(int x = 1; x <= 8; x++){
-        for (int y = 1; y <= 8; y++){
-            Piece* targetPiece = GetPieceAtPosition(x, y);
-            if(targetPiece->GetT() == KING){
-                continue;
-            }
+    // Check for each colour
+    for (Colour colour : {WHITE, BLACK}) {
+        // Get the king
+        Piece* king = (colour == WHITE) ? WhiteKing : BlackKing;
+        int kingX = king->X;
+        int kingY = king->Y;
 
-            // Check if the piece can move to the king
-            else if (targetPiece->GetC() == WHITE && targetPiece->isValidMove(BlackKing->X, BlackKing->Y)){
-                Check = true;
-                CheckedColour = BLACK;
-                return Check;
+        // Check horizontal and vertical
+        int dx[] = {1, -1, 0, 0};
+        int dy[] = {0, 0, 1, -1};
+
+        for (int i = 0; i < 4; i++) {
+            int x = kingX + dx[i];
+            int y = kingY + dy[i];
+
+            while (x >= 1 && x <= 8 && y >= 1 && y <= 8) {
+                Piece* targetPiece = GetPieceAtPosition(x, y);
+                Type targetPieceType = targetPiece->GetT();
+
+                if (targetPiece->GetC() != colour && (targetPieceType == QUEEN || targetPieceType == ROOK)) {
+                    Check = true;
+                    CheckedColour = colour;
+                    return Check;
+                }
+                if (targetPieceType != NULL_TYPE) {
+                    break;
+                }
+
+                x += dx[i];
+                y += dy[i];
             }
-            else if (targetPiece->GetC() == BLACK && targetPiece->isValidMove(WhiteKing->X, WhiteKing->Y)){
-                Check = true;
-                CheckedColour = WHITE;
-                return Check;
+        }
+
+        // Check diagonal
+        int ddx[] = {1, -1, 1, -1};
+        int ddy[] = {1, 1, -1, -1};
+
+        for (int i = 0; i < 4; i++) {
+            int x = kingX + ddx[i];
+            int y = kingY + ddy[i];
+
+            while (x >= 1 && x <= 8 && y >= 1 && y <= 8) {
+                Piece* targetPiece = GetPieceAtPosition(x, y);
+                Type targetPieceType = targetPiece->GetT();
+
+                if (targetPiece->GetC() != colour && (targetPieceType == QUEEN || targetPieceType == BISHOP)) {
+                    Check = true;
+                    CheckedColour = colour;
+                    return Check;
+                }
+                if (targetPieceType != NULL_TYPE) {
+                    break;
+                }
+
+                // Check colour, type
+
+                x += ddx[i];
+                y += ddy[i];
+            }
+        }
+
+        // Check knight
+        int knightDx[] = {1, 1, -1, -1, 2, 2, -2, -2};
+        int knightDy[] = {2, -2, 2, -2, 1, -1, 1, -1};
+
+        for (int i = 0; i < 8; i++) {
+            int x = kingX + knightDx[i];
+            int y = kingY + knightDy[i];
+
+            if (x >= 1 && x <= 8 && y >= 1 && y <= 8) {
+                Piece* targetPiece = GetPieceAtPosition(x, y);
+
+                if (targetPiece->GetC() != colour && targetPiece->GetT() == KNIGHT) {
+                    Check = true;
+                    CheckedColour = colour;
+                    return Check;
+                }
+            }
+        }
+
+        // Check pawn
+        int pawnDx[] = {1, -1};
+        int pawnDy[] = {(colour == WHITE) ? 1 : -1};
+
+        for (int i = 0; i < 2; i++) {
+            int x = kingX + pawnDx[i];
+            int y = kingY + pawnDy[i];
+
+            if (x >= 1 && x <= 8 && y >= 1 && y <= 8) {
+                Piece* targetPiece = GetPieceAtPosition(x, y);
+
+                if (targetPiece->GetC() != colour && targetPiece->GetT() == PAWN) {
+                    Check = true;
+                    CheckedColour = colour;
+                    return Check;
+                }
             }
         }
     }
