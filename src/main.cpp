@@ -66,42 +66,29 @@ void LoadFens(const char* FilePath){
     return;
 }
 
-std::string ConvertToFen(Board* b) {
-    std::string fen = "";
-    int nullCounter = 0;
-    for (int y=8; y>=1; y--) {
-        for (int x=1; x<=8; x++) {
-            // Get piece at position
-            Type type = b->GetPieceAtPosition(x, y)->GetT();
-            Colour colour = b->GetPieceAtPosition(x, y)->GetC();
+void StoreBoard(Board* b, const char* Filepath = "Fens.txt"){
+    std::ofstream fileOUT(Filepath, std::ios::app); // open filename.txt in append mode
 
-            if (type == NULL_TYPE) {
-                nullCounter++;
-                continue;
-            }
-            if (nullCounter) {
-                fen += std::to_string(nullCounter);
-                nullCounter = 0;
-            }
-            char t = Board::typeMapper[type] + ((colour == WHITE) ? ('A' - 'a') : 0);
-            fen += t;
+    // Convert Board Moves to String
+    std::string Moves = "";
 
-            // TODO: Other FEN Sections Needed!
-        }
-        if (nullCounter) {
-            fen += std::to_string(nullCounter);
-            nullCounter = 0;
-        }
-        if (y != 1) {
-            fen += "/";
-        }
+    for (MoveCache m : b->PlayedMoves){
+        Moves += Board::typeMapper[m.MovedPiece->GetT()];
+        Moves += "." + std::string((m.MovedPiece->GetC() == WHITE) ? "W" : "B");
+        Moves += ":";
+        Moves += std::to_string(m.StartX) + ", " + std::to_string(m.StartY);
+        Moves += ":";
+        Moves += std::to_string(m.EndX) + ", " + std::to_string(m.EndY);
+        Moves += "\n";
     }
 
-    return fen;
+    fileOUT << b->ConvertToFen() << "\n" << Moves << std::endl; // append "some stuff" to the end of the file
+
+    fileOUT.close(); // close the file
 }
 
-std::list<std::string> duplicateProtection;
-int DupeCount = 0;
+// Temporary debug
+int Validated = 0;
 
 bool ValidateFen(Board* b){
 
@@ -111,37 +98,34 @@ bool ValidateFen(Board* b){
     }
 
     // Convert board to fen
-    std::string boardFen = ConvertToFen(b);
+    std::string boardFen = b->ConvertToFen();
 
     // Get str length
     int i = boardFen.size();
 
     for(std::string fen : ValidFens){
-
-        // if(boardFen == std::string(fen, i)){
-        //     return true;
-        // }
         if(fen.find(boardFen) != std::string::npos){
-            // int dpB = DupeCount;
+            Validated++;
 
-            // for(std::string f : duplicateProtection){
-            //     if(f.find(boardFen) != std::string::npos){
-            //         std::cout << DupeCount << std::endl;
-            //         DupeCount++;
-            //         break;
-            //     }
-            // }
-
-            // if(dpB == DupeCount){
-            //     duplicateProtection.push_back(fen);
-            // }
+            // DEBUG PURPOSES ONLY
+            if(!(Validated % 100)){
+                std::cout << "Validated: " << Validated << std::endl;
+            }
 
             return true;
         }
     }
-    // std::cout << result << std::endl;
-    std::cout << boardFen << std::endl;
-    // std::cout << std::string(fen, i) << std::endl;
+
+    // Fen is invalid, cache it!
+    StoreBoard(b);
+
+    Validated++;
+    
+    // DEBUG PURPOSES ONLY
+    if(!(Validated % 100)){
+        std::cout << "Validated: " << Validated << std::endl;
+    }
+
     return false;
 }
 
@@ -155,176 +139,43 @@ int RecursedPossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
         return 0;
     }
 
+    std::list<Piece*> currentLayer = (c == WHITE) ? b->GetWhitePieces() : b->GetBlackPieces();
+
     //TODO: DEBUG Not sure its playing moves correctly? Definitly not!
-    for(int x = 1; x <= 8; x++){
-        for (int y = 1; y <= 8; y++){
-            Piece* p = b->GetPieceAtPosition(x, y);
-            for(int nx = 1; nx <= 8; nx++){
-                for(int ny = 1; ny <= 8; ny++){
-                    if(p->GetC() != c){
-                        continue;
-                    }
+    for(Piece* p : currentLayer){
+        for(int nx = 1; nx <= 8; nx++){
+            for(int ny = 1; ny <= 8; ny++){
+                if(p->GetC() != c){
+                    continue;
+                }
 
-                    bool movedPiece = b->MovePiece(x, y, nx, ny);
+                bool movedPiece = b->MovePiece(p->X, p->Y, nx, ny);
 
-                    if(movedPiece && !b->UpdateCheckmate()){
-                        RecursedPossibleMoves(b, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
-                    }
-                    else if (b->UpdateCheckmate()){
-                        Moves++;
-                        Checkmates++;
-                    }
+                // Temporary
+                if(LayerNumber == 1){
+                    // Attempt move validation
+                    ValidateFen(b);
+                }
 
-                    Iterations++;
+                if(movedPiece && !b->UpdateCheckmate()){
+                    RecursedPossibleMoves(b, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
+                }
+                else if (b->UpdateCheckmate()){
+                    Moves++;
+                    Checkmates++;
+                }
 
-                    if(movedPiece){
-                        b->UndoMove();
-                    }
+                Iterations++;
+
+                if(movedPiece){
+                    b->UndoMove();
                 }
             }
         }
     }
 
-    return 0;
-}
-
-int PreMoves = 0;
-
-struct LayerRecord{
-    int x, y, nx, ny;
-};
-
-int PossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
-    if(LayerNumber == 0){
-        return 0;
-    }
-
-    int BackupLayerNumber = LayerNumber;
-
-    // Previous Layers
-    std::stack<LayerRecord> records;
-    bool Restoring = false;
-
-    // Method to remove recursiom
-    Recurse:
-    for(int x = 1; x <= 8; x++){
-        for (int y = 1; y <= 8; y++){
-            for(int nx = 1; nx <= 8; nx++){
-                for(int ny = 1; ny <= 8; ny++){
-
-                    // If we changed layer, this would be true
-                    bool movedPiece = true;
-
-                    // Normal Execution
-                    if(!Restoring){
-                        Piece* p = b->GetPieceAtPosition(x, y); // TODO: Move down to X, Y so we dont keep initialisng it (Add to LayerRecord)
-                        if(p->GetC() != c){
-                            continue;
-                        }
-
-                        // TODO: PUT INTO BOARD AND NOT HERE!!
-                        // if(b->UpdateCheckmate() && !records.empty()){
-                        //     Restoring = true;
-                        //     goto Recurse;
-                        // }
-
-                        movedPiece = b->MovePiece(x, y, nx, ny);
-
-                        if(movedPiece && BackupLayerNumber == 5 && LayerNumber == 1){
-                            bool i = ValidateFen(b);
-
-                            // return 0;
-
-                            if(!i){
-                                std::ofstream fileOUT("InvlaidFens.txt", std::ios::app); // open filename.txt in append mode
-
-                                // Convert Board Moves to String
-                                std::string Moves = "";
-
-                                for (MoveCache m : b->PlayedMoves){
-                                    Moves += Board::typeMapper[m.MovedPiece->GetT()];
-                                    Moves += "." + std::string((m.MovedPiece->GetC() == WHITE) ? "W" : "B");
-                                    Moves += ":";
-                                    Moves += std::to_string(m.StartX) + ", " + std::to_string(m.StartY);
-                                    Moves += ":";
-                                    Moves += std::to_string(m.EndX) + ", " + std::to_string(m.EndY);
-                                    Moves += "\n";
-                                }
-
-                                fileOUT << ConvertToFen(b) << "\n" << Moves << std::endl; // append "some stuff" to the end of the file
-
-                                fileOUT.close(); // close the file
-                            }
-                        }
-
-                        // Next Layer
-                        if(movedPiece && LayerNumber > 1 && !b->UpdateCheckmate()){
-                            // PossibleMoves(b, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
-                            records.push(LayerRecord{x, y, nx, ny});
-                            LayerNumber -= 1;
-
-                            // TODO: CHECKMATE Detection
-                            // if(b->IsCheck()){
-                            //     b->LogBoard();
-                            // }
-
-                            // Swap the colour
-                            c = (c == 0xFF) ? BLACK : WHITE;
-
-                            goto Recurse;
-                        }
-
-                        if((movedPiece && LayerNumber == 1 && !b->UpdateCheckmate())){
-                            Moves++;
-
-                            // if(Moves-PreMoves >= 100){
-                            //     std::cout << Moves << std::endl;
-                            //     PreMoves = Moves;
-                            // }
-                        }
-
-                        if(b->UpdateCheckmate() && LayerNumber == 1){
-                            Moves++;
-                            Checkmates++;
-                        }
-                    }
-
-                    // Return point
-                    else{ // Prevent normal execution
-
-                        // Get previous layer
-                        LayerRecord r = records.top();
-                        records.pop();
-
-                        // Restore
-                        x = r.x;
-                        y = r.y;
-                        nx = r.nx;
-                        ny = r.ny;
-
-                        // New Layer Number
-                        LayerNumber += 1;
-
-                        Restoring = false;
-
-                        // Revert the colour? For some reason dissabling this messes up Undoing??? // TODO: Look into?
-                        c = (c == 0xFF) ? BLACK : WHITE;
-                    }
-
-                    // Standard to both
-                    Iterations++;
-
-                    if(movedPiece){
-                        b->UndoMove();
-                    }
-                }
-            }
-        }
-    }
-
-    if(!records.empty()){
-        Restoring = true;
-        goto Recurse;
+    for(Piece* p : currentLayer){
+        
     }
 
     return 0;
@@ -338,42 +189,10 @@ int main() {
         int Repetitions = 1;
         int MaxLayers = 5;
 
-        std::cout << "Non-Recursed Timing Tests:" << std::endl;
-
-        {
-            for ( int Layers = 1; Layers <= MaxLayers; Layers++){
-                double Sum = 0;
-
-                for(int i = 1; i <= Repetitions; i++){
-                    clock_t start = clock();
-                    PossibleMoves(&board, Layers);
-                    clock_t end = clock();
-                    double time = (double) (end-start) / CLOCKS_PER_SEC * 1000.0;
-                    Sum += time;
-                }
-                double time = Sum / Repetitions;
-
-                // Usefull Debug URL: https://en.wikipedia.org/wiki/Shannon_number
-
-                std::cout << "All Move Calculations took: " << time << "ms for " << Layers << " Layers and " << Moves/Repetitions << " Moves and " << Checkmates / Repetitions << " Checkmates" << std::endl;
-                std::cout << "      And a average of " << time/(Iterations/Repetitions/1000) << "ms per 1000 Iterations" << std::endl;
-                Iterations = 0;
-                Moves = 0;
-                PreMoves = 0;
-                Checkmates = 0;
-            }
-        }
-
-        // Skip Recursed
-        return 0;
-
-        // Log the board
-        // board.LogBoard();
-
         std::cout << "\n\nRecursed Timing Tests:" << std::endl;
 
         {
-            for ( int Layers = 1; Layers <= MaxLayers; Layers++){
+            for ( int Layers = 5; Layers <= MaxLayers; Layers++){
                 double Sum = 0;
 
                 for(int i = 1; i <= Repetitions; i++){
@@ -389,7 +208,6 @@ int main() {
                 std::cout << "      And a average of " << time/(Iterations/Repetitions/1000) << "ms per 1000 Iterations" << std::endl;
                 Iterations = 0;
                 Moves = 0;
-                PreMoves = 0;
                 Checkmates = 0;
             }
         }

@@ -242,6 +242,40 @@ void Board::LogBoard(){
     return;
 }
 
+std::string Board::ConvertToFen() { // TODO: EFFICIENCY CHECK
+    std::string fen = "";
+    int nullCounter = 0;
+    for (int y=8; y>=1; y--) {
+        for (int x=1; x<=8; x++) {
+            // Get piece at position
+            Type type = GetPieceAtPosition(x, y)->GetT();
+            Colour colour = GetPieceAtPosition(x, y)->GetC();
+
+            if (type == NULL_TYPE) {
+                nullCounter++;
+                continue;
+            }
+            if (nullCounter) {
+                fen += std::to_string(nullCounter);
+                nullCounter = 0;
+            }
+            char t = Board::typeMapper[type] + ((colour == WHITE) ? ('A' - 'a') : 0);
+            fen += t;
+
+            // TODO: Other FEN Sections Needed!
+        }
+        if (nullCounter) {
+            fen += std::to_string(nullCounter);
+            nullCounter = 0;
+        }
+        if (y != 1) {
+            fen += "/";
+        }
+    }
+
+    return fen;
+}
+
 Piece* Board::GetPieceAtPosition(int X, int Y) {
     // If
 
@@ -381,4 +415,151 @@ void Board::UndoMove(){
     Move.MovedPiece->moveCount--;
 
     return;
+}
+
+std::list<std::pair<int, int>> Board::MoveGen(Type t){
+    // Return points
+    std::list<std::pair<int, int>> moves;
+
+    // We generate the moves (We can then cache them to be returned on a later iteration)
+    switch (t)
+    {
+    case PAWN:
+        
+        break;
+    case KNIGHT:
+        
+        break;
+    case ROOK:
+        // Straight
+
+        break;
+    case BISHOP:
+        // Diagonal
+        
+        break;
+    case QUEEN:
+        // ENTER DIAGONAL CODE
+        // ENTER STRAIGT CODE
+        
+    case KING:
+        static std::list<std::pair<int, int>> KingCache;
+
+        // Cache loading as we already generated
+        if(!KingCache.empty()){
+            return KingCache;
+        }
+
+        // Loop over all combinations of x and y
+        for (int x = -1; x < 2; x++){
+            for (int y = -1; y < 2; y++){
+                if(!x && !y){ // No need for Same position
+                    continue;
+                }
+
+                KingCache.push_back({x, y});
+            }
+        }
+
+        // Castling - TODO
+        
+        break;
+    
+    default: // NULL ? Or worse
+        break;
+    }
+
+    return moves;
+
+    // Check horizontal and vertical
+    // int dx[] = {1, -1, 0, 0};
+    // int dy[] = {0, 0, 1, -1};
+
+    // for (int i = 0; i < 4; i++) {
+    //     int x = kingX + dx[i];
+    //     int y = kingY + dy[i];
+
+    //     while (x >= 1 && x <= 8 && y >= 1 && y <= 8) {
+    //         Piece* targetPiece = GetPieceAtPosition(x, y);
+    //         Type targetPieceType = targetPiece->GetT();
+
+    //         if (targetPiece->GetC() != colour && (targetPieceType == QUEEN || targetPieceType == ROOK)) {
+    //             Check = true;
+    //             CheckedColour = colour;
+    //             return Check;
+    //         }
+    //         if (targetPieceType != NULL_TYPE) {
+    //             break;
+    //         }
+
+    //         x += dx[i];
+    //         y += dy[i];
+    //     }
+    // }
+
+    // // Check diagonal
+    // int ddx[] = {1, -1, 1, -1};
+    // int ddy[] = {1, 1, -1, -1};
+
+    // for (int i = 0; i < 4; i++) {
+    //     int x = kingX + ddx[i];
+    //     int y = kingY + ddy[i];
+
+    //     while (x >= 1 && x <= 8 && y >= 1 && y <= 8) {
+    //         Piece* targetPiece = GetPieceAtPosition(x, y);
+    //         Type targetPieceType = targetPiece->GetT();
+
+    //         if (targetPiece->GetC() != colour && (targetPieceType == QUEEN || targetPieceType == BISHOP)) {
+    //             Check = true;
+    //             CheckedColour = colour;
+    //             return Check;
+    //         }
+    //         if (targetPieceType != NULL_TYPE) {
+    //             break;
+    //         }
+
+    //         // Check colour, type
+
+    //         x += ddx[i];
+    //         y += ddy[i];
+    //     }
+    // }
+
+    // // Check knight
+    // int knightDx[] = {1, 1, -1, -1, 2, 2, -2, -2};
+    // int knightDy[] = {2, -2, 2, -2, 1, -1, 1, -1};
+
+    // for (int i = 0; i < 8; i++) {
+    //     int x = kingX + knightDx[i];
+    //     int y = kingY + knightDy[i];
+
+    //     if (x >= 1 && x <= 8 && y >= 1 && y <= 8) {
+    //         Piece* targetPiece = GetPieceAtPosition(x, y);
+
+    //         if (targetPiece->GetC() != colour && targetPiece->GetT() == KNIGHT) {
+    //             Check = true;
+    //             CheckedColour = colour;
+    //             return Check;
+    //         }
+    //     }
+    // }
+
+    // // Check pawn
+    // int pawnDx[] = {1, -1};
+    // int pawnDy[] = {(colour == WHITE) ? 1 : -1};
+
+    // for (int i = 0; i < 2; i++) {
+    //     int x = kingX + pawnDx[i];
+    //     int y = kingY + pawnDy[i];
+
+    //     if (x >= 1 && x <= 8 && y >= 1 && y <= 8) {
+    //         Piece* targetPiece = GetPieceAtPosition(x, y);
+
+    //         if (targetPiece->GetC() != colour && targetPiece->GetT() == PAWN) {
+    //             Check = true;
+    //             CheckedColour = colour;
+    //             return Check;
+    //         }
+    //     }
+    // }
 }

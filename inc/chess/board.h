@@ -5,6 +5,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <utility>
 #include <algorithm>
 #include <iostream>
 
@@ -91,8 +92,18 @@ public: // Gameplay
     bool UpdateStalemate();
     bool IsCheck(){return Check;}
 
+    // Get Pieces
+    std::list<Piece*> GetWhitePieces() {return std::list<Piece*>(this->WhitePieces);}
+    std::list<Piece*> GetBlackPieces() {return std::list<Piece*>(this->BlackPieces);}
+
     // Current Played Moves
     std::vector<MoveCache> PlayedMoves;
+
+    // 
+    std::list<std::pair<int, int>> MoveGen(Type t);
+
+public: // Other
+    std::string ConvertToFen();
 
 public: // Debuggers
     void LogBoard(); // Print board to console
