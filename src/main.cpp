@@ -152,7 +152,7 @@ int RecursedPossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
                 bool movedPiece = b->MovePiece(p->X, p->Y, nx, ny);
 
                 // Temporary
-                if(LayerNumber == 1){
+                if(LayerNumber == 1 && movedPiece){
                     // Attempt move validation
                     ValidateFen(b);
                 }
@@ -181,11 +181,96 @@ int RecursedPossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
     return 0;
 }
 
+// VALIDATIONS
+#include <thread>
+int SplitRecursedPossibleMoves(Board* b, int splitcoutIndex, int splitcout, int LayerNumber = 1, Colour c = WHITE){
+    if(LayerNumber == 0){
+        Moves++;
+        return 0;
+    }
+
+    std::list<Piece*> currentLayer = (c == WHITE) ? b->GetWhitePieces() : b->GetBlackPieces();
+
+    //TODO: DEBUG Not sure its playing moves correctly? Definitly not!
+    for(Piece* p : currentLayer){
+        for(int nx = 1; nx <= 8; nx++){
+            for(int ny = 1; ny <= 8; ny++){
+                if(p->GetC() != c){
+                    continue;
+                }
+
+                if(LayerNumber == 1 && splitcoutIndex != splitcout){
+                    splitcoutIndex++;
+                    continue;
+                }
+                else if(LayerNumber == 1 && splitcoutIndex == splitcout){
+                    splitcoutIndex = 0;
+                }
+
+                bool movedPiece = b->MovePiece(p->X, p->Y, nx, ny);
+
+                // Validator Code
+                if(LayerNumber == 1 && movedPiece){
+                    // Attempt move validation
+                    ValidateFen(b);
+                }
+
+                if(movedPiece && !b->UpdateCheckmate()){
+                    SplitRecursedPossibleMoves(b, splitcoutIndex, splitcout, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
+                }
+                else if (b->UpdateCheckmate()){
+                    // Moves++;
+                    // Checkmates++;
+                }
+
+                // Iterations++;
+                if(LayerNumber == 1)
+                    splitcoutIndex++;
+
+                if(movedPiece){
+                    b->UndoMove();
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+void OptimisedValidationTests(int threadcount, int layerNumber){
+    std::list<std::thread*> ActiveThreads;
+
+    // Load fens or issues arise
+    LoadFens("../FENGen/fens.txt");
+
+    for(int i = 0; i < threadcount; i++){
+        Board* board = new Board(); // Each need their own board
+        board->InitBoard();
+        std::thread* t = new std::thread(SplitRecursedPossibleMoves, board, i, threadcount, layerNumber, WHITE);
+
+        ActiveThreads.push_back(t);
+    }
+
+    while (!ActiveThreads.empty()){
+        std::thread* t = ActiveThreads.back();
+
+        t->join(); // Wait till ended
+        ActiveThreads.remove(t); // Remove from queue
+        // Delete thread?
+    }
+}
+// VALIDATIONS
+
 int main() {
     Board board;
     board.InitBoard();
 
-    if(1==1){// Efficency testings
+    // Validations
+    if(1 == 1){
+        OptimisedValidationTests(24, 5);
+    }
+
+    if(0==1){// Efficency testings
         int Repetitions = 1;
         int MaxLayers = 5;
 
