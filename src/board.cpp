@@ -267,8 +267,6 @@ std::string Board::ConvertToFen() { // TODO: EFFICIENCY CHECK
 }
 
 Piece* Board::GetPieceAtPosition(int X, int Y) {
-    // If
-
     // Note as our list goes 0-7 from top to bottom
     //      We need to map the positions to standards
     return board[Y-1][X-1];
@@ -288,17 +286,22 @@ bool Board::MovePiece(int startX, int startY, int targetX, int targetY, bool ign
     //     return false;
     // }
 
+    // Check if the target location is within the board
+    if (startX < 1 || startX > 8 || startY < 1 || startY > 8) {
+        return false;
+    }
+
+    // Check if the target location is within the board
+    if (targetX < 1 || targetX > 8 || targetY < 1 || targetY > 8) {
+        return false;
+    }
+
     // First find the piece that we want to move
     Piece* targetPiece = GetPieceAtPosition(startX, startY);
     Piece* endPiece = GetPieceAtPosition(targetX, targetY);
 
     // Record the type
     Type t = targetPiece->t;
-
-    // Check if the target location is within the board
-    if (targetX < 1 || targetX > 8 || targetY < 1 || targetY > 8) {
-        return false;
-    }
 
     // Piece not moved or Attacking team-mate or Attacking team-mate
     if (endPiece->GetC() == targetPiece->GetC()){

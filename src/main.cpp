@@ -3,7 +3,7 @@
 #include <chess/piece.h>
 #include <time.h>
 #include <stack>
-#include <List>
+#include <list>
 #include <stdio.h>
 #include <fstream>
 #include <sstream>
@@ -22,6 +22,33 @@
         🕯️                          🕯️
               🕯️             🕯️
                       🕯️
+*/
+
+/*
+
+            NEW IDEA
+    
+    So we are going to want to
+    recode and remove all the valid
+    move functions. We want to instead
+    calculate all the possible moves
+    for that piece and iterate over
+    them individally. So instead of 
+    IsValidMove we have GenerateMoves.
+    This will have a more efficient
+    implementation of everything.
+    Since we know this move is valid
+    we can always move piece with the
+    valid move structure. Otherwise,
+    using a read/write structure
+    invalid move we can allow the player
+    to attempt a move to be checked against
+    the valid moves.
+
+    I know a re-write is annoying.
+    But I think this will be a massive
+    improvement.
+
 */
 
 std::list<std::string> ValidFens = {};
@@ -89,8 +116,13 @@ void StoreBoard(Board* b, const char* Filepath = "Fens.txt"){
 
 // Temporary debug
 int Validated = 0;
-
 bool ValidateFen(Board* b){
+
+    // Restore previous positions
+    if(Validated < 3127900){
+        Validated++;
+        return true;
+    }
 
     if (ValidFens.empty()) {
         LoadFens("../FENGen/fens.txt");
@@ -122,9 +154,9 @@ bool ValidateFen(Board* b){
     Validated++;
     
     // DEBUG PURPOSES ONLY
-    if(!(Validated % 100)){
+    // if(!(Validated % 100)){
         std::cout << "Validated: " << Validated << std::endl;
-    }
+    // }
 
     return false;
 }
@@ -144,7 +176,7 @@ int RecursedPossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
     for (Piece* p : currentLayer){
         for (std::pair<int, int> move : b->MoveGen(p->GetT())){
             // Play the move
-            bool movedPiece = b->MovePiece(p->X, p->Y, p->X + move.first, p->Y + move.second, true);
+            bool movedPiece = b->MovePiece(p->X, p->Y, p->X + move.first, p->Y + move.second);
 
             if(movedPiece && !b->UpdateCheckmate()){
                 RecursedPossibleMoves(b, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
@@ -175,45 +207,34 @@ int SplitRecursedPossibleMoves(Board* b, int splitcoutIndex, int splitcout, int 
 
     std::list<Piece*> currentLayer = (c == WHITE) ? b->GetWhitePieces() : b->GetBlackPieces();
 
-    //TODO: DEBUG Not sure its playing moves correctly? Definitly not!
-    for(Piece* p : currentLayer){
-        for(int nx = 1; nx <= 8; nx++){
-            for(int ny = 1; ny <= 8; ny++){
-                if(p->GetC() != c){
-                    continue;
-                }
+    for (Piece* p : currentLayer){
+        for (std::pair<int, int> move : b->MoveGen(p->GetT())){
+            if(LayerNumber == 1 && splitcoutIndex != splitcout){
+                splitcoutIndex++;
+                continue;
+            }
+            else if(LayerNumber == 1 && splitcoutIndex == splitcout){
+                splitcoutIndex = 0;
+            }
 
-                if(LayerNumber == 1 && splitcoutIndex != splitcout){
-                    splitcoutIndex++;
-                    continue;
-                }
-                else if(LayerNumber == 1 && splitcoutIndex == splitcout){
-                    splitcoutIndex = 0;
-                }
+            bool movedPiece = b->MovePiece(p->X, p->Y, p->X + move.first, p->Y + move.second);
 
-                bool movedPiece = b->MovePiece(p->X, p->Y, nx, ny);
+            // Validator Code
+            if(LayerNumber == 1 && movedPiece){
+                // Attempt move validation
+                ValidateFen(b);
+            }
 
-                // Validator Code
-                if(LayerNumber == 1 && movedPiece){
-                    // Attempt move validation
-                    ValidateFen(b);
-                }
+            if(movedPiece && !b->UpdateCheckmate()){
+                SplitRecursedPossibleMoves(b, splitcoutIndex, splitcout, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
+            }
 
-                if(movedPiece && !b->UpdateCheckmate()){
-                    SplitRecursedPossibleMoves(b, splitcoutIndex, splitcout, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
-                }
-                else if (b->UpdateCheckmate()){
-                    // Moves++;
-                    // Checkmates++;
-                }
+            // Iterations++;
+            if(LayerNumber == 1)
+                splitcoutIndex++;
 
-                // Iterations++;
-                if(LayerNumber == 1)
-                    splitcoutIndex++;
-
-                if(movedPiece){
-                    b->UndoMove();
-                }
+            if(movedPiece){
+                b->UndoMove();
             }
         }
     }
@@ -233,6 +254,8 @@ void OptimisedValidationTests(int threadcount, int layerNumber){
         std::thread* t = new std::thread(SplitRecursedPossibleMoves, board, i, threadcount, layerNumber, WHITE);
 
         ActiveThreads.push_back(t);
+
+        std::cout << "Thread" << i << ": Started" << std::endl;
     }
 
     while (!ActiveThreads.empty()){
@@ -250,18 +273,23 @@ int main() {
     board.InitBoard();
 
     // Validations
-    if(1 == 1){
+    if(true){
+        std::cout << "Beggining threaded Tests:" << std::endl;
         OptimisedValidationTests(24, 5);
+
+        while (true){
+            // Idle
+        }
     }
 
-    if(0==1){// Efficency testings
+    if(true){// Efficency testings
         int Repetitions = 1;
-        int MaxLayers = 5;
+        int MaxLayers = 4;
 
-        std::cout << "\n\nRecursed Timing Tests:" << std::endl;
+        std::cout << "Recursed Timing Tests:" << std::endl;
 
         {
-            for ( int Layers = 5; Layers <= MaxLayers; Layers++){
+            for ( int Layers = 1; Layers <= MaxLayers; Layers++){
                 double Sum = 0;
 
                 for(int i = 1; i <= Repetitions; i++){
