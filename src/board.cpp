@@ -429,7 +429,7 @@ std::list<std::pair<int, int>> Board::MoveGen(Type t){
 
         for (int x = -1; x < 2; x++){
             for (int y = -1; y < 2; y++){
-                if(!x && !y){ // No need for Same position
+                if(!y){ // No need for Same position
                     continue;
                 }
 
