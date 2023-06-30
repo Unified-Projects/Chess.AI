@@ -141,41 +141,25 @@ int RecursedPossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
 
     std::list<Piece*> currentLayer = (c == WHITE) ? b->GetWhitePieces() : b->GetBlackPieces();
 
-    //TODO: DEBUG Not sure its playing moves correctly? Definitly not!
-    for(Piece* p : currentLayer){
-        for(int nx = 1; nx <= 8; nx++){
-            for(int ny = 1; ny <= 8; ny++){
-                if(p->GetC() != c){
-                    continue;
-                }
+    for (Piece* p : currentLayer){
+        for (std::pair<int, int> move : b->MoveGen(p->GetT())){
+            // Play the move
+            bool movedPiece = b->MovePiece(p->X, p->Y, p->X + move.first, p->Y + move.second, true);
 
-                bool movedPiece = b->MovePiece(p->X, p->Y, nx, ny);
+            if(movedPiece && !b->UpdateCheckmate()){
+                RecursedPossibleMoves(b, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
+            }
+            else if (b->UpdateCheckmate()){
+                Moves++;
+                Checkmates++;
+            }
 
-                // Temporary
-                if(LayerNumber == 1 && movedPiece){
-                    // Attempt move validation
-                    ValidateFen(b);
-                }
+            Iterations++;
 
-                if(movedPiece && !b->UpdateCheckmate()){
-                    RecursedPossibleMoves(b, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
-                }
-                else if (b->UpdateCheckmate()){
-                    Moves++;
-                    Checkmates++;
-                }
-
-                Iterations++;
-
-                if(movedPiece){
-                    b->UndoMove();
-                }
+            if(movedPiece){
+                b->UndoMove();
             }
         }
-    }
-
-    for(Piece* p : currentLayer){
-        
     }
 
     return 0;

@@ -175,30 +175,20 @@ bool Board::UpdateCheckmate() {
     // Generate moves for the pieces of the color under check
     std::list<Piece*> pieces = (CheckedColour == WHITE) ? WhitePieces : BlackPieces;
 
-    for (Piece* targetPiece : pieces) {
-        int startX = targetPiece->X;
-        int startY = targetPiece->Y;
+    for (Piece* p : pieces){
+        for (std::pair<int, int> move : MoveGen(p->t)){
+            // Play the move
+            bool validMove = MovePiece(p->X, p->Y, p->X + move.first, p->Y + move.second, true);
 
-        for (int targetX = 1; targetX <= 8; targetX++) {
-            for (int targetY = 1; targetY <= 8; targetY++) {
-                // Skip if the target position is the same as the current position
-                if (targetX == startX && targetY == startY) {
-                    continue;
-                }
+            if (validMove && !UpdateCheck()) {
+                // Move eliminates the check, so it's not checkmate
+                UndoMove();
+                return false;
+            }
 
-                // Play the move
-                bool validMove = MovePiece(startX, startY, targetX, targetY, true);
-
-                if (validMove && !UpdateCheck()) {
-                    // Move eliminates the check, so it's not checkmate
-                    UndoMove();
-                    return false;
-                }
-
-                // Undo the move if it was valid
-                if (validMove) {
-                    UndoMove();
-                }
+            // Undo the move if it was valid
+            if (validMove) {
+                UndoMove();
             }
         }
     }
@@ -417,34 +407,110 @@ void Board::UndoMove(){
     return;
 }
 
+static std::list<std::pair<int, int>> PawnCache = {};
+static std::list<std::pair<int, int>> KnightCache = {};
+static std::list<std::pair<int, int>> RookCache = {};
+static std::list<std::pair<int, int>> BishopCache = {};
+static std::list<std::pair<int, int>> QueenCache = {};
+static std::list<std::pair<int, int>> KingCache = {};
+
 std::list<std::pair<int, int>> Board::MoveGen(Type t){
     // Return points
-    std::list<std::pair<int, int>> moves;
+    std::list<std::pair<int, int>> EmptyMoves;
 
     // We generate the moves (We can then cache them to be returned on a later iteration)
     switch (t)
     {
     case PAWN:
+        // Cache loading as we already generated
+        if(!PawnCache.empty()){
+            return PawnCache;
+        }
+
+        for (int x = -1; x < 2; x++){
+            for (int y = -1; y < 2; y++){
+                if(!x && !y){ // No need for Same position
+                    continue;
+                }
+
+                PawnCache.push_back({x, y});
+            }
+        }
+
+        // Forward 2
+        PawnCache.push_back({0, 2});  
+        PawnCache.push_back({0, -2});    
         
-        break;
+        return PawnCache;
     case KNIGHT:
+        // Cache loading as we already generated
+        if(!KnightCache.empty()){
+            return KnightCache;
+        }
+
+        KnightCache.push_back({1,2});
+        KnightCache.push_back({2,1});
+
+        KnightCache.push_back({-1,2});
+        KnightCache.push_back({-2,1});
+
+        KnightCache.push_back({1,-2});
+        KnightCache.push_back({2,-1});
+
+        KnightCache.push_back({-1,-2});
+        KnightCache.push_back({-2,-1});
         
-        break;
+        return KnightCache;
     case ROOK:
+        // Cache loading as we already generated
+        if(!RookCache.empty()){
+            return RookCache;
+        }
+
         // Straight
+        for(int i = 1; i < 8; i++){
+            RookCache.push_back({i, 0});
+            RookCache.push_back({0, i});
+            RookCache.push_back({-i, 0});
+            RookCache.push_back({0, -i});
+        }
 
-        break;
+        return RookCache;
     case BISHOP:
-        // Diagonal
-        
-        break;
-    case QUEEN:
-        // ENTER DIAGONAL CODE
-        // ENTER STRAIGT CODE
-        
-    case KING:
-        static std::list<std::pair<int, int>> KingCache;
+        // Cache loading as we already generated
+        if(!BishopCache.empty()){
+            return BishopCache;
+        }
 
+        // Diagonal
+        for (int i = 1; i < 8; i++){
+            BishopCache.push_back({i, i});
+            BishopCache.push_back({-i, i});
+            BishopCache.push_back({i, -i});
+            BishopCache.push_back({-i, -i});
+        }
+        
+        return BishopCache;
+    case QUEEN:
+        // Cache loading as we already generated
+        if(!QueenCache.empty()){
+            return QueenCache;
+        }
+
+        for (int i = 1; i < 8; i++){
+            QueenCache.push_back({i, i});
+            QueenCache.push_back({-i, i});
+            QueenCache.push_back({i, -i});
+            QueenCache.push_back({-i, -i});
+
+            QueenCache.push_back({i, 0});
+            QueenCache.push_back({0, i});
+            QueenCache.push_back({-i, 0});
+            QueenCache.push_back({0, -i});
+        }
+        
+        return QueenCache;
+    case KING:
         // Cache loading as we already generated
         if(!KingCache.empty()){
             return KingCache;
@@ -461,15 +527,16 @@ std::list<std::pair<int, int>> Board::MoveGen(Type t){
             }
         }
 
-        // Castling - TODO
+        // Castling
+        KingCache.push_back({2, 0});
+        KingCache.push_back({-2, 0});
         
-        break;
-    
+        return KingCache;    
     default: // NULL ? Or worse
         break;
     }
 
-    return moves;
+    return EmptyMoves;
 
     // Check horizontal and vertical
     // int dx[] = {1, -1, 0, 0};
