@@ -633,3 +633,25 @@ std::list<std::pair<int, int>> Board::MoveGen(Type t){
     //     }
     // }
 }
+
+std::list<Move*> Board::GenerateMoves(){
+    MoveList = {};
+
+    // Loop over all squares
+    for (int Square = 0; Square < 64; Square++){
+        Piece* p = board[Square]; // Select Piece
+
+        // Ensure its the pieces turn to move
+        if(p->c != CurrentMove){ 
+            break;
+        }
+
+        // Sliding piece
+        if(p->MovingCapabilites & SLIDE){
+            // Generate all possible sliding moves for that piece
+            GenerateSlidingMoves(Square, p, this);
+        }
+    }
+
+    return MoveList;
+}

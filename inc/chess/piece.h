@@ -5,12 +5,64 @@
 // Pre-Definitions
 class Board;
 struct MoveExtra;
+struct Move;
+
+// Piece Management Constants
+    struct EdgeInfo
+    {
+        int North = 0;
+        int South = 0;
+        int West = 0;
+        int East = 0;
+
+        // Extras
+        int MinNW = 0;
+        int MinSE = 0;
+        int MinNE = 0;
+        int MinSW = 0;
+
+        // Operator to use index
+        int operator [](int index){
+            switch (index)
+            {
+            case 0:
+                return North;
+            case 1:
+                return South;
+            case 2:
+                return West;
+            case 3:
+                return East;
+            case 4:
+                return MinNW;
+            case 5:
+                return MinSE;
+            case 6:
+                return MinNE;
+            case 7:
+                return MinSW;
+            
+            default:
+                return 0;
+            }
+        }
+    };
+    
+
+    extern const int DirectionalOffsets[];
+    static EdgeInfo SquaresToEdge[64];
+//
+
+void PrecomputeEdges();
+
+// Sliding move generator
+void GenerateSlidingMoves(int Square, Piece* piece, Board* b);
 
 //Enums for piece configurations
     enum Colour{
         BLACK = 0x00,
-        WHITE = 0xFF,
-        NULL_COLOUR = 0xFFF
+        WHITE = 0x01,
+        NULL_COLOUR = -0x01
     };
 
     enum Type{
@@ -21,6 +73,14 @@ struct MoveExtra;
         KNIGHT = 3,
         QUEEN = 4,
         KING = 5
+    };
+
+    enum Movements{
+
+        // Sliding Moves
+        SLIDE = 0x1,
+        SLIDE_HORIZONTAL = 0x2,
+        SLIDE_DIAGONAL = 0x4
     };
 //
 
@@ -35,6 +95,9 @@ struct MoveExtra;
         // Parent referece
         Board* b;
 
+        // Movements
+        int MovingCapabilites;
+
     public:
         // Position vector
         int X;
@@ -47,6 +110,7 @@ struct MoveExtra;
         Piece(Colour c = NULL_COLOUR) {this->c = c;X=0;Y=0;moveCount=0;}
 
         // To return protected variables to non-board
+        int GetCapabilites() {return MovingCapabilites;}
         Type GetT() {return t;}
         Colour GetC() {return c;}
 
@@ -107,7 +171,7 @@ struct MoveExtra;
         friend class Board;
     public:
         King(Colour c) : Piece(c) {t=KING;return;}
-        bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
+        std::list<std::pair<int,int>> isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
 
         Piece* Clone() {return new King(*this);}
     };

@@ -38,6 +38,12 @@ struct MoveCache{
     MoveExtra Extra;
 };
 
+// Moves
+struct Move{
+    int Start;
+    int End;
+}
+
 class Board {
     friend struct Piece;
 public: // Standardised
@@ -46,7 +52,7 @@ public: // Standardised
     static std::map<Type, char> typeMapper; // Usefull for the move notation and checking if it is valid
 
 protected: // Private board management
-    Piece* board[8][8] = {};
+    Piece* board[64] = {};
 
     void SetPiece(int X, int Y, Piece* p);
 
@@ -57,6 +63,7 @@ protected: // Private board management
 
     // Color
     Colour CheckedColour = NULL_COLOUR;
+    Colour CurrentMove = WHITE;
 
     // King savings
     Piece* WhiteKing = nullptr;
@@ -101,6 +108,14 @@ public: // Gameplay
 
     // 
     std::list<std::pair<int, int>> MoveGen(Type t);
+
+public: // Gameplay
+    // Get piece
+    Piece* GetSquare(int square){return board[square];}
+
+    // Move generation
+    std::list<Move*> MoveList;
+    std::list<Move*> GenerateMoves(); 
 
 public: // Other
     std::string ConvertToFen();
