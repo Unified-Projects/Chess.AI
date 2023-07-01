@@ -7,6 +7,9 @@ class Board;
 struct MoveExtra;
 struct Move;
 
+// Pre-define piece
+class Piece;
+
 // Piece Management Constants
     struct EdgeInfo
     {
@@ -21,7 +24,8 @@ struct Move;
         int MinNE = 0;
         int MinSW = 0;
 
-        // Operator to use index
+        // Operator to use indexing to get the values, due to non-edit restriction
+         // TODO in the pregenerate modify indexeds of ints to remove this need
         int operator [](int index){
             switch (index)
             {
@@ -41,7 +45,7 @@ struct Move;
                 return MinNE;
             case 7:
                 return MinSW;
-            
+        
             default:
                 return 0;
             }
@@ -53,10 +57,11 @@ struct Move;
     static EdgeInfo SquaresToEdge[64];
 //
 
-void PrecomputeEdges();
+// Used to generate the movement vectors and distances
+extern void PrecomputeEdges();
 
 // Sliding move generator
-void GenerateSlidingMoves(int Square, Piece* piece, Board* b);
+extern void GenerateSlidingMoves(int Square, Piece* piece, Board* b);
 
 //Enums for piece configurations
     enum Colour{
@@ -75,12 +80,20 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b);
         KING = 5
     };
 
-    enum Movements{
-
+    enum Movements{ // All fit into one byte :)
         // Sliding Moves
         SLIDE = 0x1,
         SLIDE_HORIZONTAL = 0x2,
-        SLIDE_DIAGONAL = 0x4
+        SLIDE_DIAGONAL = 0x4,
+
+        // Other Pieces
+        PAWN_MOVMENT = 0x08,
+        KNIGHT_MOVMENT = 0x10,
+        KING_MOVMENT = 0x20,
+
+        // Special
+        EN_PASSENT = 0x40,
+        CASTLING = 0x80,
     };
 //
 
@@ -94,28 +107,20 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b);
 
         // Parent referece
         Board* b;
-
-        // Movements
-        int MovingCapabilites;
-
     public:
-        // Position vector
-        int X;
-        int Y;
-
         // Keeping track, for castling and en-passent
         int moveCount;
 
+        // Movements
+        const char MovingCapabilites; // Read-Only !
+
         // Setup for board setup
-        Piece(Colour c = NULL_COLOUR) {this->c = c;X=0;Y=0;moveCount=0;}
+        Piece(Colour c = NULL_COLOUR, const char MovingCapables = 0) : MovingCapabilites(MovingCapables) {this->c = c;moveCount=0;}
 
         // To return protected variables to non-board
         int GetCapabilites() {return MovingCapabilites;}
         Type GetT() {return t;}
         Colour GetC() {return c;}
-
-        // Predefine so that it can be customised per piece
-        virtual bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr) {return false;}
 
         // For creating new pieces
         virtual Piece* Clone() {return new Piece(*this);}
@@ -125,8 +130,7 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b);
 // Type specific definitions
     struct Pawn : public Piece{
     public:
-        Pawn(Colour c) : Piece(c) {t=PAWN;return;}
-        bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
+        Pawn(Colour c) : Piece(c, PAWN_MOVMENT) {t=PAWN;return;}
 
         Piece* Clone() {return new Pawn(*this);}
     };
@@ -134,8 +138,7 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b);
     struct Bishop : protected Piece{
         friend class Board;
     public:
-        Bishop(Colour c) : Piece(c) {t=BISHOP;return;}
-        bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
+        Bishop(Colour c) : Piece(c, SLIDE + SLIDE_DIAGONAL) {t=BISHOP;return;}
 
         Piece* Clone() {return new Bishop(*this);}
     };
@@ -143,8 +146,7 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b);
     struct Rook : protected Piece{
         friend class Board;
     public:
-        Rook(Colour c) : Piece(c) {t=ROOK;return;}
-        bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
+        Rook(Colour c) : Piece(c, SLIDE + SLIDE_HORIZONTAL) {t=ROOK;return;}
 
         Piece* Clone() {return new Rook(*this);}
     };
@@ -152,8 +154,7 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b);
     struct Knight : protected Piece{
         friend class Board;
     public:
-        Knight(Colour c) : Piece(c) {t=KNIGHT;return;}
-        bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
+        Knight(Colour c) : Piece(c, KNIGHT_MOVMENT) {t=KNIGHT;return;}
 
         Piece* Clone() {return new Knight(*this);}
     };
@@ -161,8 +162,7 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b);
     struct Queen : protected Piece{
         friend class Board;
     public:
-        Queen(Colour c) : Piece(c) {t=QUEEN;return;}
-        bool isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
+        Queen(Colour c) : Piece(c, SLIDE + SLIDE_HORIZONTAL + SLIDE_DIAGONAL) {t=QUEEN;return;}
 
         Piece* Clone() {return new Queen(*this);}
     };
@@ -170,8 +170,7 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b);
     struct King : protected Piece{
         friend class Board;
     public:
-        King(Colour c) : Piece(c) {t=KING;return;}
-        std::list<std::pair<int,int>> isValidMove(int targetX, int targetY, MoveExtra* Extra = nullptr);
+        King(Colour c) : Piece(c, KING_MOVMENT) {t=KING;return;}
 
         Piece* Clone() {return new King(*this);}
     };

@@ -42,7 +42,7 @@ struct MoveCache{
 struct Move{
     int Start;
     int End;
-}
+};
 
 class Board {
     friend struct Piece;
@@ -85,29 +85,29 @@ public: // Setup / De-setup
 
 public: // Gameplay
     // Get a piece from the board (Used by pieces for validation purposes)
-    Piece* GetPieceAtPosition(int X, int Y);
-    Piece* GetPieceAtPosition(char X, int Y);
+    // Piece* GetPieceAtPosition(int X, int Y);
+    // Piece* GetPieceAtPosition(char X, int Y);
 
-    // Play a move, independent of colour
-    bool PlayMove(std::string notation) {UNIMPLEMENTED return false;}; // Try to use standard notations //TODO: Pipe into MovePiece after translating
-    bool MovePiece(int startX, int startY, int endX, int endY, bool ignoreCheck=false); // Simpler moving function
-    void UndoMove(); // Simple undo previous move
+    // // Play a move, independent of colour
+    // bool PlayMove(std::string notation) {UNIMPLEMENTED return false;}; // Try to use standard notations //TODO: Pipe into MovePiece after translating
+    // bool MovePiece(int startX, int startY, int endX, int endY, bool ignoreCheck=false); // Simpler moving function
+    // void UndoMove(); // Simple undo previous move
 
-    // Check Updater
-    bool UpdateCheck();
-    bool UpdateCheckmate();
-    bool UpdateStalemate();
-    bool IsCheck(){return Check;}
+    // // Check Updater
+    // bool UpdateCheck();
+    // bool UpdateCheckmate();
+    // bool UpdateStalemate();
+    // bool IsCheck(){return Check;}
 
-    // Get Pieces
-    std::list<Piece*> GetWhitePieces() {return std::list<Piece*>(this->WhitePieces);}
-    std::list<Piece*> GetBlackPieces() {return std::list<Piece*>(this->BlackPieces);}
+    // // Get Pieces
+    // std::list<Piece*> GetWhitePieces() {return std::list<Piece*>(this->WhitePieces);}
+    // std::list<Piece*> GetBlackPieces() {return std::list<Piece*>(this->BlackPieces);}
 
-    // Current Played Moves
-    std::vector<MoveCache> PlayedMoves;
+    // // Current Played Moves
+    // std::vector<MoveCache> PlayedMoves;
 
-    // 
-    std::list<std::pair<int, int>> MoveGen(Type t);
+    // // 
+    // std::list<std::pair<int, int>> MoveGen(Type t);
 
 public: // Gameplay
     // Get piece

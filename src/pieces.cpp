@@ -53,8 +53,8 @@ void PrecomputeEdges(){
 // Used for queens, bishops, rooks
 void GenerateSlidingMoves(int Square, Piece* piece, Board* b){
     // Compatible directions
-    int StartIndex = (piece->GetCapabilites() & SLIDE_DIAGONAL) ? 4 : 0;
-    int EndIndex = (piece->GetCapabilites() & SLIDE_HORIZONTAL) ? 4 : 8;
+    int StartIndex = (piece->MovingCapabilites & SLIDE_DIAGONAL) ? 4 : 0;
+    int EndIndex = (piece->MovingCapabilites & SLIDE_HORIZONTAL) ? 4 : 8;
 
     // Check all directions possible
     for (int directionI = StartIndex; directionI < EndIndex; directionI++){
