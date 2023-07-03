@@ -67,7 +67,7 @@ class Piece;
     };
 
     extern const int DirectionalOffsets[];
-    static EdgeInfo SquaresToEdge[64];
+    static int SquaresToEdge[64][24];
 //
 
 // Used to generate the movement vectors and distances

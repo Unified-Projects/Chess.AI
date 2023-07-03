@@ -15,25 +15,30 @@
 /*
                       🕯️
               🕯️             🕯️
+
         🕯️                          🕯️
+
 
     🕯️               🗡️🕴️                🕯️
 
+
         🕯️                          🕯️
+
               🕯️             🕯️
+
                       🕯️
 */
 
 /*
 
             NEW IDEA
-    
+
     So we are going to want to
     recode and remove all the valid
     move functions. We want to instead
     calculate all the possible moves
     for that piece and iterate over
-    them individally. So instead of 
+    them individally. So instead of
     IsValidMove we have GenerateMoves.
     This will have a more efficient
     implementation of everything.
@@ -152,7 +157,7 @@
 //     StoreBoard(b);
 
 //     Validated++;
-    
+
 //     // DEBUG PURPOSES ONLY
 //     // if(!(Validated % 100)){
 //         std::cout << "Validated: " << Validated << std::endl;
@@ -273,18 +278,42 @@ void TestPossibleMoves(Board* board, int layer, int& moves, int& checkmates, uin
         return;
     }
 
-    std::list<Move*> Moves = board->GenerateMoves();
+    std::list<Move> Moves = board->GenerateMoves();
 
-    for (Move* m : Moves){
+    std::cout << Moves.size() << std::endl;
+
+    for (Move m : Moves){
+        std::cout << m.Start << " " << m.End << std::endl;
+
         // TODO: Make move
+        bool ValidMove = board->MovePiece(m);
+
+        TestPossibleMoves(board, layer-1, moves, checkmates, iterations);
+
+        // Increments
+        iterations++;
+
+        if(ValidMove && layer == 1){
+            moves++;
+        }
+
+        // If valid move undo
+        if(ValidMove){
+            board->LogBoard();
+            board->UndoMove();
+        }
     }
 }
 
 int main() {
+    PrecomputeEdges();
+
     Board board;
     board.InitBoard();
 
     board.LogBoard();
+
+    // return 0;
 
     // Testing
     {

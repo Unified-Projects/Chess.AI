@@ -100,10 +100,6 @@ public: // Gameplay
     // std::list<Piece*> GetWhitePieces() {return std::list<Piece*>(this->WhitePieces);}
     // std::list<Piece*> GetBlackPieces() {return std::list<Piece*>(this->BlackPieces);}
 
-    // // Current Played Moves
-    // std::vector<MoveCache> PlayedMoves;
-
-    // // 
     // std::list<std::pair<int, int>> MoveGen(Type t);
 
 public: // Gameplay
@@ -111,8 +107,15 @@ public: // Gameplay
     Piece* GetSquare(int square){return board[square];}
 
     // Move generation
-    std::list<Move*> MoveList;
-    std::list<Move*> GenerateMoves(); 
+    std::list<Move> MoveList;
+    std::list<Move> GenerateMoves();
+
+    // Move Moving Moves
+    bool MovePiece(Move m);
+    void UndoMove();
+
+    // Current Played Moves
+    std::vector<MoveCache> PlayedMoves;
 
 public: // Other
     std::string ConvertToFen();

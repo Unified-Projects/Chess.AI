@@ -67,7 +67,8 @@ void Board::InitBoard(std::string FEN) {
 
     // Used for iteration and a local position vector for setting pieces
     const char* FEN_STR = FEN.c_str();
-    int LocalSquare = 0;
+    int LocalRank = 7;
+    int LocalFile = 0;
 
     // TODO: Fix loading of board, currently backwards
     // // Iterate over the FEN inputted notation for parsing
@@ -83,14 +84,17 @@ void Board::InitBoard(std::string FEN) {
         // Check if it is a digit
         if (*FEN_STR >= '1' && *FEN_STR <= '8') {
             for (int i = 0; i < *FEN_STR - 48; i++) {
-                board[LocalSquare] = new Piece();
+                board[(LocalRank * 8) + LocalFile + i] = new Piece();
             }
-            LocalSquare += *FEN_STR - 48;
+
+            LocalFile += *FEN_STR - 48;
             continue;
         }
 
         // New board row
         if (*FEN_STR == '/') {
+            LocalFile = 0;
+            LocalRank--;
             continue;
         }
 
@@ -101,7 +105,7 @@ void Board::InitBoard(std::string FEN) {
 
         // Piece assignment according to map
         Piece* newPiece = pieceMapper[*FEN_STR]->Clone();
-        board[LocalSquare] = newPiece;
+        board[(LocalRank * 8) + LocalFile] = newPiece;
 
         if (newPiece->t == KING){
             if (newPiece->c == WHITE){
@@ -120,7 +124,7 @@ void Board::InitBoard(std::string FEN) {
         }
 
         // Move horizonatally
-        LocalSquare++;
+        LocalFile++;
     }
 
     // // See if either in check
@@ -196,7 +200,7 @@ void Board::InitBoard(std::string FEN) {
 
 void Board::LogBoard(){
     // Iterate both over rows and columns
-    for (int i = 0; i < 8; i++) {
+    for (int i = 7; i >=0; i--) {
         for (int j = 0; j < 8; j++) {
 
             // std::cout << '(' << j+1 << ',' << i+1 << ')';
@@ -204,8 +208,8 @@ void Board::LogBoard(){
             // continue;
 
             // Get the current pieces colour and type
-            Type t = board[i*8 + i]->t;
-            Colour c = board[i*8 + j]->c;
+            Type t = board[(i*8) + j]->t;
+            Colour c = board[(i*8) + j]->c;
 
             // Create a store point for the character
             char type = this->typeMapper[t];
@@ -394,7 +398,7 @@ void Board::LogBoard(){
 //     return;
 // }
 
-std::list<Move*> Board::GenerateMoves(){
+std::list<Move> Board::GenerateMoves(){
     MoveList = {};
 
     // Loop over all squares
@@ -402,7 +406,7 @@ std::list<Move*> Board::GenerateMoves(){
         Piece* p = board[Square]; // Select Piece
 
         // Ensure its the pieces turn to move
-        if(p->c != CurrentMove){ 
+        if(p->c != CurrentMove){
             continue;
         }
 
@@ -423,4 +427,44 @@ std::list<Move*> Board::GenerateMoves(){
     }
 
     return MoveList;
+}
+
+bool Board::MovePiece(Move m){
+    // TODO: Catching Children
+    PlayedMoves.push_back(MoveCache{board[m.Start], board[m.End], m, {/* //TODO: MoveExtra Extra;*/}});
+
+    board[m.End] = board[m.Start];
+    board[m.Start] = new Piece();
+
+    board[m.End]->moveCount++;
+
+    return true;
+}
+
+void Board::UndoMove(){
+    // Simple check to see if moves have been played
+    if (PlayedMoves.empty()){
+        return; // No move to undo
+    }
+
+    // Lets to a simple usage
+    MoveCache Move = PlayedMoves.back();
+    PlayedMoves.pop_back();
+    board[Move.move.Start] = Move.MovedPiece;
+    board[Move.move.End] = Move.TargetPiece;
+
+    // Extras / Special Move Undoing
+    // if(Move.Extra.type){
+    //     if (Move.Extra.type == 1){
+    //         SetPiece(Move.Extra.x-1, Move.Extra.y-1, Move.Extra.change);
+    //     }
+    // }
+
+    // Resort Check
+    // UpdateCheck();
+
+    // Decrease move count
+    Move.MovedPiece->moveCount--;
+
+    return;
 }

@@ -24,14 +24,14 @@
 
 // To run at the begining
 void PrecomputeEdges(){
-    static bool Runnable;
+    static bool Ran;
 
-    if(!Runnable){
+    if(Ran){
         return;
     }
 
-    for(int x = 0; x < 7; x++){
-        for(int y = 0; y < 7; y++){
+    for(int x = 0; x <= 7; x++){
+        for(int y = 0; y <= 7; y++){
             // Generate directional data
             int North = 7 - y;
             int South = y;
@@ -44,25 +44,29 @@ void PrecomputeEdges(){
             // Knight calculations
             int knightStuff[8];
 
-            for (int i = 0; i < 8; i++){
-                int pos = x + (8 * y) + DirectionalOffsets[i];
-                knightStuff[i] = (pos > 63 || pos < 0);
+            for (int i = 8; i < 16; i++){
+                int pos = Index + DirectionalOffsets[i];
+
+                // Ensures a overall L shape
+                // Pre compute gradients
+                int yChange = abs((int)((Index + DirectionalOffsets[i]) / 8) - y);
+                int xChange = abs((int)((Index + DirectionalOffsets[i]) % 8) - x);
+
+                // Now ensure gradient is constant
+                if(yChange/xChange != 2/1 && yChange/xChange != 1/2){
+                    knightStuff[i-8] = 0;
+                    if(x == 6 && y == 0){
+                        std::cout << (int)(Index + DirectionalOffsets[i] / 8) << " " << (int)(Index + DirectionalOffsets[i] % 8) << std::endl;
+                        std::cout << yChange << " " << xChange << std::endl;
+                    }
+                    continue;
+                }
+
+                knightStuff[i-8] = (pos <= 63 && pos >= 0 && (xChange == 2 && yChange == 1 || xChange == 1 && yChange == 2));
             }
 
-            // Pawn movements
-            int PwnStuff[8];
-
-            PwnStuff[0] = (y != 7) && (West > 0);
-            PwnStuff[1] = (y != 7);
-            PwnStuff[2] = (y != 7) && (East > 0);
-            PwnStuff[3] = (y == 1);
-            PwnStuff[4] = (y != 0) && (East > 0);
-            PwnStuff[5] = (y != 0);
-            PwnStuff[6] = (y != 0) && (West > 0);
-            PwnStuff[7] = (y == 6);
-
             // Insert data
-            SquaresToEdge[Index] = {
+            int ComputedData[24] = {
                 North,
                 South,
                 East,
@@ -72,16 +76,35 @@ void PrecomputeEdges(){
                 std::min(North, West),
                 std::min(South, East),
                 std::min(North, East),
-                std::min(South, West)
+                std::min(South, West),
+
+                // Knights
+                knightStuff[0],
+                knightStuff[1],
+                knightStuff[2],
+                knightStuff[3],
+                knightStuff[4],
+                knightStuff[5],
+                knightStuff[6],
+                knightStuff[7],
+
+                // Pawns
+                (y != 7) && (West > 0),
+                (y != 7),
+                (y != 7) && (East > 0),
+                (y == 1),
+                (y != 0) && (East > 0),
+                (y != 0),
+                (y != 0) && (West > 0),
+                (y == 6)
             };
 
-            memcpy(SquaresToEdge[Index].LMovementCapable, knightStuff, 4*8);
-            memcpy(SquaresToEdge[Index].PwnMovementCapable, PwnStuff, 4*8);
+            memcpy(SquaresToEdge[Index], ComputedData, 4*24);
         }
     }
 
     // Restore
-    Runnable = true;
+    Ran = true;
     return;
 }
 
@@ -102,7 +125,7 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b){
                 break; // Wrong, so change direction
             }
 
-            b->MoveList.push_back(new Move{Square, targetSquare});
+            b->MoveList.push_back(Move{Square, targetSquare});
 
             // If attacking place
             if(targetPiece->GetC() != piece->GetC() && targetPiece->GetC() != NULL_COLOUR){
@@ -133,7 +156,7 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
                 continue; // Wrong, so change direction
             }
 
-            b->MoveList.push_back(new Move{Square, targetSquare});
+            b->MoveList.push_back(Move{Square, targetSquare});
         }
         else if (abs(offset) == 16) {
             // Blocked by friend
@@ -141,27 +164,27 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
                 continue; // Wrong, so change direction
             }
 
-            targetSquare = Square + offset + (8 * (abs(offset) == offset) ? 1 : -1);
-            targetPiece = b->GetSquare(targetSquare);
+            int intermiateSquare = Square + offset + (offset / 2);
+            Piece* intermiatePiece = b->GetSquare(intermiateSquare);
 
             // Blocked by friend
-            if(targetPiece->GetT() != NULL_TYPE){
+            if(intermiatePiece->GetT() != NULL_TYPE){
                 continue; // Wrong, so change direction
             }
 
-            b->MoveList.push_back(new Move{Square, targetSquare});
+            b->MoveList.push_back(Move{Square, targetSquare});
         }
         else {
             // Check for en-passent
-            if(targetPiece->GetC() == NULL_TYPE){
+            if(targetPiece->GetT() == NULL_TYPE){
                 // En-passent check
-                // TODO: En-Passe
+                // TODO: En-Passant Logic
                 continue;
             }
             else if(targetPiece->GetC() != piece->GetC()) {
                 // rEGULAR dINGNAL mOVEMENT
                 // all good
-                b->MoveList.push_back(new Move{Square, targetSquare});
+                b->MoveList.push_back(Move{Square, targetSquare});
             }
         }
     }
@@ -182,7 +205,7 @@ void GenerateKnightMovements(int Square, Piece* piece, Board* b){
             continue; // Wrong, so change direction
         }
 
-        b->MoveList.push_back(new Move{Square, targetSquare});
+        b->MoveList.push_back(Move{Square, targetSquare});
     }
 }
 
@@ -203,6 +226,8 @@ void GenerateKingMovements(int Square, Piece* piece, Board* b){
             continue; // Wrong, so change direction
         }
 
-        b->MoveList.push_back(new Move{Square, targetSquare});
+        b->MoveList.push_back(Move{Square, targetSquare});
     }
+
+    // TODO: Castling
 }
