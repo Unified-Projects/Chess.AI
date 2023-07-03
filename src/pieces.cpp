@@ -76,3 +76,18 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b){
         }
     }
 }
+
+// Pawn Movements
+void GeneratePawnMovements(int Square, Piece* piece, Board* b){
+
+}
+
+// Knight Movements
+void GenerateKnightMovements(int Square, Piece* piece, Board* b){
+
+}
+
+// King Movements
+void GenerateKingMovements(int Square, Piece* piece, Board* b){
+
+}

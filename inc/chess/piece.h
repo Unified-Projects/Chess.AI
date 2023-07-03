@@ -63,6 +63,15 @@ extern void PrecomputeEdges();
 // Sliding move generator
 extern void GenerateSlidingMoves(int Square, Piece* piece, Board* b);
 
+// Pawn Movements
+extern void GeneratePawnMovements(int Square, Piece* piece, Board* b);
+
+// Knight Movements
+extern void GenerateKnightMovements(int Square, Piece* piece, Board* b);
+
+// King Movements
+extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
+
 //Enums for piece configurations
     enum Colour{
         BLACK = 0x00,

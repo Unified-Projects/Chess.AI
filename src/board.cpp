@@ -406,13 +406,22 @@ std::list<Move*> Board::GenerateMoves(){
 
         // Ensure its the pieces turn to move
         if(p->c != CurrentMove){ 
-            break;
+            continue;
         }
 
         // Sliding piece
         if(p->MovingCapabilites & SLIDE){
             // Generate all possible sliding moves for that piece
             GenerateSlidingMoves(Square, p, this);
+        }
+        else if(p->MovingCapabilites & PAWN_MOVMENT){
+            GeneratePawnMovements(Square, p, this);
+        }
+        else if(p->MovingCapabilites & KNIGHT_MOVMENT){
+            GenerateKnightMovements(Square, p, this);
+        }
+        else if(p->MovingCapabilites & KING_MOVMENT){
+            GenerateKingMovements(Square, p, this);
         }
     }
 
