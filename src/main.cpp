@@ -56,115 +56,137 @@
 
 */
 
-// std::list<std::string> ValidFens = {};
+std::list<std::string> ValidFens = {};
 
-// void LoadFens(const char* FilePath){
-//     std::ifstream inputFile(FilePath);  // Replace "file.txt" with the actual file path
+void LoadFens(const char* FilePath){
+    std::ifstream inputFile(FilePath);  // Replace "file.txt" with the actual file path
 
-//     if (!inputFile.is_open()) {
-//         std::cout << "Oppsie You FUCKED Up" << std::endl;
-//         return;
-//     }
+    if (!inputFile.is_open()) {
+        std::cout << "Oppsie You FUCKED Up" << std::endl;
+        return;
+    }
 
-//     std::string line;
+    std::string line;
 
-//     while (std::getline(inputFile, line)) {
-//         std::stringstream ss(line);
-//         std::string item;
+    while (std::getline(inputFile, line)) {
+        std::stringstream ss(line);
+        std::string item;
 
-//         while (std::getline(ss, item, ',')) {
-//             ValidFens.push_back(item);
-//             // std::cout << item << std::endl;  // Log each item
-//         }
-//     }
+        while (std::getline(ss, item, ',')) {
+            ValidFens.push_back(item);
+            // std::cout << item << std::endl;  // Log each item
+        }
+    }
 
-//     inputFile.close();
+    inputFile.close();
 
-//     // DEBUG: DEBUG PERPOSES ONLY
-//     std::ofstream outputFile("../FENGen/Load.txt");  // Replace "file.txt" with the actual file path
+    // DEBUG: DEBUG PERPOSES ONLY
+    std::ofstream outputFile("../FENGen/Load.txt");  // Replace "file.txt" with the actual file path
 
-//     if (!outputFile.is_open()) {
-//         std::cout << "Oppsie You FUCKED Up" << std::endl;
-//         return;
-//     }
+    if (!outputFile.is_open()) {
+        std::cout << "Oppsie You FUCKED Up" << std::endl;
+        return;
+    }
 
-//     // Recombine the items and write to the file
-//     for (const std::string& item : ValidFens) {
-//         outputFile << item << '\n';
-//     }
+    // Recombine the items and write to the file
+    for (const std::string& item : ValidFens) {
+        outputFile << item << '\n';
+    }
 
-//     outputFile.close();
+    outputFile.close();
 
-//     return;
-// }
+    return;
+}
 
-// void StoreBoard(Board* b, const char* Filepath = "Fens.txt"){
-//     std::ofstream fileOUT(Filepath, std::ios::app); // open filename.txt in append mode
+void StoreBoard(Board* b, const char* Filepath = "Fens.txt"){
+    std::ofstream fileOUT(Filepath, std::ios::app); // open filename.txt in append mode
 
-//     // Convert Board Moves to String
-//     std::string Moves = "";
+    // Convert Board Moves to String
+    std::string Moves = "";
 
-//     for (MoveCache m : b->PlayedMoves){
-//         Moves += Board::typeMapper[m.MovedPiece->GetT()];
-//         Moves += "." + std::string((m.MovedPiece->GetC() == WHITE) ? "W" : "B");
-//         Moves += ":";
-//         Moves += std::to_string(m.StartX) + ", " + std::to_string(m.StartY);
-//         Moves += ":";
-//         Moves += std::to_string(m.EndX) + ", " + std::to_string(m.EndY);
-//         Moves += "\n";
-//     }
+    for (MoveCache m : b->PlayedMoves){
+        Moves += Board::typeMapper[m.MovedPiece->GetT()];
+        Moves += "." + std::string((m.MovedPiece->GetC() == WHITE) ? "W" : "B");
+        Moves += ":";
+        Moves += std::to_string(m.move.Start);
+        Moves += ":";
+        Moves += std::to_string(m.move.End);
+        Moves += "\n";
+    }
 
-//     fileOUT << b->ConvertToFen() << "\n" << Moves << std::endl; // append "some stuff" to the end of the file
+    fileOUT << b->ConvertToFen() << "\n" << Moves << std::endl; // append "some stuff" to the end of the file
 
-//     fileOUT.close(); // close the file
-// }
+    fileOUT.close(); // close the file
+}
 
-// // Temporary debug
-// int Validated = 0;
-// bool ValidateFen(Board* b){
+void StoreText(std::string Text, const char* Filepath = "Fens.txt"){
+    std::ofstream fileOUT(Filepath, std::ios::app); // open filename.txt in append mode
 
-//     // Restore previous positions
-//     if(Validated < 3127900){
-//         Validated++;
-//         return true;
-//     }
+    // Convert Board Moves to String
+    Text = Text + "\n";
 
-//     if (ValidFens.empty()) {
-//         LoadFens("../FENGen/fens.txt");
-//         std::cout << "Loaded Fens" << std::endl;
-//     }
+    fileOUT << Text << std::endl; // append "some stuff" to the end of the file
 
-//     // Convert board to fen
-//     std::string boardFen = b->ConvertToFen();
+    fileOUT.close(); // close the file
+}
 
-//     // Get str length
-//     int i = boardFen.size();
+// Caching for found valid fens
+std::list<std::string> FoundFens = {};
+void CacheFoundFen(std::string FEN){
+    for (std::string s : FoundFens){
+        // Check if already found
+        if(FEN.find(s) != std::string::npos){
+            return; // Found and so already stored
+        }
+    }
 
-//     for(std::string fen : ValidFens){
-//         if(fen.find(boardFen) != std::string::npos){
-//             Validated++;
+    // Cache
+    FoundFens.push_back(FEN);
+}
 
-//             // DEBUG PURPOSES ONLY
-//             if(!(Validated % 100)){
-//                 std::cout << "Validated: " << Validated << std::endl;
-//             }
+// Temporary debug
+int Validated = 0;
+bool ValidateFen(Board* b){
 
-//             return true;
-//         }
-//     }
+    if (ValidFens.empty()) {
+        LoadFens("../FENGen/fens.txt");
+        std::cout << "Loaded Fens" << std::endl;
+    }
 
-//     // Fen is invalid, cache it!
-//     StoreBoard(b);
+    // Convert board to fen
+    std::string boardFen = b->ConvertToFen();
 
-//     Validated++;
+    // Get str length
+    int i = boardFen.size();
 
-//     // DEBUG PURPOSES ONLY
-//     // if(!(Validated % 100)){
-//         std::cout << "Validated: " << Validated << std::endl;
-//     // }
+    for(std::string fen : ValidFens){
+        if(fen.find(boardFen) != std::string::npos){
+            Validated++;
 
-//     return false;
-// }
+            // DEBUG PURPOSES ONLY
+            if(!(Validated % 100)){
+                std::cout << "Validated: " << Validated << std::endl;
+            }
+
+            // Cache it
+            CacheFoundFen(fen);
+
+            return true;
+        }
+    }
+
+    // Fen is invalid, cache it!
+    StoreBoard(b);
+
+    Validated++;
+
+    // DEBUG PURPOSES ONLY
+    if(!(Validated % 100)){
+        std::cout << "Validated: " << Validated << std::endl;
+    }
+
+    return false;
+}
 
 // uint64_t Iterations = 0;
 // uint64_t Moves = 0;
@@ -202,76 +224,85 @@
 //     return 0;
 // }
 
-// // VALIDATIONS
-// #include <thread>
-// int SplitRecursedPossibleMoves(Board* b, int splitcoutIndex, int splitcout, int LayerNumber = 1, Colour c = WHITE){
-//     if(LayerNumber == 0){
-//         Moves++;
-//         return 0;
-//     }
+// VALIDATIONS
+#include <thread>
+void ThreadedPossibleMoves(Board* board, int splitcoutIndex, int splitcout, int layer){
+    if(layer == 0){
+        return;
+    }
 
-//     std::list<Piece*> currentLayer = (c == WHITE) ? b->GetWhitePieces() : b->GetBlackPieces();
+    std::list<Move> Moves = board->GenerateMoves();
 
-//     for (Piece* p : currentLayer){
-//         for (std::pair<int, int> move : b->MoveGen(p->GetT())){
-//             if(LayerNumber == 1 && splitcoutIndex != splitcout){
-//                 splitcoutIndex++;
-//                 continue;
-//             }
-//             else if(LayerNumber == 1 && splitcoutIndex == splitcout){
-//                 splitcoutIndex = 0;
-//             }
+    for (Move m : Moves){
+        if(layer == 1 && splitcoutIndex != splitcout){
+            splitcoutIndex++;
+            continue;
+        }
+        else if(layer == 1 && splitcoutIndex == splitcout){
+            splitcoutIndex = 0;
+        }
 
-//             bool movedPiece = b->MovePiece(p->X, p->Y, p->X + move.first, p->Y + move.second);
+        bool ValidMove = board->MovePiece(m);
 
-//             // Validator Code
-//             if(LayerNumber == 1 && movedPiece){
-//                 // Attempt move validation
-//                 ValidateFen(b);
-//             }
+        // Validator Code
+        if(layer == 1 && ValidMove){
+            // Attempt move validation
+            ValidateFen(board);
+        }
 
-//             if(movedPiece && !b->UpdateCheckmate()){
-//                 SplitRecursedPossibleMoves(b, splitcoutIndex, splitcout, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
-//             }
+        ThreadedPossibleMoves(board, splitcoutIndex, splitcout, layer-1);
 
-//             // Iterations++;
-//             if(LayerNumber == 1)
-//                 splitcoutIndex++;
+        // If valid move undo
+        if(ValidMove){
+            // board->LogBoard();
+            board->UndoMove();
+        }
+    }
+}
 
-//             if(movedPiece){
-//                 b->UndoMove();
-//             }
-//         }
-//     }
+void ThreadedValidations(int threadcount, int layerNumber){
+    std::list<std::thread*> ActiveThreads;
 
-//     return 0;
-// }
+    // Load fens or issues arise
+    LoadFens("../FENGen/fens.txt");
 
-// void OptimisedValidationTests(int threadcount, int layerNumber){
-//     std::list<std::thread*> ActiveThreads;
+    for(int i = 0; i < threadcount; i++){
+        Board* board = new Board(); // Each need their own board
+        board->InitBoard();
+        std::thread* t = new std::thread(ThreadedPossibleMoves, board, i, threadcount, layerNumber);
 
-//     // Load fens or issues arise
-//     LoadFens("../FENGen/fens.txt");
+        ActiveThreads.push_back(t);
 
-//     for(int i = 0; i < threadcount; i++){
-//         Board* board = new Board(); // Each need their own board
-//         board->InitBoard();
-//         std::thread* t = new std::thread(SplitRecursedPossibleMoves, board, i, threadcount, layerNumber, WHITE);
+        std::cout << "Thread" << i << ": Started" << std::endl;
+    }
 
-//         ActiveThreads.push_back(t);
+    // Finish threads
+    while (!ActiveThreads.empty()){
+        std::thread* t = ActiveThreads.back();
 
-//         std::cout << "Thread" << i << ": Started" << std::endl;
-//     }
+        t->join(); // Wait till ended
+        ActiveThreads.remove(t); // Remove from queue
+        // Delete thread?
+    }
 
-//     while (!ActiveThreads.empty()){
-//         std::thread* t = ActiveThreads.back();
+    // Did we miss any?
+    std::cout << "Found: " << FoundFens.size() << " Needed: " << ValidFens.size() << std:: endl;
 
-//         t->join(); // Wait till ended
-//         ActiveThreads.remove(t); // Remove from queue
-//         // Delete thread?
-//     }
-// }
-// // VALIDATIONS
+    for (std::string s : ValidFens){
+        bool Found = false;
+        for (std::string s2 : FoundFens){
+            // Check if already found
+            if(s.find(s2) != std::string::npos){
+                Found = true;
+            }
+        }
+
+        if(!Found){
+            StoreText("MISSED: " + s);
+        }
+    }
+}
+// VALIDATIONS
 
 void TestPossibleMoves(Board* board, int layer, int& moves, int& checkmates, uint64_t& iterations){
     if(layer == 0){
@@ -280,12 +311,9 @@ void TestPossibleMoves(Board* board, int layer, int& moves, int& checkmates, uin
 
     std::list<Move> Moves = board->GenerateMoves();
 
-    std::cout << Moves.size() << std::endl;
-
     for (Move m : Moves){
-        std::cout << m.Start << " " << m.End << std::endl;
+        // std::cout << m.Start << " " << m.End << std::endl;
 
-        // TODO: Make move
         bool ValidMove = board->MovePiece(m);
 
         TestPossibleMoves(board, layer-1, moves, checkmates, iterations);
@@ -299,7 +327,7 @@ void TestPossibleMoves(Board* board, int layer, int& moves, int& checkmates, uin
 
         // If valid move undo
         if(ValidMove){
-            board->LogBoard();
+            // board->LogBoard();
             board->UndoMove();
         }
     }
@@ -313,14 +341,19 @@ int main() {
 
     board.LogBoard();
 
-    // return 0;
+    bool Validator = true;
+    bool Comparitor = true;
+
+    if(Validator && Comparitor) { // Multi-threaded validations
+        ThreadedValidations(2, 2);
+    }
 
     // Testing
-    {
+    if(Validator && !Comparitor) {
         int Repeats = 1; // Allow average calculations
-        int MaxLayers = 1; // Change depth of test
+        int MaxLayers = 2; // Change depth of test
 
-        for (int Layer = MaxLayers; Layer > 0; Layer--){
+        for (int Layer = 1; Layer <= MaxLayers; Layer++){
             // Averages
             int Moves = 0;
             int Checkmates = 0;
@@ -339,7 +372,7 @@ int main() {
             }
 
             std::cout << "All Move Calculations took: " << Times / Repeats << "ms for " << Layer << " Layers and " << Moves / Repeats << " Moves and " << Checkmates / Repeats << " Checkmates" << std::endl;
-                std::cout << "      And a average of " << Times / Repeats/(Iterations / Repeats / 1000) << "ms per 1000 Iterations" << std::endl;
+                std::cout << "      And a average of " << (Times / Repeats) / (Iterations / Repeats / 1000) << "ms per 1000 Iterations" << std::endl;
         }
     }
 

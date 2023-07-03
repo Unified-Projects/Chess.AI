@@ -233,39 +233,39 @@ void Board::LogBoard(){
     return;
 }
 
-// std::string Board::ConvertToFen() { // TODO: EFFICIENCY CHECK
-//     std::string fen = "";
-//     int nullCounter = 0;
-//     for (int y=8; y>=1; y--) {
-//         for (int x=1; x<=8; x++) {
-//             // Get piece at position
-//             Type type = GetPieceAtPosition(x, y)->GetT();
-//             Colour colour = GetPieceAtPosition(x, y)->GetC();
+std::string Board::ConvertToFen() { // TODO: EFFICIENCY CHECK
+    std::string fen = "";
+    int nullCounter = 0;
+    for (int y=7; y>=0; y--) {
+        for (int x=0; x<=7; x++) {
+            // Get piece at position
+            Type type = board[(y*8) + x]->GetT();
+            Colour colour = board[(y*8) + x]->GetC();
 
-//             if (type == NULL_TYPE) {
-//                 nullCounter++;
-//                 continue;
-//             }
-//             if (nullCounter) {
-//                 fen += std::to_string(nullCounter);
-//                 nullCounter = 0;
-//             }
-//             char t = Board::typeMapper[type] + ((colour == WHITE) ? ('A' - 'a') : 0);
-//             fen += t;
+            if (type == NULL_TYPE) {
+                nullCounter++;
+                continue;
+            }
+            if (nullCounter) {
+                fen += std::to_string(nullCounter);
+                nullCounter = 0;
+            }
+            char t = Board::typeMapper[type] + ((colour == WHITE) ? ('A' - 'a') : 0);
+            fen += t;
 
-//             // TODO: Other FEN Sections Needed!
-//         }
-//         if (nullCounter) {
-//             fen += std::to_string(nullCounter);
-//             nullCounter = 0;
-//         }
-//         if (y != 1) {
-//             fen += "/";
-//         }
-//     }
+            // TODO: Other FEN Sections Needed!
+        }
+        if (nullCounter) {
+            fen += std::to_string(nullCounter);
+            nullCounter = 0;
+        }
+        if (y != 0) {
+            fen += "/";
+        }
+    }
 
-//     return fen;
-// }
+    return fen;
+}
 
 // bool Board::MovePiece(int startX, int startY, int targetX, int targetY, bool ignoreCheck) {
 //     // TODO: IMPLEMENT A END-GAME HANDLER!!!! AND FOR TESTER
@@ -438,6 +438,8 @@ bool Board::MovePiece(Move m){
 
     board[m.End]->moveCount++;
 
+    CurrentMove = (CurrentMove == WHITE) ? BLACK : WHITE;
+
     return true;
 }
 
@@ -465,6 +467,8 @@ void Board::UndoMove(){
 
     // Decrease move count
     Move.MovedPiece->moveCount--;
+
+    CurrentMove = (CurrentMove == WHITE) ? BLACK : WHITE;
 
     return;
 }
