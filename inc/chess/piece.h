@@ -13,6 +13,7 @@ class Piece;
 // Piece Management Constants
     struct EdgeInfo
     {
+        // Distances
         int North = 0;
         int South = 0;
         int West = 0;
@@ -23,6 +24,12 @@ class Piece;
         int MinSE = 0;
         int MinNE = 0;
         int MinSW = 0;
+
+        // Knight movments
+        int LMovementCapable[8];
+
+        // Pawn movements
+        int PwnMovementCapable[8];
 
         // Operator to use indexing to get the values, due to non-edit restriction
          // TODO in the pregenerate modify indexeds of ints to remove this need
@@ -45,13 +52,19 @@ class Piece;
                 return MinNE;
             case 7:
                 return MinSW;
-        
+
+            // Knight checks
+            case 8 ... 15:
+                return LMovementCapable[index - 8];
+
+            case 16 ... 23:
+                return PwnMovementCapable[index - 16];
+
             default:
                 return 0;
             }
         }
     };
-    
 
     extern const int DirectionalOffsets[];
     static EdgeInfo SquaresToEdge[64];

@@ -66,65 +66,62 @@ void Board::InitBoard(std::string FEN) {
     // TODO: Error Checking on the inputted FEN
 
     // Used for iteration and a local position vector for setting pieces
-    // const char* FEN_STR = FEN.c_str();
-    // int LocalX = 0;
-    // int LocalY = 0;
+    const char* FEN_STR = FEN.c_str();
+    int LocalSquare = 0;
 
+    // TODO: Fix loading of board, currently backwards
     // // Iterate over the FEN inputted notation for parsing
-    // for(; *FEN_STR; FEN_STR++){
+    for(; *FEN_STR; FEN_STR++){
 
-    //     /*
-    //         NOTE: We are not following the extra sections of the set notation
-    //             so as a result we break as soon as the section ends.
-    //             We may implement later on, but majority / all games
-    //             will start from default.
-    //     */
+        /*
+            NOTE: We are not following the extra sections of the set notation
+                so as a result we break as soon as the section ends.
+                We may implement later on, but majority / all games
+                will start from default.
+        */
 
-    //     // Check if it is a digit
-    //     if (*FEN_STR >= '1' && *FEN_STR <= '8') {
-    //         for (int i = 0; i < *FEN_STR - 48; i++) {
-    //             // board[LocalY][LocalX + i] = new Piece();
-    //             SetPiece(LocalX + i, 7 - LocalY, new Piece());
-    //         }
-    //         LocalX += *FEN_STR - 48;
-    //         continue;
-    //     }
+        // Check if it is a digit
+        if (*FEN_STR >= '1' && *FEN_STR <= '8') {
+            for (int i = 0; i < *FEN_STR - 48; i++) {
+                board[LocalSquare] = new Piece();
+            }
+            LocalSquare += *FEN_STR - 48;
+            continue;
+        }
 
-    //     // New board row
-    //     if (*FEN_STR == '/') {
-    //         LocalY++;
-    //         LocalX = 0;
-    //         continue;
-    //     }
+        // New board row
+        if (*FEN_STR == '/') {
+            continue;
+        }
 
-    //     // Section end so we end
-    //     if (*FEN_STR == ' ') {
-    //         break;
-    //     }
+        // Section end so we end
+        if (*FEN_STR == ' ') {
+            break;
+        }
 
-    //     // Piece assignment according to map
-    //     Piece* newPiece = pieceMapper[*FEN_STR]->Clone();
-    //     SetPiece(LocalX, 7 - LocalY, newPiece);
+        // Piece assignment according to map
+        Piece* newPiece = pieceMapper[*FEN_STR]->Clone();
+        board[LocalSquare] = newPiece;
 
-    //     if (newPiece->t == KING){
-    //         if (newPiece->c == WHITE){
-    //             WhiteKing = newPiece;
-    //         }
-    //         else{
-    //             BlackKing = newPiece;
-    //         }
-    //     }
+        if (newPiece->t == KING){
+            if (newPiece->c == WHITE){
+                WhiteKing = newPiece;
+            }
+            else{
+                BlackKing = newPiece;
+            }
+        }
 
-    //     if (newPiece->c == WHITE){
-    //         WhitePieces.push_back(newPiece);
-    //     }
-    //     else{
-    //         BlackPieces.push_back(newPiece);
-    //     }
+        if (newPiece->c == WHITE){
+            WhitePieces.push_back(newPiece);
+        }
+        else{
+            BlackPieces.push_back(newPiece);
+        }
 
-    //     // Move horizonatally
-    //     LocalX++;
-    // }
+        // Move horizonatally
+        LocalSquare++;
+    }
 
     // // See if either in check
     // UpdateCheck();
@@ -197,40 +194,40 @@ void Board::InitBoard(std::string FEN) {
 //     return true;
 // }
 
-// void Board::LogBoard(){
-//     // Iterate both over rows and columns
-//     for (int i = 7; i >= 0; i--) {
-//         for (int j = 0; j < 8; j++) {
+void Board::LogBoard(){
+    // Iterate both over rows and columns
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
 
-//             // std::cout << '(' << j+1 << ',' << i+1 << ')';
+            // std::cout << '(' << j+1 << ',' << i+1 << ')';
 
-//             // continue;
+            // continue;
 
-//             // Get the current pieces colour and type
-//             Type t = board[i][j]->t;
-//             Colour c = board[i][j]->c;
+            // Get the current pieces colour and type
+            Type t = board[i*8 + i]->t;
+            Colour c = board[i*8 + j]->c;
 
-//             // Create a store point for the character
-//             char type = this->typeMapper[t];
+            // Create a store point for the character
+            char type = this->typeMapper[t];
 
-//             // Colour formatting dependent of the pieces colour
-//             const char* ColorMod = "";
-//             if (c == WHITE){
-//                 ColorMod = "\033[1m";
-//             }
-//             else{
-//                 ColorMod = "\033[1;30m";
-//             }
+            // Colour formatting dependent of the pieces colour
+            const char* ColorMod = "";
+            if (c == WHITE){
+                ColorMod = "\033[1m";
+            }
+            else{
+                ColorMod = "\033[1;30m";
+            }
 
-//             // Log piece
-//             std::cout << ColorMod << type << "\033[0;m ";
-//         }
-//         // New row so new line
-//         std::cout << std::endl;
-//     }
+            // Log piece
+            std::cout << ColorMod << type << "\033[0;m ";
+        }
+        // New row so new line
+        std::cout << std::endl;
+    }
 
-//     return;
-// }
+    return;
+}
 
 // std::string Board::ConvertToFen() { // TODO: EFFICIENCY CHECK
 //     std::string fen = "";

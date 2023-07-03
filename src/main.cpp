@@ -268,9 +268,51 @@
 // }
 // // VALIDATIONS
 
+void TestPossibleMoves(Board* board, int layer, int& moves, int& checkmates, uint64_t& iterations){
+    if(layer == 0){
+        return;
+    }
+
+    std::list<Move*> Moves = board->GenerateMoves();
+
+    for (Move* m : Moves){
+        // TODO: Make move
+    }
+}
+
 int main() {
     Board board;
     board.InitBoard();
+
+    board.LogBoard();
+
+    // Testing
+    {
+        int Repeats = 1; // Allow average calculations
+        int MaxLayers = 1; // Change depth of test
+
+        for (int Layer = MaxLayers; Layer > 0; Layer--){
+            // Averages
+            int Moves = 0;
+            int Checkmates = 0;
+            uint64_t Iterations = 0;
+            double Times = 0;
+
+            for (int i = 1; i <= Repeats; i++){
+                clock_t StartTime = clock();
+
+                // Actual Layer Test
+                TestPossibleMoves(&board, Layer, Moves, Checkmates, Iterations);
+
+                clock_t EndTime = clock();
+                double TimeTaken = (double) (EndTime-StartTime) / CLOCKS_PER_SEC * 1000.0;
+                Times += TimeTaken;
+            }
+
+            std::cout << "All Move Calculations took: " << Times / Repeats << "ms for " << Layer << " Layers and " << Moves / Repeats << " Moves and " << Checkmates / Repeats << " Checkmates" << std::endl;
+                std::cout << "      And a average of " << Times / Repeats/(Iterations / Repeats / 1000) << "ms per 1000 Iterations" << std::endl;
+        }
+    }
 
     // Validations
     // if(true){

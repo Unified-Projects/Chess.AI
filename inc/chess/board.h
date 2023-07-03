@@ -23,6 +23,12 @@ struct MoveExtra{ // TODO: Maybe integrate to make a better Promotion system or 
     Piece* change = nullptr;
 };
 
+// Moves
+struct Move{
+    int Start;
+    int End;
+};
+
 // For caching previous moves
 struct MoveCache{
     // Pieces
@@ -30,18 +36,9 @@ struct MoveCache{
     Piece* TargetPiece;
 
     // Positions
-    int StartX;
-    int StartY;
-    int EndX;
-    int EndY;
+    Move move;
 
     MoveExtra Extra;
-};
-
-// Moves
-struct Move{
-    int Start;
-    int End;
 };
 
 class Board {
