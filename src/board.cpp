@@ -106,6 +106,7 @@ void Board::InitBoard(std::string FEN) {
         // Piece assignment according to map
         Piece* newPiece = pieceMapper[*FEN_STR]->Clone();
         board[(LocalRank * 8) + LocalFile] = newPiece;
+        newPiece->Square = (LocalRank * 8) + LocalFile;
 
         if (newPiece->t == KING){
             if (newPiece->c == WHITE){
@@ -127,8 +128,11 @@ void Board::InitBoard(std::string FEN) {
         LocalFile++;
     }
 
-    // // See if either in check
-    // UpdateCheck();
+    // Current Move
+    CurrentMove = WHITE;
+
+    // See if either in check
+    UpdateCheck();
 
     return;
 }
@@ -399,46 +403,96 @@ std::string Board::ConvertToFen() { // TODO: EFFICIENCY CHECK
 // }
 
 std::list<Move> Board::GenerateMoves(){
+    if (CurrentMove == PreviousGeneration){
+        return MoveList;
+    }
+
     MoveList = {};
 
     // Loop over all squares
-    for (int Square = 0; Square < 64; Square++){
-        Piece* p = board[Square]; // Select Piece
+    // for (int Square = 0; Square < 64; Square++){ - Optimised Out
+    for(Piece* p : (CurrentMove == WHITE) ? WhitePieces : BlackPieces){
+        // Piece* p = board[Square]; // Select Piece - Optimised Out
 
-        // Ensure its the pieces turn to move
-        if(p->c != CurrentMove){
-            continue;
-        }
+        // Ensure its the pieces turn to move - Optimised Out
+        // if(p->c != CurrentMove){
+        //     continue;
+        // }
 
         // Sliding piece
         if(p->MovingCapabilites & SLIDE){
             // Generate all possible sliding moves for that piece
-            GenerateSlidingMoves(Square, p, this);
+            GenerateSlidingMoves(p->Square, p, this);
         }
         else if(p->MovingCapabilites & PAWN_MOVMENT){
-            GeneratePawnMovements(Square, p, this);
+            GeneratePawnMovements(p->Square, p, this);
         }
         else if(p->MovingCapabilites & KNIGHT_MOVMENT){
-            GenerateKnightMovements(Square, p, this);
+            GenerateKnightMovements(p->Square, p, this);
         }
         else if(p->MovingCapabilites & KING_MOVMENT){
-            GenerateKingMovements(Square, p, this);
+            GenerateKingMovements(p->Square, p, this);
         }
     }
+
+    // Store for if we want to reload it :)
+    PreviousGeneration = CurrentMove;
 
     return MoveList;
 }
 
+bool Board::UpdateCheck(){
+    // Generate next moves
+    std::list<Move> Moves = GenerateMoves();
+
+    // Reset check
+    Check = false;
+
+    // See if any target king
+    for(Move m : Moves){
+        if (m.Taking == KING){
+            Check = true;
+            CheckedColour = (CurrentMove == WHITE) ? BLACK : WHITE;
+            std::cout << "CHECKS" << std::endl;
+            return true;
+        }
+    }
+
+    return false; // Not in check
+}
+
 bool Board::MovePiece(Move m){
-    // TODO: Catching Children
+    // Can't take king
+    if(m.Taking == KING){
+        return false;
+    }
+
     PlayedMoves.push_back(MoveCache{board[m.Start], board[m.End], m, {/* //TODO: MoveExtra Extra;*/}});
 
+    // Actual board swaps
     board[m.End] = board[m.Start];
     board[m.Start] = new Piece();
 
+    // For en-passent and castling and piece general
     board[m.End]->moveCount++;
+    board[m.End]->Square = m.End;
 
+    // Change next to move
     CurrentMove = (CurrentMove == WHITE) ? BLACK : WHITE;
+
+    // Update check/mate/stalemate
+    UpdateCheck();
+
+    // TODO: Check is only considered when a move is attempted, until then the check is unknown!
+
+    // See if check has changed
+    if(Check && CheckedColour == ((CurrentMove == WHITE) ? BLACK : WHITE)){ // TODO: Could be mate
+        // Invalid as king in check
+        UndoMove();
+
+        // TODO: Checkmate see if any move could be made here to escape check!
+        return false;
+    }
 
     return true;
 }
@@ -465,8 +519,9 @@ void Board::UndoMove(){
     // Resort Check
     // UpdateCheck();
 
-    // Decrease move count
+    // Decrease move count and restore positions
     Move.MovedPiece->moveCount--;
+    Move.MovedPiece->Square = Move.move.Start;
 
     CurrentMove = (CurrentMove == WHITE) ? BLACK : WHITE;
 

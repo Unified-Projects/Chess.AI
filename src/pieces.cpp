@@ -117,7 +117,7 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b){
     // Check all directions possible
     for (int directionI = StartIndex; directionI < EndIndex; directionI++){
         for(int nToEdge = 0; nToEdge < SquaresToEdge[Square][directionI]; nToEdge++){
-            int targetSquare = Square + DirectionalOffsets[directionI] * (nToEdge + 1);
+            int targetSquare = Square + (DirectionalOffsets[directionI] * (nToEdge + 1));
             Piece* targetPiece = b->GetSquare(targetSquare);
 
             // Blocked by friend
@@ -125,7 +125,7 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b){
                 break; // Wrong, so change direction
             }
 
-            b->MoveList.push_back(Move{Square, targetSquare});
+            b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
 
             // If attacking place
             if(targetPiece->GetC() != piece->GetC() && targetPiece->GetC() != NULL_COLOUR){
@@ -156,7 +156,7 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
                 continue; // Wrong, so change direction
             }
 
-            b->MoveList.push_back(Move{Square, targetSquare});
+            b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
         }
         else if (abs(offset) == 16) {
             // Blocked by friend
@@ -164,7 +164,7 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
                 continue; // Wrong, so change direction
             }
 
-            int intermiateSquare = Square + offset + (offset / 2);
+            int intermiateSquare = Square + (offset / 2);
             Piece* intermiatePiece = b->GetSquare(intermiateSquare);
 
             // Blocked by friend
@@ -172,7 +172,12 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
                 continue; // Wrong, so change direction
             }
 
-            b->MoveList.push_back(Move{Square, targetSquare});
+            // Blocked by friend
+            if(targetPiece->GetT() != NULL_TYPE){
+                continue; // Wrong, so change direction
+            }
+
+            b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
         }
         else {
             // Check for en-passent
@@ -184,7 +189,7 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
             else if(targetPiece->GetC() != piece->GetC()) {
                 // rEGULAR dINGNAL mOVEMENT
                 // all good
-                b->MoveList.push_back(Move{Square, targetSquare});
+                b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
             }
         }
     }
@@ -205,7 +210,7 @@ void GenerateKnightMovements(int Square, Piece* piece, Board* b){
             continue; // Wrong, so change direction
         }
 
-        b->MoveList.push_back(Move{Square, targetSquare});
+        b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
     }
 }
 
@@ -226,7 +231,7 @@ void GenerateKingMovements(int Square, Piece* piece, Board* b){
             continue; // Wrong, so change direction
         }
 
-        b->MoveList.push_back(Move{Square, targetSquare});
+        b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
     }
 
     // TODO: Castling

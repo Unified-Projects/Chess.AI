@@ -27,6 +27,8 @@ struct MoveExtra{ // TODO: Maybe integrate to make a better Promotion system or 
 struct Move{
     int Start;
     int End;
+
+    Type Taking; // For check and mate
 };
 
 // For caching previous moves
@@ -108,6 +110,7 @@ public: // Gameplay
 
     // Move generation
     std::list<Move> MoveList;
+    Colour PreviousGeneration = NULL_COLOUR; // Caching
     std::list<Move> GenerateMoves();
 
     // Move Moving Moves
@@ -116,6 +119,9 @@ public: // Gameplay
 
     // Current Played Moves
     std::vector<MoveCache> PlayedMoves;
+
+    // Game conditions
+    bool UpdateCheck();
 
 public: // Other
     std::string ConvertToFen();

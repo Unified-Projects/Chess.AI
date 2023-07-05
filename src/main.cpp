@@ -258,6 +258,8 @@ void ThreadedPossibleMoves(Board* board, int splitcoutIndex, int splitcout, int 
             board->UndoMove();
         }
     }
+
+    return;
 }
 
 void ThreadedValidations(int threadcount, int layerNumber){
@@ -288,19 +290,19 @@ void ThreadedValidations(int threadcount, int layerNumber){
     // Did we miss any?
     std::cout << "Found: " << FoundFens.size() << " Needed: " << ValidFens.size() << std:: endl;
 
-    for (std::string s : ValidFens){
-        bool Found = false;
-        for (std::string s2 : FoundFens){
-            // Check if already found
-            if(s.find(s2) != std::string::npos){
-                Found = true;
-            }
-        }
+    // for (std::string s : ValidFens){
+    //     bool Found = false;
+    //     for (std::string s2 : FoundFens){
+    //         // Check if already found
+    //         if(s.find(s2) != std::string::npos){
+    //             Found = true;
+    //         }
+    //     }
 
-        if(!Found){
-            StoreText("MISSED: " + s);
-        }
-    }
+    //     if(!Found){
+    //         StoreText("MISSED: " + s);
+    //     }
+    // }
 }
 // VALIDATIONS
 
@@ -342,16 +344,16 @@ int main() {
     board.LogBoard();
 
     bool Validator = true;
-    bool Comparitor = true;
+    bool Comparitor = false;
 
     if(Validator && Comparitor) { // Multi-threaded validations
-        ThreadedValidations(2, 2);
+        ThreadedValidations(3, 3);
     }
 
     // Testing
     if(Validator && !Comparitor) {
         int Repeats = 1; // Allow average calculations
-        int MaxLayers = 2; // Change depth of test
+        int MaxLayers = 3; // Change depth of test
 
         for (int Layer = 1; Layer <= MaxLayers; Layer++){
             // Averages
@@ -372,7 +374,7 @@ int main() {
             }
 
             std::cout << "All Move Calculations took: " << Times / Repeats << "ms for " << Layer << " Layers and " << Moves / Repeats << " Moves and " << Checkmates / Repeats << " Checkmates" << std::endl;
-                std::cout << "      And a average of " << (Times / Repeats) / (Iterations / Repeats / 1000) << "ms per 1000 Iterations" << std::endl;
+                std::cout << "      And a average of " << (Times / Repeats) / (Iterations / Repeats / 1000) << "ms per 1000 Iterations (" << Iterations / Repeats << ")" << std::endl;
         }
     }
 
