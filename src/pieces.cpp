@@ -66,17 +66,17 @@ void PrecomputeEdges(){
             }
 
             // Insert data
-            int ComputedData[24] = {
+            int ComputedData[24] = { // TODO: UH OH WHY THESE ORDER WRONG, BIG OOPSIE
                 North,
                 South,
-                East,
                 West,
+                East,
 
                 // Extras
                 std::min(North, West),
                 std::min(South, East),
-                std::min(North, East),
-                std::min(South, West),
+                std::max(North, East),
+                std::max(South, West),
 
                 // Knights
                 knightStuff[0],
@@ -108,7 +108,7 @@ void PrecomputeEdges(){
     return;
 }
 
-// Used for queens, bishops, rooks
+// Used for queens, bishops, rooks // TODO: CHECKEEEEE NOW PLZ
 void GenerateSlidingMoves(int Square, Piece* piece, Board* b){
     // Compatible directions
     int StartIndex = (piece->MovingCapabilites & SLIDE_DIAGONAL) ? 4 : 0;

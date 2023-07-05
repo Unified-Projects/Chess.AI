@@ -50,7 +50,7 @@ public: // Standardised
     static std::map<char, Piece*> pieceMapper;
     static std::map<Type, char> typeMapper; // Usefull for the move notation and checking if it is valid
 
-protected: // Private board management
+public: // Private board management
     Piece* board[64] = {};
 
     void SetPiece(int X, int Y, Piece* p);
@@ -74,7 +74,7 @@ protected: // Private board management
 
 public: // Setup / De-setup
     // Probably should do something with me
-    Board() {return;}
+    Board();
 
     // Almost entirely optional
     ~Board() {return;}

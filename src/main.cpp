@@ -146,6 +146,7 @@ void CacheFoundFen(std::string FEN){
 
 // Temporary debug
 int Validated = 0;
+int Invalid = 0;
 bool ValidateFen(Board* b){
 
     if (ValidFens.empty()) {
@@ -179,6 +180,7 @@ bool ValidateFen(Board* b){
     StoreBoard(b);
 
     Validated++;
+    Invalid++;
 
     // DEBUG PURPOSES ONLY
     if(!(Validated % 100)){
@@ -187,42 +189,6 @@ bool ValidateFen(Board* b){
 
     return false;
 }
-
-// uint64_t Iterations = 0;
-// uint64_t Moves = 0;
-// uint64_t Checkmates = 0;
-
-// int RecursedPossibleMoves(Board* b, int LayerNumber = 1, Colour c = WHITE){
-//     if(LayerNumber == 0){
-//         Moves++;
-//         return 0;
-//     }
-
-//     std::list<Piece*> currentLayer = (c == WHITE) ? b->GetWhitePieces() : b->GetBlackPieces();
-
-//     for (Piece* p : currentLayer){
-//         for (std::pair<int, int> move : b->MoveGen(p->GetT())){
-//             // Play the move
-//             bool movedPiece = b->MovePiece(p->X, p->Y, p->X + move.first, p->Y + move.second);
-
-//             if(movedPiece && !b->UpdateCheckmate()){
-//                 RecursedPossibleMoves(b, LayerNumber-1, (c == 0xFF) ? BLACK : WHITE);
-//             }
-//             else if (b->UpdateCheckmate()){
-//                 Moves++;
-//                 Checkmates++;
-//             }
-
-//             Iterations++;
-
-//             if(movedPiece){
-//                 b->UndoMove();
-//             }
-//         }
-//     }
-
-//     return 0;
-// }
 
 // VALIDATIONS
 #include <thread>
@@ -234,13 +200,13 @@ void ThreadedPossibleMoves(Board* board, int splitcoutIndex, int splitcout, int 
     std::list<Move> Moves = board->GenerateMoves();
 
     for (Move m : Moves){
-        if(layer == 1 && splitcoutIndex != splitcout){
-            splitcoutIndex++;
-            continue;
-        }
-        else if(layer == 1 && splitcoutIndex == splitcout){
-            splitcoutIndex = 0;
-        }
+        // if(layer == 1 && splitcoutIndex != splitcout - 1){
+        //     splitcoutIndex++;
+        //     continue;
+        // }
+        // else if(layer == 1 && splitcoutIndex == splitcout - 1){
+        //     splitcoutIndex = 0;
+        // }
 
         bool ValidMove = board->MovePiece(m);
 
@@ -287,6 +253,9 @@ void ThreadedValidations(int threadcount, int layerNumber){
         // Delete thread?
     }
 
+    // Validated log
+    std::cout << "Validated: " << Validated << " Fens and found " << Invalid << " Invalid Fens" << std::endl;
+
     // Did we miss any?
     std::cout << "Found: " << FoundFens.size() << " Needed: " << ValidFens.size() << std:: endl;
 
@@ -325,6 +294,8 @@ void TestPossibleMoves(Board* board, int layer, int& moves, int& checkmates, uin
 
         if(ValidMove && layer == 1){
             moves++;
+            // board->LogBoard();
+            // ValidateFen(board);
         }
 
         // If valid move undo
@@ -347,7 +318,7 @@ int main() {
     bool Comparitor = false;
 
     if(Validator && Comparitor) { // Multi-threaded validations
-        ThreadedValidations(3, 3);
+        ThreadedValidations(1, 3);
     }
 
     // Testing
@@ -355,7 +326,7 @@ int main() {
         int Repeats = 1; // Allow average calculations
         int MaxLayers = 3; // Change depth of test
 
-        for (int Layer = 1; Layer <= MaxLayers; Layer++){
+        for (int Layer = MaxLayers; Layer <= MaxLayers; Layer++){
             // Averages
             int Moves = 0;
             int Checkmates = 0;
@@ -375,7 +346,13 @@ int main() {
 
             std::cout << "All Move Calculations took: " << Times / Repeats << "ms for " << Layer << " Layers and " << Moves / Repeats << " Moves and " << Checkmates / Repeats << " Checkmates" << std::endl;
                 std::cout << "      And a average of " << (Times / Repeats) / (Iterations / Repeats / 1000) << "ms per 1000 Iterations (" << Iterations / Repeats << ")" << std::endl;
-        }
+        
+            board.LogBoard();
+
+            std::cout << "Piece Lists Sizes: W: " << board.WhitePieces.size() << " B: " << board.BlackPieces.size() << std::endl;
+            std::cout << "Moves?: " << board.PlayedMoves.size() << std::endl;
+            std::cout << "Check: " << board.Check << " Current Move: " << board.CurrentMove << std::endl;
+            }
     }
 
     // Validations

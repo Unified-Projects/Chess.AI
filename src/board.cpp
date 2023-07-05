@@ -34,6 +34,30 @@ std::map<Type, char> Board::typeMapper = {
 //     board[Y][X]->b = this; // So that pieces can acces the current board (Instead of global so that multiple boards can be active at once (Training AI))
 // }
 
+Board::Board() {
+    // Check management
+    Check = false;
+    Stale = false;
+    Mate = false;
+
+    // Color
+    CheckedColour = NULL_COLOUR;
+    CurrentMove = WHITE;
+
+    // King savings
+    WhiteKing = nullptr;
+    BlackKing = nullptr;
+
+    // Pieces
+    WhitePieces = {};
+    BlackPieces = {};
+
+    MoveList = {};
+    PreviousGeneration = NULL_COLOUR; // Caching
+
+    return;
+}
+
 void Board::InitBoard(std::string FEN) {
     /* FEN NOTATION
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -132,7 +156,7 @@ void Board::InitBoard(std::string FEN) {
     CurrentMove = WHITE;
 
     // See if either in check
-    UpdateCheck();
+    // UpdateCheck();
 
     return;
 }
@@ -403,9 +427,9 @@ std::string Board::ConvertToFen() { // TODO: EFFICIENCY CHECK
 // }
 
 std::list<Move> Board::GenerateMoves(){
-    if (CurrentMove == PreviousGeneration){
-        return MoveList;
-    }
+    // if (CurrentMove == PreviousGeneration){
+    //     return MoveList;
+    // }
 
     MoveList = {};
 
@@ -469,6 +493,12 @@ bool Board::MovePiece(Move m){
 
     PlayedMoves.push_back(MoveCache{board[m.Start], board[m.End], m, {/* //TODO: MoveExtra Extra;*/}});
 
+    // If taking piece
+    if (board[m.End]->t != NULL_TYPE){
+        // Remove from corresponding list
+        ((board[m.End]->c == WHITE) ? WhitePieces : BlackPieces).remove(board[m.End]);
+    }
+
     // Actual board swaps
     board[m.End] = board[m.Start];
     board[m.Start] = new Piece();
@@ -519,11 +549,20 @@ void Board::UndoMove(){
     // Resort Check
     // UpdateCheck();
 
+    // If piece taken
+    if (board[Move.move.End]->t != NULL_TYPE){
+        // Restore to corresponding list
+        ((board[Move.move.End]->c == WHITE) ? WhitePieces : BlackPieces).push_back(board[Move.move.End]);
+    }
+
     // Decrease move count and restore positions
     Move.MovedPiece->moveCount--;
     Move.MovedPiece->Square = Move.move.Start;
 
     CurrentMove = (CurrentMove == WHITE) ? BLACK : WHITE;
+
+    // Make require regen move
+    PreviousGeneration = NULL_COLOUR;
 
     return;
 }
