@@ -477,7 +477,6 @@ bool Board::UpdateCheck(){
         if (m.Taking == KING){
             Check = true;
             CheckedColour = (CurrentMove == WHITE) ? BLACK : WHITE;
-            std::cout << "CHECKS" << std::endl;
             return true;
         }
     }

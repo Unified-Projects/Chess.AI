@@ -1,0 +1,30 @@
+# Find the Threading library depening on compiler (Prefer pthread)
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+find_package(Threads REQUIRED)
+if(CMAKE_USE_PTHREADS_INIT)
+    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
+endif()
+
+#
+# Multi-Threaded Invalid Or missing Fen Finder
+# 
+
+add_executable(ThreadedValidations ThreadedValidations.cpp)
+target_link_libraries(ThreadedValidations PRIVATE ${CMAKE_THREAD_LIBS_INIT} LibChess)
+add_test(ThreadFenValidations ThreadedValidations)
+
+#
+# Shannons number comparitor
+# 
+
+add_executable(StandardLayerMoveCountValidator LayerMoveValidations.cpp)
+target_link_libraries(StandardLayerMoveCountValidator PRIVATE LibChess)
+add_test(StandardLayerMoveCountValidator StandardLayerMoveCountValidator)
+
+#
+# Shannons number comparitor
+# 
+
+add_executable(NonStandardLayerMoveCountValidator CustomMoveValidations.cpp)
+target_link_libraries(NonStandardLayerMoveCountValidator PRIVATE LibChess)
+add_test(NonStandardLayerMoveCountValidator NonStandardLayerMoveCountValidator)

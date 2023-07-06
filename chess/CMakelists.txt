@@ -1,0 +1,14 @@
+#
+# Chess game component
+#
+
+# Find all compilable files
+file(GLOB_RECURSE SRC
+${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+)
+
+# Define as library and not executable so that it can be used in other programs
+add_library(LibChess STATIC ${SRC})
+
+# Include directories and make them publicly accessable
+target_include_directories(LibChess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)

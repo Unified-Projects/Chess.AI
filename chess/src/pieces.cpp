@@ -4,7 +4,7 @@
 // Piece Management Constants
     const int DirectionalOffsets[] = {
         8, -8,
-        1, -1,
+        -1, 1,
         7, -7,
         9, -9,
 
@@ -30,13 +30,13 @@ void PrecomputeEdges(){
         return;
     }
 
-    for(int x = 0; x <= 7; x++){
-        for(int y = 0; y <= 7; y++){
+    for(int x = 0; x < 8; x++){
+        for(int y = 0; y < 8; y++){
             // Generate directional data
             int North = 7 - y;
             int South = y;
-            int East = 7 - x;
             int West = x;
+            int East = 7 - x;
 
             // Calculate index
             int Index = (y * 8) + x;
@@ -55,10 +55,6 @@ void PrecomputeEdges(){
                 // Now ensure gradient is constant
                 if(yChange/xChange != 2/1 && yChange/xChange != 1/2){
                     knightStuff[i-8] = 0;
-                    if(x == 6 && y == 0){
-                        std::cout << (int)(Index + DirectionalOffsets[i] / 8) << " " << (int)(Index + DirectionalOffsets[i] % 8) << std::endl;
-                        std::cout << yChange << " " << xChange << std::endl;
-                    }
                     continue;
                 }
 
@@ -66,7 +62,7 @@ void PrecomputeEdges(){
             }
 
             // Insert data
-            int ComputedData[24] = { // TODO: UH OH WHY THESE ORDER WRONG, BIG OOPSIE
+            int ComputedData[24] = {
                 North,
                 South,
                 West,
@@ -75,8 +71,8 @@ void PrecomputeEdges(){
                 // Extras
                 std::min(North, West),
                 std::min(South, East),
-                std::max(North, East),
-                std::max(South, West),
+                std::min(North, East),
+                std::min(South, West),
 
                 // Knights
                 knightStuff[0],
@@ -108,7 +104,7 @@ void PrecomputeEdges(){
     return;
 }
 
-// Used for queens, bishops, rooks // TODO: CHECKEEEEE NOW PLZ
+// Used for queens, bishops, rooks
 void GenerateSlidingMoves(int Square, Piece* piece, Board* b){
     // Compatible directions
     int StartIndex = (piece->MovingCapabilites & SLIDE_DIAGONAL) ? 4 : 0;

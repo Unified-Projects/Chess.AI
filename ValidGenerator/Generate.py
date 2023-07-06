@@ -32,7 +32,7 @@ half_moves = 3  # Number of half-moves
 fens = generate_fens_after_half_moves(half_moves)
 
 # Save the dictionary as a JSON file with nicely formatted structure
-with open('fens.txt', 'w', encoding='utf-8') as f:
+with open('Valid.txt', 'w', encoding='utf-8') as f:
     f.write(",".join(set(fens)))
 
-print(f"Generated FENs saved in fens.json")
+print(f"Generated FENs saved in Valid.txt")

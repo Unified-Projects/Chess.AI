@@ -22,8 +22,8 @@ class Piece;
         // Extras
         int MinNW = 0;
         int MinSE = 0;
-        int MaxNE = 0;
-        int MaxSW = 0;
+        int MinNE = 0;
+        int MinSW = 0;
 
         // Knight movments
         int LMovementCapable[8];
@@ -49,9 +49,9 @@ class Piece;
             case 5:
                 return MinSE;
             case 6:
-                return MaxNE;
+                return MinNE;
             case 7:
-                return MaxSW;
+                return MinSW;
 
             // Knight checks
             case 8 ... 15:
@@ -187,7 +187,7 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
     struct Queen : protected Piece{
         friend class Board;
     public:
-        Queen(Colour c) : Piece(c, SLIDE + SLIDE_HORIZONTAL + SLIDE_DIAGONAL) {t=QUEEN;return;}
+        Queen(Colour c) : Piece(c, SLIDE) {t=QUEEN;return;}
 
         Piece* Clone() {return new Queen(*this);}
     };
