@@ -110,8 +110,8 @@ bool ValidateFen(Board* b){
             Validated++;
 
             // DEBUG PURPOSES ONLY
-            if(!(Validated % 100)){
-                std::cout << "Validated: " << Validated << std::endl;
+            if(!(Validated % 1000)){
+                std::cout << FMT("Validated: ", NORMAL) << Validated << std::endl;
             }
 
             // Cache it
@@ -128,8 +128,8 @@ bool ValidateFen(Board* b){
     Invalid++;
 
     // DEBUG PURPOSES ONLY
-    if(!(Validated % 100)){
-        std::cout << "Validated: " << Validated << std::endl;
+    if(!(Validated % 1000)){
+        std::cout << FMT("Validated: ", NORMAL) << Validated << std::endl;
     }
 
     return false;
@@ -187,7 +187,7 @@ int ThreadedValidations(int threadcount, int layerNumber){
 
         ActiveThreads.push_back(t);
 
-        std::cout << FMT("Info: ", WARN) << FMT("Thread " + std::to_string(i) + "Started", NORMAL) << std::endl;
+        std::cout << FMT("Info: ", WARN) << FMT("Thread " + std::to_string(i) + " Started", NORMAL) << std::endl;
     }
 
     // Finish threads

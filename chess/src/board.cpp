@@ -460,7 +460,7 @@ std::list<Move> Board::GenerateMoves(){
     }
 
     // Store for if we want to reload it :)
-    PreviousGeneration = CurrentMove;
+    // PreviousGeneration = CurrentMove;
 
     return MoveList;
 }
@@ -468,6 +468,9 @@ std::list<Move> Board::GenerateMoves(){
 bool Board::UpdateCheck(){
     // Generate next moves
     std::list<Move> Moves = GenerateMoves();
+
+    // Reset check moves
+    Checkmoves = {};
 
     // Reset check
     Check = false;
@@ -477,20 +480,40 @@ bool Board::UpdateCheck(){
         if (m.Taking == KING){
             Check = true;
             CheckedColour = (CurrentMove == WHITE) ? BLACK : WHITE;
-            return true;
+
+            // Add to checkmate paths
+            Checkmoves.push_back(m);
+
+            // return true; Dissabled as we want all routes of check
         }
     }
 
     return false; // Not in check
 }
 
-bool Board::MovePiece(Move m){
+bool Board::UpdateMate(){
+    // Generate next moves
+    std::list<Move> Moves = GenerateMoves();
+
+    for (Move m : Moves){
+        bool Valid = MovePiece(m);
+
+        if(Valid){ // All non-check moves are considered valid
+            UndoMove();
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool Board::MovePiece(Move m){ // REQUIRES A VALID MOVE TO BE PASSED IN
     // Can't take king
     if(m.Taking == KING){
         return false;
     }
 
-    PlayedMoves.push_back(MoveCache{board[m.Start], board[m.End], m, {/* //TODO: MoveExtra Extra;*/}});
+    PlayedMoves.push_back(MoveCache{board[m.Start], board[m.End], m, m.Extra});
 
     // If taking piece
     if (board[m.End]->t != NULL_TYPE){
@@ -506,6 +529,14 @@ bool Board::MovePiece(Move m){
     board[m.End]->moveCount++;
     board[m.End]->Square = m.End;
 
+    // Move Extras
+    if(m.Extra.type){
+        if(m.Extra.type == SPECIAL_EN_PASSENT){
+            board[m.Extra.square] = m.Extra.To;
+            ((board[m.Extra.square]->c == WHITE) ? WhitePieces : BlackPieces).remove(m.Extra.From);
+        }
+    }
+
     // Change next to move
     CurrentMove = (CurrentMove == WHITE) ? BLACK : WHITE;
 
@@ -515,7 +546,7 @@ bool Board::MovePiece(Move m){
     // TODO: Check is only considered when a move is attempted, until then the check is unknown!
 
     // See if check has changed
-    if(Check && CheckedColour == ((CurrentMove == WHITE) ? BLACK : WHITE)){ // TODO: Could be mate
+    if(Check && CheckedColour == ((CurrentMove == WHITE) ? BLACK : WHITE)){
         // Invalid as king in check
         UndoMove();
 
@@ -545,8 +576,16 @@ void Board::UndoMove(){
     //     }
     // }
 
+    // Move Extras
+    if(Move.Extra.type){
+        if(Move.Extra.type == SPECIAL_EN_PASSENT){
+            board[Move.Extra.square] = Move.Extra.From;
+            ((board[Move.Extra.square]->c == WHITE) ? WhitePieces : BlackPieces).push_back(Move.Extra.From);
+        }
+    }
+
     // Resort Check
-    // UpdateCheck();
+    UpdateCheck();
 
     // If piece taken
     if (board[Move.move.End]->t != NULL_TYPE){

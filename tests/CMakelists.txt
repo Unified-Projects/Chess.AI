@@ -10,6 +10,7 @@ endif()
 # 
 
 add_executable(ThreadedValidations ThreadedValidations.cpp)
+add_dependencies(ThreadedValidations LibChess)
 target_link_libraries(ThreadedValidations PRIVATE ${CMAKE_THREAD_LIBS_INIT} LibChess)
 add_test(ThreadFenValidations ThreadedValidations)
 
@@ -18,6 +19,7 @@ add_test(ThreadFenValidations ThreadedValidations)
 # 
 
 add_executable(StandardLayerMoveCountValidator LayerMoveValidations.cpp)
+add_dependencies(StandardLayerMoveCountValidator LibChess)
 target_link_libraries(StandardLayerMoveCountValidator PRIVATE LibChess)
 add_test(StandardLayerMoveCountValidator StandardLayerMoveCountValidator)
 
@@ -26,5 +28,14 @@ add_test(StandardLayerMoveCountValidator StandardLayerMoveCountValidator)
 # 
 
 add_executable(NonStandardLayerMoveCountValidator CustomMoveValidations.cpp)
+add_dependencies(NonStandardLayerMoveCountValidator LibChess)
 target_link_libraries(NonStandardLayerMoveCountValidator PRIVATE LibChess)
 add_test(NonStandardLayerMoveCountValidator NonStandardLayerMoveCountValidator)
+
+#
+# GUI App
+#
+add_executable(GUIChess ChessGUI.cpp glad.c)
+target_include_directories(GUIChess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+add_dependencies(GUIChess LibChess OpenGL SOIL2 GLM)
+target_link_libraries(GUIChess PRIVATE LibChess glfw3 soil2)

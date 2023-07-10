@@ -179,7 +179,15 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
             // Check for en-passent
             if(targetPiece->GetT() == NULL_TYPE){
                 // En-passent check
-                // TODO: En-Passant Logic
+                if(Square >= ((piece->GetC() == WHITE) ? 32 : 24) && Square <= ((piece->GetC() == WHITE) ? 39 : 31)){ // En-passent possible
+                    int EnPassentSquare = Square + ((piece->GetC() == WHITE) ? -8 : 8);
+                    if(b->board[EnPassentSquare]->moveCount == 1 && b->board[EnPassentSquare]->GetT() == PAWN){ // Valid?
+                        // Ensure was the last performed move
+                        if(b->PlayedMoves.back().MovedPiece == b->board[EnPassentSquare]){
+                            b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), {SPECIAL_EN_PASSENT, EnPassentSquare, b->board[EnPassentSquare], new Piece()}});
+                        }
+                    }
+                }
                 continue;
             }
             else if(targetPiece->GetC() != piece->GetC()) {

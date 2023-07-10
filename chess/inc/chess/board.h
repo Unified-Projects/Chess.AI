@@ -14,13 +14,18 @@
 //
 
 // Extras for special moves
+enum SpecialMoveType{
+    SPECIAL_EN_PASSENT = 1,
+    SPECIAL_CASTLING = 2,
+    SPECIAL_PROMOTION = 3
+};
 struct MoveExtra{ // TODO: Maybe integrate to make a better Promotion system or try to remove
     int type = 0;
+    int square;
 
-    int x = 0;
-    int y = 0;
-
-    Piece* change = nullptr;
+    // For caching
+    Piece* From;
+    Piece* To;
 };
 
 // Moves
@@ -29,6 +34,8 @@ struct Move{
     int End;
 
     Type Taking; // For check and mate
+
+    MoveExtra Extra{};
 };
 
 // For caching previous moves
@@ -122,6 +129,8 @@ public: // Gameplay
 
     // Game conditions
     bool UpdateCheck();
+    bool UpdateMate();
+    std::list<Move> Checkmoves;
 
 public: // Other
     std::string ConvertToFen();

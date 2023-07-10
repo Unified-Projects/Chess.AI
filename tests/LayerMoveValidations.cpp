@@ -26,7 +26,13 @@ void TestPossibleMoves(Board* board, int layer, int& moves, int& checkmates, uin
 
         bool ValidMove = board->MovePiece(m);
 
-        TestPossibleMoves(board, layer-1, moves, checkmates, iterations);
+        
+        if(ValidMove && board->UpdateMate()){
+            // Checkmate
+            checkmates++;
+        }
+        else
+            TestPossibleMoves(board, layer-1, moves, checkmates, iterations);
 
         // Increments
         iterations++;
