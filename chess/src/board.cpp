@@ -109,6 +109,7 @@ void Board::InitBoard(std::string FEN) {
         if (*FEN_STR >= '1' && *FEN_STR <= '8') {
             for (int i = 0; i < *FEN_STR - 48; i++) {
                 board[(LocalRank * 8) + LocalFile + i] = new Piece();
+                board[(LocalRank * 8) + LocalFile + i]->Square = (LocalRank * 8) + LocalFile + i;
             }
 
             LocalFile += *FEN_STR - 48;
