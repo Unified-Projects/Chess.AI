@@ -3,6 +3,8 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <glm/glm.hpp>
+#include <GLM/gtc/type_ptr.hpp>
 #include <SOIL2/SOIL2.h>
 
 #include <chess/board.h>
@@ -26,12 +28,13 @@ const char* VertexShader = "#version 460 core\n"
     "out vec3 vs_position;\n"
     "out vec4 vs_color;\n"
     "out vec2 vs_texcoord;\n"
+    "uniform vec3 Offset;\n"
     "void main()\n"
     "{\n"
     "   vs_position = vertex_position;\n"
 	"   vs_color = vertex_color;\n"
 	"   vs_texcoord = vec2(vertex_texcoord.x, vertex_texcoord.y * -1.f);\n"
-    "   gl_Position = vec4(vertex_position, 1.0);\n"
+    "   gl_Position = vec4(vertex_position + Offset, 1.0);\n"
     "}\0";
 
 const char* FragmentShader = "#version 460 core\n"
@@ -41,19 +44,33 @@ const char* FragmentShader = "#version 460 core\n"
     "out vec4 FragColor;\n"
     "uniform sampler2D Texture;\n"
     "uniform int UsingTexture;\n"
+    "uniform vec4 ColourOffset;\n"
     "void main()\n"
     "{\n"
     "   if(UsingTexture == 1){\n"
+    "       if (texture(Texture, vs_texcoord).xyzw == vec4(0.f)){\n"
+    "           discard;\n"
+    "       }\n"
     "       FragColor  = texture(Texture, vs_texcoord);\n"
     "   }\n"
     "   else{\n"
-    "       FragColor  = vs_color;\n"
+    "       if (vs_color.xyzw == vec4(0.f)){\n"
+    "           discard;\n"
+    "       }\n"
+    "       FragColor = vs_color + ColourOffset;\n"
     "   }\n"
     "}\0";
 
 unsigned int vertexShader;
 unsigned int fragmentShader;
 unsigned int shaderProgram;
+
+bool DragStarted = false;
+double CursorX = 0;
+double CursorY = 0;
+double PrevCursorX = 0;
+double PrevCursorY = 0;
+int CurrentHoveredSquare = 0;
 
 struct Vertex
 {
@@ -70,8 +87,9 @@ struct PieceTexture{
     int width;
     int height;
     unsigned int TextureID;
+    unsigned int UnitID;
 
-    PieceTexture(const char* filepath){
+    PieceTexture(const char* filepath, unsigned int unitID) : UnitID(unitID){
         this->FilePath = filepath;
 
         // Read data
@@ -79,6 +97,7 @@ struct PieceTexture{
 
         // Load the image to GLFW
         glGenTextures(1, &TextureID);
+        glBindTexture(GL_TEXTURE_2D, TextureID);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -91,6 +110,7 @@ struct PieceTexture{
 
         glGenerateMipmap(GL_TEXTURE_2D);
 
+        glActiveTexture(0);
         glBindTexture(GL_TEXTURE_2D, 0);
 
         // Free Data
@@ -98,10 +118,12 @@ struct PieceTexture{
     }
 
     void Bind(){
+        glActiveTexture(GL_TEXTURE0 + this->UnitID);
         glBindTexture(GL_TEXTURE_2D, this->TextureID);
-        glActiveTexture(GL_TEXTURE0 + this->TextureID);
 
+        glUseProgram(shaderProgram);
         glUniform1i(glGetUniformLocation(shaderProgram, "Texture"), TextureID);
+        glUseProgram(0);
     }
 };
 
@@ -113,6 +135,7 @@ struct Square{
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     glm::vec4 Colour = glm::vec4(235.f/255.f, 210.f/255.f, 184.f/255.f, 1.f);
+    glm::vec4 ColourOffset = glm::vec4(0.f);
 
     void GenerateMesh(){
         //Test if already generated and if so clear all the buffers
@@ -179,10 +202,14 @@ struct Square{
     }
 
     void Render(){
-        glUseProgram(shaderProgram);
-
         // Tell the shader we are not using a texture
+        glUseProgram(shaderProgram);
         glUniform1i(glGetUniformLocation(shaderProgram, "UsingTexture"), 0);
+        glUniform3fv(glGetUniformLocation(shaderProgram, "Offset"), 1, glm::value_ptr(glm::vec3(0.f)));
+        glUniform4fv(glGetUniformLocation(shaderProgram, "ColourOffset"), 1, glm::value_ptr(ColourOffset));
+        glUseProgram(0);
+
+        glUseProgram(shaderProgram);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
@@ -198,6 +225,8 @@ struct PieceSquare{
     std::vector<unsigned int> indices;
 
     PieceTexture* tex;
+
+    glm::vec3 Offsets;
 
     void GenerateMesh(){
         //Test if already generated and if so clear all the buffers
@@ -246,11 +275,13 @@ struct PieceSquare{
         VAO = 0;
         EBO = 0;
 
+        Offsets = glm::vec3(0.f);
+
         vertices = {
-            {glm::vec3(XZero + (x * Dimention * 2) + -Dimention, YZero + (y * Dimention * 2) + -Dimention, 0.0f), glm::vec4(0.f), glm::vec2(0, 0)},
-            {glm::vec3(XZero + (x * Dimention * 2) + Dimention, YZero + (y * Dimention * 2) + -Dimention, 0.0f), glm::vec4(0.f), glm::vec2(1, 0)},
-            {glm::vec3(XZero + (x * Dimention * 2) + Dimention, YZero + (y * Dimention * 2) + Dimention, 0.0f), glm::vec4(0.f), glm::vec2(1, 1)},
-            {glm::vec3(XZero + (x * Dimention * 2) + -Dimention, YZero + (y * Dimention * 2) + Dimention, 0.0f) , glm::vec4(0.f), glm::vec2(0, 1)}
+            {glm::vec3(XZero + (x * Dimention * 2) + -Dimention, YZero + (y * Dimention * 2) + -Dimention, -.50f), glm::vec4(0.f), glm::vec2(0, 0)},
+            {glm::vec3(XZero + (x * Dimention * 2) + Dimention, YZero + (y * Dimention * 2) + -Dimention, -.50f), glm::vec4(0.f), glm::vec2(1, 0)},
+            {glm::vec3(XZero + (x * Dimention * 2) + Dimention, YZero + (y * Dimention * 2) + Dimention, -.50f), glm::vec4(0.f), glm::vec2(1, 1)},
+            {glm::vec3(XZero + (x * Dimention * 2) + -Dimention, YZero + (y * Dimention * 2) + Dimention, -.50f) , glm::vec4(0.f), glm::vec2(0, 1)}
         };
 
         indices = {
@@ -264,8 +295,6 @@ struct PieceSquare{
     void Render(){
         bool noBind = false;
 
-        glUseProgram(shaderProgram);
-
         // Activate the texture
         if(tex)
             tex->Bind();
@@ -274,11 +303,21 @@ struct PieceSquare{
 
         if(!noBind){
             // Tell the shader we are using a texture
+            glUseProgram(shaderProgram);
             glUniform1i(glGetUniformLocation(shaderProgram, "UsingTexture"), 1);
+            glUniform3fv(glGetUniformLocation(shaderProgram, "Offset"), 1, glm::value_ptr(Offsets));
+            glUniform4fv(glGetUniformLocation(shaderProgram, "ColourOffset"), 1, glm::value_ptr(glm::vec4(1.f)));
+            glUseProgram(0);
         }
         else
             // Tell the shader we are not using a texture
+            glUseProgram(shaderProgram);
             glUniform1i(glGetUniformLocation(shaderProgram, "UsingTexture"), 0);
+            glUniform3fv(glGetUniformLocation(shaderProgram, "Offset"), 1, glm::value_ptr(Offsets));
+            glUniform4fv(glGetUniformLocation(shaderProgram, "ColourOffset"), 1, glm::value_ptr(glm::vec4(1.f)));
+            glUseProgram(0);
+
+        glUseProgram(shaderProgram);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
@@ -291,20 +330,20 @@ struct PieceTextureMapper{
     PieceTextureMapper(){
         // TODO: ISSUE :( not independent and inconsistent with other systems
         // Load White Textures
-        Pieces.push_back(PieceTexture("../../icons/wb.png"));
-        Pieces.push_back(PieceTexture("../../icons/wk.png"));
-        Pieces.push_back(PieceTexture("../../icons/wn.png"));
-        Pieces.push_back(PieceTexture("../../icons/wp.png"));
-        Pieces.push_back(PieceTexture("../../icons/wq.png"));
-        Pieces.push_back(PieceTexture("../../icons/wr.png"));
+        Pieces.push_back(PieceTexture("../../icons/wb.png", 1));
+        Pieces.push_back(PieceTexture("../../icons/wk.png", 2));
+        Pieces.push_back(PieceTexture("../../icons/wn.png", 3));
+        Pieces.push_back(PieceTexture("../../icons/wp.png", 4));
+        Pieces.push_back(PieceTexture("../../icons/wq.png", 5));
+        Pieces.push_back(PieceTexture("../../icons/wr.png", 6));
 
         // Load Black Textures
-        Pieces.push_back(PieceTexture("../../icons/bb.png"));
-        Pieces.push_back(PieceTexture("../../icons/bk.png"));
-        Pieces.push_back(PieceTexture("../../icons/bn.png"));
-        Pieces.push_back(PieceTexture("../../icons/bp.png"));
-        Pieces.push_back(PieceTexture("../../icons/bq.png"));
-        Pieces.push_back(PieceTexture("../../icons/br.png"));
+        Pieces.push_back(PieceTexture("../../icons/bb.png", 7));
+        Pieces.push_back(PieceTexture("../../icons/bk.png", 8));
+        Pieces.push_back(PieceTexture("../../icons/bn.png", 9));
+        Pieces.push_back(PieceTexture("../../icons/bp.png", 10));
+        Pieces.push_back(PieceTexture("../../icons/bq.png", 11));
+        Pieces.push_back(PieceTexture("../../icons/br.png", 12));
     }
 
     PieceTexture* GetTex(Type pT, Colour pC){
@@ -344,19 +383,16 @@ struct BoardGUI{
 
     PieceTextureMapper Mapper;
 
-    BoardGUI(){
+    PieceSquare* Delay = nullptr;
+
+    BoardGUI() : Mapper(){
         // Load all the textures manually
 
         for(int y = 0; y < 8; y++){
             for(int x = 0; x < 8; x++){
                 BoardSquares.push_back(Square(x, y));
-                BoardPieces.push_back(PieceSquare(x, y, nullptr));
+                BoardPieces.push_back(PieceSquare(x, y, Mapper.GetTex(board.board[(y*8)+x]->GetT(), board.board[(y*8)+x]->GetC())));
             }
-        }
-
-        // Load icons
-        for(Piece* p : board.board){
-            BoardPieces.at(p->Square).tex = Mapper.GetTex(p->GetT(), p->GetC());
         }
     }
 
@@ -365,14 +401,21 @@ struct BoardGUI{
             s.Render();
         }
         for(PieceSquare p : BoardPieces){
+            if(&p == Delay){
+                break;
+            }
             p.Render();
         }
+        if(Delay)
+            Delay->Render();
     }
 
     void Update(){
         // Update icons
-        for(Piece* p : board.board){
-            // BoardPieces.at(p->Square).tex = Mapper.GetTex(p->GetT(), p->GetC());
+        for(int y = 0; y < 8; y++){
+            for(int x = 0; x < 8; x++){
+                BoardPieces.at((y * 8) + x).tex = Mapper.GetTex(board.board[(y*8)+x]->GetT(), board.board[(y*8)+x]->GetC());
+            }
         }
     }
 };
@@ -380,6 +423,8 @@ struct BoardGUI{
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); 
 void processInput(GLFWwindow *window);
+void mouse_callback(GLFWwindow* window, int button, int action, int mods);
+void mouse_cursor_callback( GLFWwindow * window, double xpos, double ypos);
 
 // Enable
 void OpenGLEnable(GLenum ToEnable) {
@@ -440,6 +485,8 @@ unsigned int createShaderProgram(unsigned int vertexShader, unsigned int fragmen
     return program;
 }
 
+BoardGUI* BGui;
+
 int main()
 {
     // GLFW Main intialiser
@@ -469,12 +516,15 @@ int main()
     // Window configures
     glViewport(0, 0, SIZE, SIZE);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 
+    glfwSetCursorPosCallback(window, mouse_cursor_callback);
+    glfwSetMouseButtonCallback(window, mouse_callback);
 
     //Configure
-    // OpenGLRendering(GL_BACK, GL_CCW);
+    OpenGLRendering(GL_BACK, GL_CCW);
     OpenGLEnable(GL_BLEND);
     OpenGLBlend(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // OpenGLPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    OpenGLPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    OpenGLEnable(GL_DEPTH_TEST);
 
     // Shaders
     vertexShader = compileShader(GL_VERTEX_SHADER, VertexShader);
@@ -488,7 +538,9 @@ int main()
 
     // Generate board
     board.InitBoard();
-    BoardGUI BGui;
+    BGui = new BoardGUI();
+    // Standard for move validation and generation
+    PrecomputeEdges();
 
     // GraphicBoard.push_back(Square(0, 0));
 
@@ -499,9 +551,11 @@ int main()
 
         glClearColor(0.f, 0.f, 0.f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
         // Render board
-        BGui.Render();
+        BGui->Update();
+        BGui->Render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -521,4 +575,133 @@ void processInput(GLFWwindow *window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+}
+
+std::vector<Square*> HighlightedSquares = {};
+
+void mouse_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE && DragStarted) {
+        // Attempt to make the move
+        int NewSquare = ((ceil((SIZE - CursorY) / (SIZE / 8.f)) - 1) * 8) + (ceil(CursorX / (SIZE / 8.f)) - 1);
+
+        // If in the move list
+        std::list<Move> MoveList = board.GenerateMoves();
+
+        bool Moves;
+
+        for(Move m : MoveList){
+            if (m.Start == CurrentHoveredSquare && m.End == NewSquare){
+                // Make the move
+                Moves = board.MovePiece(m);
+                break;
+            }
+        }
+
+        DragStarted = false;
+        BGui->BoardPieces.at(CurrentHoveredSquare).Offsets = glm::vec3(0.f);
+
+        // Remove highlights
+        for(Square* s : HighlightedSquares){
+            s->ColourOffset = glm::vec4(0.f);
+        }
+
+        HighlightedSquares = {};
+    }
+    else if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !DragStarted){
+        DragStarted = true;
+
+        // Save Coord
+        PrevCursorX = CursorX;
+        PrevCursorY = CursorY;
+
+        // Find square
+        CurrentHoveredSquare = ((ceil((SIZE - CursorY) / (SIZE / 8.f)) - 1) * 8) + (ceil(CursorX / (SIZE / 8.f)) - 1);
+        BGui->Delay = &BGui->BoardPieces.at(CurrentHoveredSquare);
+
+        HighlightedSquares = {};
+
+        // Find squares that this piece can move to and highlight them red
+        std::list<Move> MoveList = board.GenerateMoves();
+
+        // Highlight Selected Square
+        HighlightedSquares.push_back(&BGui->BoardSquares[CurrentHoveredSquare]);
+        BGui->BoardSquares[CurrentHoveredSquare].ColourOffset = glm::vec4(.25f, .25f, .25f, .25f);
+
+        for(Move m : MoveList){
+            if (m.Start == CurrentHoveredSquare){
+                // Highlight end
+                HighlightedSquares.push_back(&BGui->BoardSquares[m.End]);
+
+                if(BGui->BoardSquares[m.End].Colour == glm::vec4(161.f/255.f, 111.f/255.f, 90.f/255.f, 1.f))
+                    BGui->BoardSquares[m.End].ColourOffset = glm::vec4(0.25f, 0.f, 0.f, 0.f);
+                else
+                    BGui->BoardSquares[m.End].ColourOffset = glm::vec4(0.25f, -0.25f, -.25f, 0.f);
+            }
+        }
+    }
+}
+
+void mouse_cursor_callback( GLFWwindow * window, double xpos, double ypos)  
+{
+    // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE && DragStarted) 
+    // {
+    //     // Attempt to make the move
+    //     // int NewSquare = CurrentHoveredSquare = ((ceil((SIZE - ypos) / (SIZE / 8.f)) - 1) * 8) + (ceil(xpos / (SIZE / 8.f)) - 1);
+
+    //     // If in the move list
+    //     // std::list<Move> MoveList = board.GenerateMoves();
+
+    //     // bool Moves;
+
+    //     // for(Move m : MoveList){
+    //     //     if (m.Start == CurrentHoveredSquare && m.End == NewSquare){
+    //     //         // Make the move
+    //     //         Moves = board.MovePiece(m);
+    //     //         break;
+    //     //     }
+    //     // }
+
+    //     DragStarted = false;
+    //     BGui->BoardPieces.at(CurrentHoveredSquare).Offsets = glm::vec3(0.f);
+
+    //     // Now swap board pieces
+    //     // If Moves
+    //     // if(Moves){
+    //     //     BGui->BoardPieces.data()[NewSquare].tex = BGui->BoardPieces.data()[CurrentHoveredSquare].tex;
+    //     //     BGui->BoardPieces.data()[CurrentHoveredSquare].tex = nullptr;
+    //     // }
+    // }
+
+    // if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !DragStarted) 
+    // {
+    //     DragStarted = true;
+
+    //     PrevCursorX = xpos;
+    //     PrevCursorY = ypos;
+
+    //     // Save new positions
+    //     CursorX = xpos;
+    //     CursorY = ypos;
+
+    //     // Find square
+    //     CurrentHoveredSquare = ((ceil((SIZE - ypos) / (SIZE / 8.f)) - 1) * 8) + (ceil(xpos / (SIZE / 8.f)) - 1);
+    //     BGui->Delay = &BGui->BoardPieces.at(CurrentHoveredSquare);
+    // }
+
+    // TODO: Drag code here
+    if (DragStarted){
+        // Diffs
+        double DiffX = xpos - CursorX;
+        double DiffY = ypos - CursorY;
+
+        double x = PrevCursorX;
+        double y = PrevCursorY;
+
+        BGui->BoardPieces.at(CurrentHoveredSquare).Offsets = glm::vec3((xpos - x) / (SIZE / 2), (y - ypos) / (SIZE / 2), -.5f);
+    }
+
+    // Save new positions
+    CursorX = xpos;
+    CursorY = ypos;
 }
