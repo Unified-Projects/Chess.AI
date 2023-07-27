@@ -1,0 +1,20 @@
+#
+# Chess game component
+#
+
+# Find the OpenGL library depening on compiler
+find_package(OpenGL REQUIRED)
+
+# Find all compilable files
+file(GLOB_RECURSE SRC
+${CMAKE_CURRENT_SOURCE_DIR}/src/*.c*
+)
+
+# Define as library and not executable so that it can be used in other programs
+add_library(LibChessGUI STATIC ${SRC})
+
+# Libraries requried by this library
+target_link_libraries(LibChessGUI PRIVATE LibChess soil2 glfw3 ${OPENGL_LIBRARIES})
+
+# Include directories and make them publicly accessable
+target_include_directories(LibChessGUI PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)

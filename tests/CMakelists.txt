@@ -1,0 +1,44 @@
+# Find the Threading library depening on compiler (Prefer pthread)
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+find_package(Threads REQUIRED)
+if(CMAKE_USE_PTHREADS_INIT)
+    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
+endif()
+
+# Find the OpenGL library depening on compiler
+find_package(OpenGL REQUIRED)
+
+#
+# Multi-Threaded Invalid Or missing Fen Finder
+# 
+
+add_executable(ThreadedValidations ThreadedValidations.cpp)
+add_dependencies(ThreadedValidations LibChess)
+target_link_libraries(ThreadedValidations PRIVATE ${CMAKE_THREAD_LIBS_INIT} LibChess)
+add_test(ThreadFenValidations ThreadedValidations)
+
+#
+# Shannons number comparitor
+# 
+
+add_executable(StandardLayerMoveCountValidator LayerMoveValidations.cpp)
+add_dependencies(StandardLayerMoveCountValidator LibChess)
+target_link_libraries(StandardLayerMoveCountValidator PRIVATE LibChess)
+add_test(StandardLayerMoveCountValidator StandardLayerMoveCountValidator)
+
+#
+# Shannons number comparitor
+# 
+
+add_executable(NonStandardLayerMoveCountValidator CustomMoveValidations.cpp)
+add_dependencies(NonStandardLayerMoveCountValidator LibChess)
+target_link_libraries(NonStandardLayerMoveCountValidator PRIVATE LibChess)
+add_test(NonStandardLayerMoveCountValidator NonStandardLayerMoveCountValidator)
+
+#
+# GUI App
+#
+add_executable(GUIChess ChessGUI.cpp)
+target_include_directories(GUIChess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+add_dependencies(GUIChess LibChess LibChessGUI SOIL2 GLM)
+target_link_libraries(GUIChess PRIVATE LibChessGUI LibChess soil2 glfw3 ${OPENGL_LIBRARIES})

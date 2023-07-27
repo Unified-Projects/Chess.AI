@@ -1,15 +1,58 @@
+# Cmake version
 cmake_minimum_required(VERSION 3.20)
 
-project(chess)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-
+# Global Compiler Flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++20")
 set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
+# Allow external libraries
+include(ExternalProject)
+set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
+include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
+link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 
-file(GLOB_RECURSE SRC
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+# Open-GL setups
+ExternalProject_Add(OpenGL # Using 4.6 So no macOS support RN (They dont really like OpenGl anyways)
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
+    UPDATE_COMMAND  ""
 )
 
-add_executable(${PROJECT_NAME} ${SRC})
+# SOIL2 setups
+ExternalProject_Add(SOIL2
+    GIT_REPOSITORY https://github.com/SpartanJ/SOIL2.git
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
+    UPDATE_COMMAND  ""
+)
+
+# GLM OpenGL Mathematics
+ExternalProject_Add(GLM
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
+    UPDATE_COMMAND  ""
+)
+
+# FreeType2 font library
+ExternalProject_Add(FreeType2
+    GIT_REPOSITORY https://github.com/freetype/freetype
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
+    UPDATE_COMMAND  ""
+)
+
+# Main project definition
+project(chess-game)
+
+# Allow usage of CTest to test components
+enable_testing()
+
+# Main chess library
+add_subdirectory(chess)
+
+# Main graphics library
+add_subdirectory(libChessGUI)
+
+# All runtime tests
+add_subdirectory(tests)
