@@ -45,5 +45,8 @@ enable_testing()
 # Main chess library
 add_subdirectory(chess)
 
+# Main graphics library
+add_subdirectory(libChessGUI)
+
 # All runtime tests
 add_subdirectory(tests)

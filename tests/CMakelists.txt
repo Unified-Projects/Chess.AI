@@ -5,7 +5,7 @@ if(CMAKE_USE_PTHREADS_INIT)
     set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
 endif()
 
-# Find the OpenGL library depening on compiler (Prefer pthread)
+# Find the OpenGL library depening on compiler
 find_package(OpenGL REQUIRED)
 
 #
@@ -38,7 +38,7 @@ add_test(NonStandardLayerMoveCountValidator NonStandardLayerMoveCountValidator)
 #
 # GUI App
 #
-add_executable(GUIChess ChessGUI.cpp glad.c)
+add_executable(GUIChess ChessGUI.cpp)
 target_include_directories(GUIChess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-add_dependencies(GUIChess LibChess SOIL2 GLM)
-target_link_libraries(GUIChess PRIVATE LibChess soil2 glfw3 ${OPENGL_LIBRARIES})
+add_dependencies(GUIChess LibChess LibChessGUI SOIL2 GLM)
+target_link_libraries(GUIChess PRIVATE LibChessGUI LibChess soil2 glfw3 ${OPENGL_LIBRARIES})
