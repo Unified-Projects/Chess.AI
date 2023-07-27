@@ -1,6 +1,7 @@
 #pragma once
 #include <libChessGUI/configure.h>
 #include <vector>
+#include <libChessGUI/info.h>
 
 class Board;
 
@@ -11,6 +12,7 @@ namespace GUI{
     class BoardSquare;
     class PieceSquare;
     class PieceTextureMapper;
+    class InformationScreen;
 
     // Intitialiser
     GLFWwindow* IntitaliseGraphics();
@@ -93,6 +95,8 @@ namespace GUI{
         bool InfoActive = false;        
         bool BlockInfoPress = false;     
         int InfoWinSize = 3;   
+
+        InformationScreen Info;
     };
 
     // Global Game Constant

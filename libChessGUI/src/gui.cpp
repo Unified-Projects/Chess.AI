@@ -178,6 +178,11 @@ void GameWindow::Update(){
     }
 
     keyboard_processing();
+
+    // Widgets
+    if(InfoActive){
+        Info.Update();
+    }
 }
 
 void GameWindow::Render(){
@@ -265,6 +270,17 @@ void GameWindow::Render(){
         glBlitFramebuffer(0, 0, BoardX, BoardY, 0, 0, DispX - InfoX, DispY, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    { // Restore Board render configs
+        OpenGLEnable(GL_DEPTH_TEST);
+        OpenGLEnable(GL_CULL_FACE);
+    }
+
+    // Post board stuff
+    // Widgets
+    if(InfoActive){
+        Info.Render();
     }
 
     // Swap display buffers (Vsync)

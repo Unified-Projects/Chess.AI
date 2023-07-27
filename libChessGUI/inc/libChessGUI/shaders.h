@@ -18,4 +18,11 @@ namespace Shaders
     inline void SendInt(int& ref, const char* location) {glUniform1i(glGetUniformLocation(ShaderProgram, location), ref);}
     inline void SendVec3(glm::vec3& ref, const char* location) {glUniform3fv(glGetUniformLocation(ShaderProgram, location), 1, glm::value_ptr(ref));}
     inline void SendVec4(glm::vec4& ref, const char* location) {glUniform4fv(glGetUniformLocation(ShaderProgram, location), 1, glm::value_ptr(ref));}
+
+    // Generic values
+    extern glm::vec3 ZeroVec3;
+    extern glm::vec4 ZeroVec4;
+    extern int falseInt;
+    extern int trueInt;
+
 } // namespace GUI

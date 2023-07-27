@@ -1,11 +1,40 @@
-#include <libChessGUI/square.h>
+#include <libChessGUI/info.h>
 #include <libChessGUI/shaders.h>
 #include <libChessGUI/textures.h>
+#include <libChessGUI/gui.h>
+#include <chess/board.h>
 
 using namespace GUI;
 
-// Meshing
-void Square::GenerateMesh(){
+bool InformationScreen::AddWidget(InformationWidget* Widget){
+    if(CurrentPos + (Widget->Size * 2) > 1.f){
+        return false; // No Fitty
+    }
+
+    // Now add the widget
+    this->Widgets.push_back(Widget);
+    this->CurrentPos += Widget->Size * 2;
+
+    // Call widgets initialiser and set constraints
+    Widget->AssignSizeConstaints(0.5f, CurrentPos-Widget->Size * 2, CurrentPos);
+    Widget->Initialise();
+
+    return true;
+}
+
+void InformationScreen::Update(){
+    for(InformationWidget* w : this->Widgets){
+        w->Update();
+    }
+}
+
+void InformationScreen::Render(){
+    for(InformationWidget* w : this->Widgets){
+        w->Render();
+    }
+}
+
+void MoveInfoWidget::GenerateMesh(){
     //Test if already generated and if so clear all the buffers
     if (this->VAO) {
         glDeleteBuffers(1, &this->EBO);
@@ -45,18 +74,18 @@ void Square::GenerateMesh(){
     glBindVertexArray(0);
 }
 
-Square::Square(int x, int y, float z, glm::vec4 colour){
+void MoveInfoWidget::Initialise(){
     VBO = 0;
     VAO = 0;
     EBO = 0;
 
-    this->SquareColour = colour;
+    glm::vec4 colour = glm::vec4(0.f);
 
     vertices = {
-        {glm::vec3(XZero + (x * Dimention * 2) + -Dimention, YZero + (y * Dimention * 2) + -Dimention, z), colour, glm::vec2(0, 0)},
-        {glm::vec3(XZero + (x * Dimention * 2) + Dimention, YZero + (y * Dimention * 2) + -Dimention, z), colour, glm::vec2(1, 0)},
-        {glm::vec3(XZero + (x * Dimention * 2) + Dimention, YZero + (y * Dimention * 2) + Dimention, z), colour, glm::vec2(1, 1)},
-        {glm::vec3(XZero + (x * Dimention * 2) + -Dimention, YZero + (y * Dimention * 2) + Dimention, z) , colour, glm::vec2(0, 1)}
+        {glm::vec3(StartX, StartY, 0), colour, glm::vec2(0, 0)},
+        {glm::vec3(1, StartY, 0), colour, glm::vec2(1, 0)},
+        {glm::vec3(1, EndY, 0), colour, glm::vec2(1, 1)},
+        {glm::vec3(StartX, EndY, 0) , colour, glm::vec2(0, 1)}
     };
 
     indices = {
@@ -67,46 +96,31 @@ Square::Square(int x, int y, float z, glm::vec4 colour){
     GenerateMesh();
 }
 
-// Generics
-void Square::Render(){
-    // Tell the shader we are not using a texture
-    Shaders::Toggle();
-    Shaders::SendInt(Shaders::falseInt, "UsingTexture");
-    Shaders::SendVec3(Shaders::ZeroVec3, "Offset");
-    Shaders::SendVec4(ColourOffset, "ColourOffset");
-
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
-
-    Shaders::Toggle();
-}
-
-BoardSquare::BoardSquare(int x, int y)
-    :   Square(x, y, 0.f, ((x + y) % 2 == 0) ? glm::vec4(161.f/255.f, 111.f/255.f, 90.f/255.f, 1.f) : glm::vec4(235.f/255.f, 210.f/255.f, 184.f/255.f, 1.f))
+MoveInfoWidget::MoveInfoWidget()
+    : InformationWidget((1.f/3.f))
 {
-    Toggled = false;
+    // Nothing blocky setup due to not knowing constraints
+    tex = nullptr;
 }
 
-void BoardSquare::HighlightToggle(){
-    if(!Toggled){
-        if(SquareColour == glm::vec4(161.f/255.f, 111.f/255.f, 90.f/255.f, 1.f))
-            ColourOffset = glm::vec4(0.25f, 0.f, 0.f, 0.f);
-        else
-            ColourOffset = glm::vec4(0.25f, -0.25f, -.25f, 0.f);
+void MoveInfoWidget::Update(){
+    if(!GlobWin){ // Unlikely error but just in case
+        return;
     }
-    else{
-        ColourOffset = glm::vec4(0.f);
+
+    // Get the current mode
+    if(!GlobWin->GetHost()){
+        return; // No host to get
     }
+
+    Colour mover = GlobWin->GetHost()->CurrentMove;
+
+    // Get new texture
+    tex = GlobWin->Mapper->GetTex(PAWN, mover);
+    // tex = GlobWin->Mapper->GetTex(PAWN, WHITE);
 }
 
-PieceSquare::PieceSquare(int x, int y, PieceTexture* Texture)
-    : Square(x, y, -0.50f)
-{
-    tex = Texture;
-    Offset = glm::vec3(0.f);
-}
-
-void PieceSquare::Render(){
+void MoveInfoWidget::Render(){
     bool noBind = false;
 
     // Activate the texture
@@ -119,15 +133,15 @@ void PieceSquare::Render(){
         // Tell the shader we are using a texture
         Shaders::Toggle();
         Shaders::SendInt(Shaders::trueInt, "UsingTexture");
-        Shaders::SendVec3(Offset, "Offset");
-        Shaders::SendVec4(ColourOffset, "ColourOffset");
+        Shaders::SendVec3(Shaders::ZeroVec3, "Offset");
+        Shaders::SendVec4(Shaders::ZeroVec4, "ColourOffset");
     }
     else{
         // Tell the shader we are not using a texture
         Shaders::Toggle();
         Shaders::SendInt(Shaders::falseInt, "UsingTexture");
-        Shaders::SendVec3(Offset, "Offset");
-        Shaders::SendVec4(ColourOffset, "ColourOffset");
+        Shaders::SendVec3(Shaders::ZeroVec3, "Offset");
+        Shaders::SendVec4(Shaders::ZeroVec4, "ColourOffset");
     }
 
     glBindVertexArray(VAO);

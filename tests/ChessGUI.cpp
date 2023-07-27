@@ -1,5 +1,6 @@
 // #include <libChessGUI/gui.h>
 #include <libChessGUI/gui.h>
+#include <libChessGUI/info.h>
 
 #include <chess/board.h>
 
@@ -20,6 +21,9 @@ int main()
 
     // Window setups
     GUI::GameWindow* Win = new GUI::GameWindow();
+
+    // Widgets
+    Win->Info.AddWidget(new GUI::MoveInfoWidget());
 
     // Attach to board
     Win->Attach(&board);

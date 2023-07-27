@@ -47,6 +47,11 @@ const char* Shaders::FragmentShaderText = "#version 460 core\n"
 static unsigned int ShaderProgramAccess;
 const unsigned int& Shaders::ShaderProgram = ShaderProgramAccess;
 
+glm::vec3 Shaders::ZeroVec3 = glm::vec3(0.f);
+glm::vec4 Shaders::ZeroVec4 = glm::vec4(0.f);
+int Shaders::falseInt = 0;
+int Shaders::trueInt = 1;
+
 // Shader section compiling
 unsigned int Shaders::compileShader(unsigned int type, const char* source) {
     unsigned int shader = glCreateShader(type);
