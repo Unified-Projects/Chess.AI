@@ -120,6 +120,10 @@ GameWindow::GameWindow(){
     // Disp Value
     DispX = SIZE;
     DispY = SIZE;
+
+    // Board sizing
+    BoardX = SIZE;
+    BoardY = SIZE;
 }
 
 // Interfaces
@@ -153,6 +157,9 @@ void GameWindow::Update(){
         return; // We dont want to use a non-functional instance
     }
 
+    // Get inputs
+    glfwPollEvents();
+
     if(!timer_done){ // Timer setup
         timer_done = true;
         next_frame = std::chrono::steady_clock::now();
@@ -175,26 +182,93 @@ void GameWindow::Render(){
         return; // We dont want to use a non-functional instance
     }
 
-    // Clear Screen
-    glClearColor(0.f, 0.f, 0.f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    for(Square s : BoardSquares){
-        s.Render();
+    { // Delete old rendering info
+        if(this->Framebuffer)
+            glDeleteFramebuffers(1, &this->Framebuffer);
+        if(this->Renderbuffer)
+            glDeleteRenderbuffers(1, &this->Renderbuffer);
+        if(this->Texture)
+            glDeleteTextures(1, &this->Texture);
     }
-    for(PieceSquare p : BoardPieces){
-        if(&p == RenderDelay){
-            break;
+
+    // For when I make multi-instancing
+    glfwMakeContextCurrent(Context);
+
+    // Board Scale
+    {   
+        // Scale
+        glViewport(0, 0, BoardX, BoardY);
+
+        // Generate Framebuffer
+        glGenFramebuffers(1, &this->Framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, this->Framebuffer); // Separate to main screen view
+    }
+
+    { // Board render configs
+        OpenGLEnable(GL_DEPTH_TEST);
+        OpenGLEnable(GL_CULL_FACE);
+    }
+
+    { // Texture setup for blitting
+        // Create texture to render to
+        glGenTextures(1, &this->Texture);
+        glBindTexture(GL_TEXTURE_2D, this->Texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, BoardX, BoardY, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        
+        // Create a render buffer
+        glGenRenderbuffers(1, &this->Renderbuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, this->Renderbuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, BoardX, BoardY);
+        
+        // Make the render buffer load to the texture
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->Texture, 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, this->Renderbuffer);
+    }
+
+    { // Standard Rendering Code
+        // Clear Screen
+        glClearColor(0.f, 0.f, 0.f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        for(Square s : BoardSquares){
+            s.Render();
         }
-        p.Render();
+        for(PieceSquare p : BoardPieces){
+            if(&p == RenderDelay){
+                break;
+            }
+            p.Render();
+        }
+        if(RenderDelay)
+            RenderDelay->Render();
     }
-    if(RenderDelay)
-        RenderDelay->Render();
 
-    // Swap display buffers
+    { // Un-bind framebuffer and copy over the board scaling it
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+        OpenGLDisable(GL_DEPTH_TEST);
+        OpenGLDisable(GL_CULL_FACE);
+
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT); //If issues dissable me
+        // glClear(GL_STENCIL_BUFFER_BIT);
+
+        glViewport(0, 0, DispX,  DispY);
+
+        glBlitFramebuffer(0, 0, BoardX, BoardY, 0, 0, DispX, DispY, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    // Swap display buffers (Vsync)
     glfwSwapBuffers(Context);
-    glfwPollEvents();
+
+    //Clean
+    glFlush();
 
     // wait for end of frame
     std::this_thread::sleep_until(next_frame);
@@ -297,6 +371,16 @@ void GameWindow::keyboard_processing(){
 
     if(glfwGetKey(Context, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(Context, true);
+    else if(glfwGetKey(Context, GLFW_KEY_I) == GLFW_PRESS){
+        InfoActive = !InfoActive;
+
+        if(InfoActive){
+            // Add extention to screen
+        }
+        else{
+            // Remove screen extetion
+        }
+    }
 }
 
 void GameWindow::FrameLimit(int FPS){

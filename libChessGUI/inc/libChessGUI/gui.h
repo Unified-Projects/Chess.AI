@@ -75,8 +75,21 @@ namespace GUI{
         static double PrevCursorX;
         static double PrevCursorY;
         static int CurrentHoveredSquare;
+    
+    protected: // Board Positioning and fixes
         static int DispX;
         static int DispY;
+
+        int BoardX;
+        int BoardY;
+
+        // Multi-layer rendering profile
+        GLuint Framebuffer = 0;
+        GLuint Renderbuffer = 0;
+        GLuint Texture = 0;
+
+    public: // Info Window
+        bool InfoActive = false;        
     };
 
     // Global Game Constant
