@@ -124,6 +124,9 @@ GameWindow::GameWindow(){
     // Board sizing
     BoardX = SIZE;
     BoardY = SIZE;
+
+    // Info Sizing
+    InfoX = 0;
 }
 
 // Interfaces
@@ -252,14 +255,14 @@ void GameWindow::Render(){
         OpenGLDisable(GL_DEPTH_TEST);
         OpenGLDisable(GL_CULL_FACE);
 
-        glClearColor(0, 0, 0, 1);
+        glClearColor(66 / 255.f, 66 / 255.f, 71 / 255.f, 1);
         glClear(GL_COLOR_BUFFER_BIT);
         glClear(GL_DEPTH_BUFFER_BIT); //If issues dissable me
         // glClear(GL_STENCIL_BUFFER_BIT);
 
         glViewport(0, 0, DispX,  DispY);
 
-        glBlitFramebuffer(0, 0, BoardX, BoardY, 0, 0, DispX, DispY, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBlitFramebuffer(0, 0, BoardX, BoardY, 0, 0, DispX - InfoX, DispY, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -280,6 +283,29 @@ void GameWindow::framebuffer_size_callback(GLFWwindow* window, int width, int he
     // Store
     DispX = width;
     DispY = height;
+
+    // TODO SCALE BOARD to fill room if no Info, if Info Scale to 8x8 size and then use rest on info
+
+    // Esure size is 8x8
+    int RemainderX = width % 8;
+    int RemainderY = height % 8;
+    int ScaleX = width / 8;
+    int ScaleY = height / 8;
+    int MinScaler = std::min(ScaleX, ScaleY);
+
+    if((ScaleX != ScaleY) && (RemainderX || RemainderY) && !GlobWin->InfoActive){
+        // We need to adjust the screen
+        glfwSetWindowSize(GlobWin->Context, 8 * MinScaler, 8 * MinScaler);
+    }
+    else if((ScaleX != ScaleY) && (RemainderX || RemainderY) && GlobWin->InfoActive){
+        // We need to adjust the screen
+        glfwSetWindowSize(GlobWin->Context, 8 * MinScaler + (8 * MinScaler / GlobWin->InfoWinSize), 8 * MinScaler);
+        GlobWin->InfoX = (8 * MinScaler / GlobWin->InfoWinSize);
+    }
+
+    // Save for interactions
+    GlobWin->BoardX = 8 * MinScaler;
+    GlobWin->BoardY = 8 * MinScaler;
 } 
 
 void GameWindow::mouse_callback(GLFWwindow* window, int button, int action, int mods){
@@ -288,9 +314,15 @@ void GameWindow::mouse_callback(GLFWwindow* window, int button, int action, int 
         return;
     }
 
+    
+    // Ingnore from here if we are off screen
+    if(CursorX > GlobWin->BoardX || CursorY > GlobWin->BoardY){
+        return;
+    }
+
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE && DragStarted) {
         // Attempt to make the move
-        int NewSquare = ((ceil((DispY - CursorY) / (DispY / 8.f)) - 1) * 8) + (ceil(CursorX / (DispX / 8.f)) - 1);
+        int NewSquare = ((ceil((GlobWin->BoardY - CursorY) / (GlobWin->BoardY / 8.f)) - 1) * 8) + (ceil(CursorX / (GlobWin->BoardX / 8.f)) - 1);
 
         // If in the move list
         std::list<Move> MoveList = GlobWin->GetHost()->GenerateMoves();
@@ -323,7 +355,7 @@ void GameWindow::mouse_callback(GLFWwindow* window, int button, int action, int 
         PrevCursorY = CursorY;
 
         // Find square
-        CurrentHoveredSquare = ((ceil((DispY - CursorY) / (DispY / 8.f)) - 1) * 8) + (ceil(CursorX / (DispX / 8.f)) - 1);
+        CurrentHoveredSquare = ((ceil((GlobWin->BoardY - CursorY) / (GlobWin->BoardY / 8.f)) - 1) * 8) + (ceil(CursorX / (GlobWin->BoardX / 8.f)) - 1);
         GlobWin->RenderDelay = &GlobWin->BoardPieces.at(CurrentHoveredSquare);
 
         HighlightedSquares = {};
@@ -356,7 +388,7 @@ void GameWindow::mouse_cursor_callback( GLFWwindow * window, double xpos, double
         double x = PrevCursorX;
         double y = PrevCursorY;
 
-        GlobWin->BoardPieces.at(CurrentHoveredSquare).Offset = glm::vec3((xpos - x) / (DispX / 2), (y - ypos) / (DispY / 2), -.5f);
+        GlobWin->BoardPieces.at(CurrentHoveredSquare).Offset = glm::vec3((xpos - x) / (GlobWin->BoardX / 2), (y - ypos) / (GlobWin->BoardY / 2), -.5f);
     }
 
     // Save new positions
@@ -371,15 +403,29 @@ void GameWindow::keyboard_processing(){
 
     if(glfwGetKey(Context, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(Context, true);
-    else if(glfwGetKey(Context, GLFW_KEY_I) == GLFW_PRESS){
+    else if(glfwGetKey(Context, GLFW_KEY_I) == GLFW_PRESS && !BlockInfoPress){
         InfoActive = !InfoActive;
 
         if(InfoActive){
+            // Remove screen extetion
+            InfoX = BoardX / GlobWin->InfoWinSize;
+            
             // Add extention to screen
+            glfwSetWindowSize(Context, BoardX + InfoX, BoardY);
         }
         else{
             // Remove screen extetion
+            InfoX = 0;
+
+            glfwSetWindowSize(Context, BoardX, BoardY);
         }
+
+        BlockInfoPress = true;
+    }
+
+    // Unblocking
+    if(glfwGetKey(Context, GLFW_KEY_I) == GLFW_RELEASE && BlockInfoPress){
+        BlockInfoPress = false;
     }
 }
 

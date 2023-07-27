@@ -82,6 +82,7 @@ namespace GUI{
 
         int BoardX;
         int BoardY;
+        int InfoX;
 
         // Multi-layer rendering profile
         GLuint Framebuffer = 0;
@@ -90,6 +91,8 @@ namespace GUI{
 
     public: // Info Window
         bool InfoActive = false;        
+        bool BlockInfoPress = false;     
+        int InfoWinSize = 3;   
     };
 
     // Global Game Constant
