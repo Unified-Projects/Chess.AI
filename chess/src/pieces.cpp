@@ -175,20 +175,47 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
 
             b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
         }
-        else {
+        else if (abs(offset) == 7 || abs(offset) == 9) {
             // Check for en-passent
             if(targetPiece->GetT() == NULL_TYPE){
+                std::cout << "En-passent" << std::endl;
                 // En-passent check
-                if(Square >= ((piece->GetC() == WHITE) ? 32 : 24) && Square <= ((piece->GetC() == WHITE) ? 39 : 31)){ // En-passent possible
-                    int EnPassentSquare = Square + ((piece->GetC() == WHITE) ? -8 : 8);
-                    if(b->board[EnPassentSquare]->moveCount == 1 && b->board[EnPassentSquare]->GetT() == PAWN){ // Valid?
-                        // Ensure was the last performed move
-                        if(b->PlayedMoves.back().MovedPiece == b->board[EnPassentSquare]){
-                            b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), {SPECIAL_EN_PASSENT, EnPassentSquare, b->board[EnPassentSquare], new Piece()}});
-                        }
-                    }
+                int EnPassentSquare = targetSquare + ((piece->GetC() == WHITE) ? 8 : -8);
+
+                if(targetPiece->moveCount == 1) {
+                    std::cout << "Move count valid " << std::endl;
                 }
-                continue;
+
+                if (b->PlayedMoves.empty()) {
+                    std::cout << "Played moves valid " << std::endl;
+                    continue;
+                }
+
+                if(b->PlayedMoves.back().MovedPiece == targetPiece) {
+                    std::cout << "Moved piece valid " << std::endl;
+                }
+
+                if(b->board[EnPassentSquare]->GetT() == PAWN) {
+                    std::cout << "En-passent square valid " << std::endl;
+                }
+
+                // if(Square >= ((piece->GetC() == WHITE) ? 32 : 24) && Square <= ((piece->GetC() == WHITE) ? 39 : 31)){ // En-passent possible
+                    if(targetPiece->moveCount == 1 && b->PlayedMoves.back().MovedPiece == targetPiece && b->board[EnPassentSquare]->GetT() == PAWN){
+                        std::cout << "En-passent valid " << std::endl;
+                        b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), {SPECIAL_EN_PASSENT, EnPassentSquare, b->board[EnPassentSquare], new Piece()}});
+                    }
+                // }
+
+                // if(Square >= ((piece->GetC() == WHITE) ? 32 : 24) && Square <= ((piece->GetC() == WHITE) ? 39 : 31)){ // En-passent possible
+                //     int EnPassentSquare = Square + ((piece->GetC() == WHITE) ? -8 : 8);
+                //     if(b->board[EnPassentSquare]->moveCount == 1 && b->board[EnPassentSquare]->GetT() == PAWN){ // Valid? No
+                //         // Ensure was the last performed move
+                //         if(b->PlayedMoves.back().MovedPiece == b->board[EnPassentSquare]){
+                //             b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), {SPECIAL_EN_PASSENT, EnPassentSquare, b->board[EnPassentSquare], new Piece()}});
+                //         }
+                //     }
+                // }
+                // continue;
             }
             else if(targetPiece->GetC() != piece->GetC()) {
                 // rEGULAR dINGNAL mOVEMENT
@@ -239,4 +266,25 @@ void GenerateKingMovements(int Square, Piece* piece, Board* b){
     }
 
     // TODO: Castling
+    if (piece->moveCount == 0) {
+        // Offset of -2
+
+        // Check if rook is there
+        if (b->board[Square-4]->GetT() == ROOK && b->board[Square-4]->moveCount == 0) {
+            // Check if path is clear
+            if (b->board[Square-3]->GetT() == NULL_TYPE && b->board[Square-2]->GetT() == NULL_TYPE && b->board[Square-1]->GetT() == NULL_TYPE) {
+                b->MoveList.push_back(Move{Square, Square-2, NULL_TYPE, {SPECIAL_CASTLING, Square-1, b->board[Square-4], new Piece()}});
+            }
+        }
+
+        // Offset of +2
+
+        // Check if rook is there
+        if (b->board[Square+3]->GetT() == ROOK && b->board[Square+3]->moveCount == 0) {
+            // Check if path is clear
+            if (b->board[Square+1]->GetT() == NULL_TYPE && b->board[Square+2]->GetT()) {
+                b->MoveList.push_back(Move{Square, Square+2, NULL_TYPE, {SPECIAL_CASTLING, Square+1, b->board[Square+3], new Piece()}});
+            }
+        }
+    }
 }

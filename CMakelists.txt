@@ -42,6 +42,13 @@ ExternalProject_Add(FreeType2
     UPDATE_COMMAND  ""
 )
 
+ExternalProject_Add(NetworkingLib
+  GIT_REPOSITORY "https://github.com/boostorg/asio.git"
+  UPDATE_COMMAND ""
+  PATCH_COMMAND ""
+  INSTALL_COMMAND ""
+)
+
 # Main project definition
 project(chess-game)
 

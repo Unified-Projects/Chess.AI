@@ -533,8 +533,16 @@ bool Board::MovePiece(Move m){ // REQUIRES A VALID MOVE TO BE PASSED IN
     // Move Extras
     if(m.Extra.type){
         if(m.Extra.type == SPECIAL_EN_PASSENT){
-            board[m.Extra.square] = m.Extra.To;
-            ((board[m.Extra.square]->c == WHITE) ? WhitePieces : BlackPieces).remove(m.Extra.From);
+            board[m.Extra.square] = m.Extra.To; // Kill piece
+            ((board[m.Extra.square]->c == WHITE) ? WhitePieces : BlackPieces).remove(m.Extra.From); // Remove from pieces colours
+        }
+        else if(m.Extra.type = SPECIAL_CASTLING){
+            // Change Cache to follow new move extra :)
+            PlayedMoves.back().Extra.square = m.Extra.From->Square;
+
+            // Move rook
+            board[m.Extra.From->Square] = m.Extra.To;
+            board[m.Extra.square] = m.Extra.From;
         }
     }
 
@@ -582,6 +590,11 @@ void Board::UndoMove(){
         if(Move.Extra.type == SPECIAL_EN_PASSENT){
             board[Move.Extra.square] = Move.Extra.From;
             ((board[Move.Extra.square]->c == WHITE) ? WhitePieces : BlackPieces).push_back(Move.Extra.From);
+        }
+        else if(Move.Extra.type == SPECIAL_CASTLING){
+            // Move rook
+            board[Move.Extra.From->Square] = Move.Extra.To;
+            board[Move.Extra.square] = new Piece();
         }
     }
 

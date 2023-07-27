@@ -55,11 +55,11 @@ GLFWwindow* GUI::IntitaliseGraphics(){
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return nullptr;
-    }  
+    }
 
     // Window configures
     glViewport(0, 0, SIZE, SIZE);
-    glfwSetFramebufferSizeCallback(window, GameWindow::framebuffer_size_callback); 
+    glfwSetFramebufferSizeCallback(window, GameWindow::framebuffer_size_callback);
     glfwSetCursorPosCallback(window, GameWindow::mouse_cursor_callback);
     glfwSetMouseButtonCallback(window, GameWindow::mouse_callback);
 
@@ -203,7 +203,7 @@ void GameWindow::Render(){
     glfwMakeContextCurrent(Context);
 
     // Board Scale
-    {   
+    {
         // Scale
         glViewport(0, 0, BoardX, BoardY);
 
@@ -224,12 +224,12 @@ void GameWindow::Render(){
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, BoardX, BoardY, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        
+
         // Create a render buffer
         glGenRenderbuffers(1, &this->Renderbuffer);
         glBindRenderbuffer(GL_RENDERBUFFER, this->Renderbuffer);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, BoardX, BoardY);
-        
+
         // Make the render buffer load to the texture
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->Texture, 0);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, this->Renderbuffer);
@@ -322,7 +322,7 @@ void GameWindow::framebuffer_size_callback(GLFWwindow* window, int width, int he
     // Save for interactions
     GlobWin->BoardX = 8 * MinScaler;
     GlobWin->BoardY = 8 * MinScaler;
-} 
+}
 
 void GameWindow::mouse_callback(GLFWwindow* window, int button, int action, int mods){
     // If not attached, there is no point
@@ -330,7 +330,7 @@ void GameWindow::mouse_callback(GLFWwindow* window, int button, int action, int 
         return;
     }
 
-    
+
     // Ingnore from here if we are off screen
     if(CursorX > GlobWin->BoardX || CursorY > GlobWin->BoardY){
         return;
@@ -425,7 +425,7 @@ void GameWindow::keyboard_processing(){
         if(InfoActive){
             // Remove screen extetion
             InfoX = BoardX / GlobWin->InfoWinSize;
-            
+
             // Add extention to screen
             glfwSetWindowSize(Context, BoardX + InfoX, BoardY);
         }
@@ -438,10 +438,17 @@ void GameWindow::keyboard_processing(){
 
         BlockInfoPress = true;
     }
+    else if(glfwGetKey(Context, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && glfwGetKey(Context, GLFW_KEY_Z) == GLFW_PRESS && !UndoPressBlocker){
+        host->UndoMove();
+        UndoPressBlocker = true;
+    }
 
     // Unblocking
     if(glfwGetKey(Context, GLFW_KEY_I) == GLFW_RELEASE && BlockInfoPress){
         BlockInfoPress = false;
+    }
+    if(glfwGetKey(Context, GLFW_KEY_LEFT_CONTROL) == GLFW_RELEASE || glfwGetKey(Context, GLFW_KEY_Z) == GLFW_RELEASE && UndoPressBlocker){
+        UndoPressBlocker = false;
     }
 }
 

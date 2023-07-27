@@ -10,7 +10,7 @@ find_package(OpenGL REQUIRED)
 
 #
 # Multi-Threaded Invalid Or missing Fen Finder
-# 
+#
 
 add_executable(ThreadedValidations ThreadedValidations.cpp)
 add_dependencies(ThreadedValidations LibChess)
@@ -19,7 +19,7 @@ add_test(ThreadFenValidations ThreadedValidations)
 
 #
 # Shannons number comparitor
-# 
+#
 
 add_executable(StandardLayerMoveCountValidator LayerMoveValidations.cpp)
 add_dependencies(StandardLayerMoveCountValidator LibChess)
@@ -28,7 +28,7 @@ add_test(StandardLayerMoveCountValidator StandardLayerMoveCountValidator)
 
 #
 # Shannons number comparitor
-# 
+#
 
 add_executable(NonStandardLayerMoveCountValidator CustomMoveValidations.cpp)
 add_dependencies(NonStandardLayerMoveCountValidator LibChess)
@@ -42,3 +42,12 @@ add_executable(GUIChess ChessGUI.cpp)
 target_include_directories(GUIChess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 add_dependencies(GUIChess LibChess LibChessGUI SOIL2 GLM)
 target_link_libraries(GUIChess PRIVATE LibChessGUI LibChess soil2 glfw3 ${OPENGL_LIBRARIES})
+
+#
+# Networked App
+#
+# add_executable(GUINetworkChess ChessGamer.cpp)
+# target_include_directories(GUINetworkChess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+# target_include_directories(GUINetworkChess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/build/NetworkingLib-prefix/src/NetworkingLib/include/boost)
+# add_dependencies(GUINetworkChess LibChess LibChessGUI SOIL2 GLM)
+# target_link_libraries(GUINetworkChess PRIVATE LibChessGUI LibChess soil2 glfw3 ${OPENGL_LIBRARIES})

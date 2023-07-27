@@ -44,7 +44,7 @@ namespace GUI{
             /* TODO: list
                Remove Window
                Remove shader
-               Remove Mapper */ 
+               Remove Mapper */
         );
 
         // Interfaces
@@ -66,7 +66,7 @@ namespace GUI{
         inline bool IsAttached() {return( host != nullptr);}
 
     public: // Callbacks
-        static void framebuffer_size_callback(GLFWwindow* window, int width, int height); 
+        static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
         static void mouse_callback(GLFWwindow* window, int button, int action, int mods);
         static void mouse_cursor_callback( GLFWwindow * window, double xpos, double ypos);
         void keyboard_processing();
@@ -77,7 +77,7 @@ namespace GUI{
         static double PrevCursorX;
         static double PrevCursorY;
         static int CurrentHoveredSquare;
-    
+
     protected: // Board Positioning and fixes
         static int DispX;
         static int DispY;
@@ -92,11 +92,14 @@ namespace GUI{
         GLuint Texture = 0;
 
     public: // Info Window
-        bool InfoActive = false;        
-        bool BlockInfoPress = false;     
-        int InfoWinSize = 3;   
+        bool InfoActive = false;
+        bool BlockInfoPress = false;
+        int InfoWinSize = 3;
 
         InformationScreen Info;
+
+    public: // Key Blockers
+        bool UndoPressBlocker = false;
     };
 
     // Global Game Constant
