@@ -178,30 +178,30 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
         else if (abs(offset) == 7 || abs(offset) == 9) {
             // Check for en-passent
             if(targetPiece->GetT() == NULL_TYPE){
-                std::cout << "En-passent" << std::endl;
+                // std::cout << "En-passent" << std::endl;
                 // En-passent check
                 int EnPassentSquare = targetSquare + ((piece->GetC() == WHITE) ? 8 : -8);
 
-                if(targetPiece->moveCount == 1) {
-                    std::cout << "Move count valid " << std::endl;
-                }
+                // if(targetPiece->moveCount == 1) {
+                //     std::cout << "Move count valid " << std::endl;
+                // }
 
-                if (b->PlayedMoves.empty()) {
-                    std::cout << "Played moves valid " << std::endl;
-                    continue;
-                }
+                // if (b->PlayedMoves.empty()) {
+                //     std::cout << "Played moves valid " << std::endl;
+                //     continue;
+                // }
 
-                if(b->PlayedMoves.back().MovedPiece == targetPiece) {
-                    std::cout << "Moved piece valid " << std::endl;
-                }
+                // if(b->PlayedMoves.back().MovedPiece == targetPiece) {
+                //     std::cout << "Moved piece valid " << std::endl;
+                // }
 
-                if(b->board[EnPassentSquare]->GetT() == PAWN) {
-                    std::cout << "En-passent square valid " << std::endl;
-                }
+                // if(b->board[EnPassentSquare]->GetT() == PAWN) {
+                //     std::cout << "En-passent square valid " << std::endl;
+                // }
 
                 // if(Square >= ((piece->GetC() == WHITE) ? 32 : 24) && Square <= ((piece->GetC() == WHITE) ? 39 : 31)){ // En-passent possible
                     if(targetPiece->moveCount == 1 && b->PlayedMoves.back().MovedPiece == targetPiece && b->board[EnPassentSquare]->GetT() == PAWN){
-                        std::cout << "En-passent valid " << std::endl;
+                        // std::cout << "En-passent valid " << std::endl;
                         b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), {SPECIAL_EN_PASSENT, EnPassentSquare, b->board[EnPassentSquare], new Piece()}});
                     }
                 // }

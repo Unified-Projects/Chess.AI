@@ -13,7 +13,7 @@
 
 // Main configs
 // GLOBAL GAME WINDOW SIZE
-#define SIZE 640
+#define SIZE_Init 640
 // Usefull values for processing
 extern int Scale;
 extern float Dimention;

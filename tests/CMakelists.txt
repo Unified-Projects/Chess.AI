@@ -46,8 +46,11 @@ target_link_libraries(GUIChess PRIVATE LibChessGUI LibChess soil2 glfw3 ${OPENGL
 #
 # Networked App
 #
-# add_executable(GUINetworkChess ChessGamer.cpp)
-# target_include_directories(GUINetworkChess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-# target_include_directories(GUINetworkChess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/build/NetworkingLib-prefix/src/NetworkingLib/include/boost)
-# add_dependencies(GUINetworkChess LibChess LibChessGUI SOIL2 GLM)
-# target_link_libraries(GUINetworkChess PRIVATE LibChessGUI LibChess soil2 glfw3 ${OPENGL_LIBRARIES})
+add_executable(GUINetworkChess ChessGamer.cpp)
+target_include_directories(GUINetworkChess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+add_dependencies(GUINetworkChess LibChessNet LibChess LibChessGUI SOIL2 GLM)
+# if(MINGW)
+  target_link_libraries(GUINetworkChess PRIVATE LibChessNet LibChessGUI LibChess soil2 glfw3 ${OPENGL_LIBRARIES})
+# else()
+#     target_link_libraries(GUINetworkChess PRIVATE LibChessGUI LibChess soil2 glfw3 ${OPENGL_LIBRARIES})
+# endif()

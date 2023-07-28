@@ -41,7 +41,7 @@ GLFWwindow* GUI::IntitaliseGraphics(){
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // macOS
 
     // Create the window and attach it
-    GLFWwindow* window = glfwCreateWindow(SIZE, SIZE, "Chess", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SIZE_Init, SIZE_Init, "Chess", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -58,7 +58,7 @@ GLFWwindow* GUI::IntitaliseGraphics(){
     }
 
     // Window configures
-    glViewport(0, 0, SIZE, SIZE);
+    glViewport(0, 0, SIZE_Init, SIZE_Init);
     glfwSetFramebufferSizeCallback(window, GameWindow::framebuffer_size_callback);
     glfwSetCursorPosCallback(window, GameWindow::mouse_cursor_callback);
     glfwSetMouseButtonCallback(window, GameWindow::mouse_callback);
@@ -118,12 +118,12 @@ GameWindow::GameWindow(){
     }
 
     // Disp Value
-    DispX = SIZE;
-    DispY = SIZE;
+    DispX = SIZE_Init;
+    DispY = SIZE_Init;
 
     // Board sizing
-    BoardX = SIZE;
-    BoardY = SIZE;
+    BoardX = SIZE_Init;
+    BoardY = SIZE_Init;
 
     // Info Sizing
     InfoX = 0;
@@ -347,7 +347,15 @@ void GameWindow::mouse_callback(GLFWwindow* window, int button, int action, int 
 
         for(Move m : MoveList){
             if (m.Start == CurrentHoveredSquare && m.End == NewSquare){
-                // Make the move
+                if (GlobWin->OnMoveWanted){ // Is there a move callback
+                    // If so see if it will let us move
+                    if(GlobWin->OnMoveWanted(m)){ // Move permitted
+                        Moves = GlobWin->GetHost()->MovePiece(m);
+                    }
+                    break; // Prevent making move anyway
+                }
+
+                // Otherwise make the move
                 Moves = GlobWin->GetHost()->MovePiece(m);
                 break;
             }

@@ -43,10 +43,12 @@ ExternalProject_Add(FreeType2
 )
 
 ExternalProject_Add(NetworkingLib
-  GIT_REPOSITORY "https://github.com/boostorg/asio.git"
-  UPDATE_COMMAND ""
-  PATCH_COMMAND ""
-  INSTALL_COMMAND ""
+    GIT_REPOSITORY "https://github.com/chriskohlhoff/asio/"
+    CONFIGURE_COMMAND   "" 
+    BUILD_COMMAND       ""
+    INSTALL_COMMAND     ""
+    TEST_COMMAND        ""
+    BUILD_IN_SOURCE 1
 )
 
 # Main project definition
@@ -60,6 +62,9 @@ add_subdirectory(chess)
 
 # Main graphics library
 add_subdirectory(libChessGUI)
+
+# Main networking library
+add_subdirectory(libChessNet)
 
 # All runtime tests
 add_subdirectory(tests)

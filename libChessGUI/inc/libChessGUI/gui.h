@@ -1,9 +1,9 @@
 #pragma once
 #include <libChessGUI/configure.h>
 #include <vector>
+#include <functional>
 #include <libChessGUI/info.h>
-
-class Board;
+#include <chess/board.h>
 
 namespace GUI{
     // TODO IMPLEMENT MULTI-WINDOW Compatibility
@@ -35,6 +35,11 @@ namespace GUI{
         PieceTextureMapper* Mapper;
 
         PieceSquare* RenderDelay = nullptr;
+
+    public: // Callbacks
+        std::function<bool(Move&)> OnMoveWanted; // Allows user to prevent a move from happening
+        std::function<void()> KeybaordCallback; // TODO: I cba rn
+        std::function<void()> MouseCallback; // TODO: I cba rn
 
     public: // Public Interfaces
 
