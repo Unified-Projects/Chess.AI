@@ -265,7 +265,9 @@ void GenerateKingMovements(int Square, Piece* piece, Board* b){
         b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
     }
 
-    // TODO: Castling
+    // TODO: Castling More checks needed so not perfect
+    // Cant go through check
+    // Cant go into check
     if (piece->moveCount == 0) {
         // Offset of -2
 

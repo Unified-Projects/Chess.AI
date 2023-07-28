@@ -543,6 +543,7 @@ bool Board::MovePiece(Move m){ // REQUIRES A VALID MOVE TO BE PASSED IN
             // Move rook
             board[m.Extra.From->Square] = m.Extra.To;
             board[m.Extra.square] = m.Extra.From;
+            m.Extra.From->Square = m.Extra.square;
         }
     }
 
@@ -585,6 +586,8 @@ void Board::UndoMove(){
     //     }
     // }
 
+    // TODO: PROMOTION DOES NOT WORK!
+
     // Move Extras
     if(Move.Extra.type){
         if(Move.Extra.type == SPECIAL_EN_PASSENT){
@@ -594,6 +597,7 @@ void Board::UndoMove(){
         else if(Move.Extra.type == SPECIAL_CASTLING){
             // Move rook
             board[Move.Extra.From->Square] = Move.Extra.To;
+            Move.Extra.To->Square = Move.Extra.From->Square;
             board[Move.Extra.square] = new Piece();
         }
     }

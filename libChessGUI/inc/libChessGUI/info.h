@@ -2,6 +2,8 @@
 #include <vector>
 #include <libChessGUI/square.h>
 
+#include <chess/piece.h>
+
 namespace GUI
 {
     // PreDefs
@@ -41,6 +43,13 @@ namespace GUI
         float Size;
     };
 
+    class BlankWidget : public InformationWidget{
+    public:
+        inline BlankWidget() : InformationWidget((1.f/3.f)){
+
+        }
+    };
+
     class MoveInfoWidget : public InformationWidget{
     protected:
         void Initialise();
@@ -56,6 +65,29 @@ namespace GUI
 
     public:
         MoveInfoWidget();
+
+        PieceTexture* tex;
+
+    public:
+        void Update();
+        void Render();
+    };
+
+    class PieceWidget : public InformationWidget{
+    protected:
+        void Initialise();
+
+        unsigned int VAO;
+        unsigned int VBO;
+        unsigned int EBO;
+
+        std::vector<Vertex> vertices;
+        std::vector<int> indices;
+
+        void GenerateMesh();
+
+    public:
+        PieceWidget(Type t, Colour c);
 
         PieceTexture* tex;
 

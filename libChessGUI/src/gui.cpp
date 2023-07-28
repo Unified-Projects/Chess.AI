@@ -446,7 +446,7 @@ void GameWindow::keyboard_processing(){
 
         BlockInfoPress = true;
     }
-    else if(glfwGetKey(Context, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && glfwGetKey(Context, GLFW_KEY_Z) == GLFW_PRESS && !UndoPressBlocker){
+    else if(glfwGetKey(Context, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && glfwGetKey(Context, GLFW_KEY_Z) == GLFW_PRESS && !UndoPressBlocker && UndoAllowed){
         host->UndoMove();
         UndoPressBlocker = true;
     }

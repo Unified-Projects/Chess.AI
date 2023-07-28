@@ -137,7 +137,7 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
         const char MovingCapabilites; // Read-Only !
 
         // Position
-        int Square;
+        int Square = -1;
 
         // Setup for board setup
         Piece(Colour c = NULL_COLOUR, const char MovingCapables = 0) : MovingCapabilites(MovingCapables) {this->c = c;moveCount=0;}

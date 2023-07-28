@@ -105,6 +105,7 @@ namespace GUI{
 
     public: // Key Blockers
         bool UndoPressBlocker = false;
+        bool UndoAllowed = true;
     };
 
     // Global Game Constant
