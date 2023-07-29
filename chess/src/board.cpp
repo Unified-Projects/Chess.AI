@@ -24,16 +24,6 @@ std::map<Type, char> Board::typeMapper = {
         {NULL_TYPE, ' '}
     };
 
-// void Board::SetPiece(int X, int Y, Piece* p){
-//     // Load to the board
-//         // YX as in row then collumn
-//         // Yes we map 8 to 1 and 1 to 8 just as it's easier
-//     board[Y][X] = p;
-//     board[Y][X]->X = X + 1;
-//     board[Y][X]->Y = Y + 1;
-//     board[Y][X]->b = this; // So that pieces can acces the current board (Instead of global so that multiple boards can be active at once (Training AI))
-// }
-
 Board::Board() {
     // Check management
     Check = false;
@@ -162,71 +152,6 @@ void Board::InitBoard(std::string FEN) {
     return;
 }
 
-// bool Board::UpdateCheck() {
-//     Check = false;
-//     CheckedColour = NULL_COLOUR;
-
-//     // Find the opponent's king position
-//     int whiteKingX = WhiteKing->X;
-//     int whiteKingY = WhiteKing->Y;
-//     int blackKingX = BlackKing->X;
-//     int blackKingY = BlackKing->Y;
-
-//     // See if Black is in check
-//     for (Piece* targetPiece : WhitePieces) {
-//         // Check if the piece can move to the opponent's king
-//         if (targetPiece->isValidMove(blackKingX, blackKingY)) {
-//             Check = true;
-//             CheckedColour = BLACK;
-//             return Check;
-//         }
-//     }
-
-//     // See if White is in check
-//     for (Piece* targetPiece : BlackPieces) {
-//         // Check if the piece can move to the opponent's king
-//         if (targetPiece->isValidMove(whiteKingX, whiteKingY)) {
-//             Check = true;
-//             CheckedColour = WHITE;
-//             return Check;
-//         }
-//     }
-
-//     return Check;
-// }
-
-// bool Board::UpdateCheckmate() {
-//     if (!UpdateCheck()) {
-//         return false;
-//     }
-
-//     Mate = false;
-
-//     // Generate moves for the pieces of the color under check
-//     std::list<Piece*> pieces = (CheckedColour == WHITE) ? WhitePieces : BlackPieces;
-
-//     for (Piece* p : pieces){
-//         for (std::pair<int, int> move : MoveGen(p->t)){
-//             // Play the move
-//             bool validMove = MovePiece(p->X, p->Y, p->X + move.first, p->Y + move.second, true);
-
-//             if (validMove && !UpdateCheck()) {
-//                 // Move eliminates the check, so it's not checkmate
-//                 UndoMove();
-//                 return false;
-//             }
-
-//             // Undo the move if it was valid
-//             if (validMove) {
-//                 UndoMove();
-//             }
-//         }
-//     }
-
-//     Mate = true;
-//     return true;
-// }
-
 void Board::LogBoard(){
     // Iterate both over rows and columns
     for (int i = 7; i >=0; i--) {
@@ -295,137 +220,6 @@ std::string Board::ConvertToFen() { // TODO: EFFICIENCY CHECK
 
     return fen;
 }
-
-// bool Board::MovePiece(int startX, int startY, int targetX, int targetY, bool ignoreCheck) {
-//     // TODO: IMPLEMENT A END-GAME HANDLER!!!! AND FOR TESTER
-//     // if (Mate){
-//     //     // LogBoard();
-//     //     return false;
-//     // }
-
-//     // Check if the target location is within the board
-//     if (startX < 1 || startX > 8 || startY < 1 || startY > 8) {
-//         return false;
-//     }
-
-//     // Check if the target location is within the board
-//     if (targetX < 1 || targetX > 8 || targetY < 1 || targetY > 8) {
-//         return false;
-//     }
-
-//     // First find the piece that we want to move
-//     Piece* targetPiece = GetPieceAtPosition(startX, startY);
-//     Piece* endPiece = GetPieceAtPosition(targetX, targetY);
-
-//     // Record the type
-//     Type t = targetPiece->t;
-
-//     // Piece not moved or Attacking team-mate or Attacking team-mate
-//     if (endPiece->GetC() == targetPiece->GetC()){
-//         return false;
-//     }
-
-//     MoveExtra Change = {};
-
-//     // We want to check if the provided swap is a valid move
-//     bool validMove = targetPiece->isValidMove(targetX, targetY, &Change);
-//     if (!validMove) { // Return as the move impossible (Handler built on other end)
-//         return false;
-//     }
-
-//     // Extras / Special Moves
-//     if(Change.type){
-//         if (Change.type == 1){
-//             SetPiece(Change.x-1, Change.y-1, new Piece());
-//         }
-//     }
-
-//     // See if the pawn changed piece
-//     // if(t == PAWN && targetPiece->t != PAWN){
-//     //     // TODO: Change depending on new type
-//     //     // Piece* Changed = ((Queen*)targetPiece)->Clone();
-//     //     Piece* Changed = new Queen(*((Queen*)targetPiece));
-
-//     //     // Store Pawn for move undo
-//     //     Piece* Old = targetPiece;
-//     //     Old->t = PAWN;
-
-//     //     // Replace Pawn
-//     //     targetPiece = Changed;
-
-//     //     // Store Move with old piece
-//     //     PlayedMoves.push_back(MoveCache{Old, endPiece, startX, startY, targetX, targetY, Change});
-//     // }
-//     // else{
-//         // Store Move normally
-//         PlayedMoves.push_back(MoveCache{targetPiece, endPiece, startX, startY, targetX, targetY, Change});
-//     // }
-
-//     if(endPiece->t != NULL_TYPE){
-//         std::list<Piece*>* pieces = (endPiece->c == WHITE) ? &WhitePieces : &BlackPieces;
-//         pieces->remove(endPiece);
-//     }
-
-//     // If so we want to move the piece, and then delete the piece that was already there
-//     SetPiece(targetX-1, targetY-1, targetPiece);
-
-//     // Fill in gap made
-//     SetPiece(startX-1, startY-1, new Piece());
-
-//     // TODO: UPDATE GAME STATS, IF SPECIAL MOVES ARE ALLOWED, LOOK FOR CHECKMATE
-
-//     // Used for seeing if the check condition does not change
-//     bool Prev = Check;
-//     Colour PrevC = CheckedColour;
-
-//     // Check Checks
-//     UpdateCheck();
-
-//     // Increment move count
-//     targetPiece->moveCount++;
-
-//     // If the check condition does not change then the move is invalid or we go into check
-//     if(((Check && Prev && PrevC == CheckedColour) || (Check && CheckedColour == targetPiece->c)) && !ignoreCheck){
-//         UndoMove();
-//         return false;
-//     }
-
-//     return true;
-// }
-
-// void Board::UndoMove(){
-//     // Simple check to see if moves have been played
-//     if (PlayedMoves.empty()){
-//         return; // No move to undo
-//     }
-
-//     // Lets to a simple usage
-//     MoveCache Move = PlayedMoves.back();
-//     PlayedMoves.pop_back();
-//     SetPiece(Move.StartX-1, Move.StartY-1, Move.MovedPiece);
-//     SetPiece(Move.EndX-1, Move.EndY-1, Move.TargetPiece);
-
-//     // Extras / Special Move Undoing
-//     if(Move.Extra.type){
-//         if (Move.Extra.type == 1){
-//             SetPiece(Move.Extra.x-1, Move.Extra.y-1, Move.Extra.change);
-//         }
-//     }
-
-//     // Load the piece back if taken
-//     if(Move.TargetPiece->t != NULL_TYPE){
-//         std::list<Piece*>* pieces = (Move.TargetPiece->c == WHITE) ? &WhitePieces : &BlackPieces;
-//         pieces->push_back(Move.TargetPiece);
-//     }
-
-//     // Resort Check
-//     UpdateCheck();
-
-//     // Decrease move count
-//     Move.MovedPiece->moveCount--;
-
-//     return;
-// }
 
 std::list<Move> Board::GenerateMoves(){
     // if (CurrentMove == PreviousGeneration){
@@ -581,15 +375,6 @@ void Board::UndoMove(){
     board[Move.move.Start] = Move.MovedPiece;
     board[Move.move.End] = Move.TargetPiece;
 
-    // Extras / Special Move Undoing
-    // if(Move.Extra.type){
-    //     if (Move.Extra.type == 1){
-    //         SetPiece(Move.Extra.x-1, Move.Extra.y-1, Move.Extra.change);
-    //     }
-    // }
-
-    // TODO: Castling wont undo.
-
     // Move Extras
     if(Move.Extra.type){
         if(Move.Extra.type == SPECIAL_EN_PASSENT){
@@ -598,9 +383,9 @@ void Board::UndoMove(){
         }
         else if(Move.Extra.type == SPECIAL_CASTLING){
             // Move rook
-            board[Move.Extra.From->Square] = Move.Extra.To;
-            Move.Extra.To->Square = Move.Extra.From->Square;
-            board[Move.Extra.square] = new Piece();
+            board[Move.Extra.From->Square] = new Piece();
+            board[Move.Extra.square] = Move.Extra.From;
+            Move.Extra.From->Square = Move.Extra.square;
         }
     }
 
