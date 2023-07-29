@@ -11,61 +11,6 @@ struct Move;
 class Piece;
 
 // Piece Management Constants
-    struct EdgeInfo
-    {
-        // Distances
-        int North = 0;
-        int South = 0;
-        int West = 0;
-        int East = 0;
-
-        // Extras
-        int MinNW = 0;
-        int MinSE = 0;
-        int MinNE = 0;
-        int MinSW = 0;
-
-        // Knight movments
-        int LMovementCapable[8];
-
-        // Pawn movements
-        int PwnMovementCapable[8];
-
-        // Operator to use indexing to get the values, due to non-edit restriction
-         // TODO in the pregenerate modify indexeds of ints to remove this need
-        int operator [](int index){
-            switch (index)
-            {
-            case 0:
-                return North;
-            case 1:
-                return South;
-            case 2:
-                return West;
-            case 3:
-                return East;
-            case 4:
-                return MinNW;
-            case 5:
-                return MinSE;
-            case 6:
-                return MinNE;
-            case 7:
-                return MinSW;
-
-            // Knight checks
-            case 8 ... 15:
-                return LMovementCapable[index - 8];
-
-            case 16 ... 23:
-                return PwnMovementCapable[index - 16];
-
-            default:
-                return 0;
-            }
-        }
-    };
-
     extern const int DirectionalOffsets[];
     static int SquaresToEdge[64][24];
 //
@@ -160,7 +105,7 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
         Piece* Clone() {return new Pawn(*this);}
     };
 
-    struct Bishop : protected Piece{
+    struct Bishop : public Piece{
         friend class Board;
     public:
         Bishop(Colour c) : Piece(c, SLIDE + SLIDE_DIAGONAL) {t=BISHOP;return;}
@@ -168,7 +113,7 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
         Piece* Clone() {return new Bishop(*this);}
     };
 
-    struct Rook : protected Piece{
+    struct Rook : public Piece{
         friend class Board;
     public:
         Rook(Colour c) : Piece(c, SLIDE + SLIDE_HORIZONTAL) {t=ROOK;return;}
@@ -176,7 +121,7 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
         Piece* Clone() {return new Rook(*this);}
     };
 
-    struct Knight : protected Piece{
+    struct Knight : public Piece{
         friend class Board;
     public:
         Knight(Colour c) : Piece(c, KNIGHT_MOVMENT) {t=KNIGHT;return;}
@@ -184,7 +129,7 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
         Piece* Clone() {return new Knight(*this);}
     };
 
-    struct Queen : protected Piece{
+    struct Queen : public Piece{
         friend class Board;
     public:
         Queen(Colour c) : Piece(c, SLIDE) {t=QUEEN;return;}
@@ -192,7 +137,7 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
         Piece* Clone() {return new Queen(*this);}
     };
 
-    struct King : protected Piece{
+    struct King : public Piece{
         friend class Board;
     public:
         King(Colour c) : Piece(c, KING_MOVMENT) {t=KING;return;}

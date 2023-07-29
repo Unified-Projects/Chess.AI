@@ -293,7 +293,7 @@ bool Board::UpdateMate(){
     for (Move m : Moves){
         bool Valid = MovePiece(m);
 
-        if(Valid){ // All non-check moves are considered valid
+        if(Valid){ // All un-check moves are considered valid
             UndoMove();
             return false;
         }
@@ -332,7 +332,7 @@ bool Board::MovePiece(Move m){ // REQUIRES A VALID MOVE TO BE PASSED IN
             board[m.Extra.square] = m.Extra.To; // Kill piece
             ((board[m.Extra.square]->c == WHITE) ? WhitePieces : BlackPieces).remove(m.Extra.From); // Remove from pieces colours
         }
-        else if(m.Extra.type = SPECIAL_CASTLING){
+        else if(m.Extra.type == SPECIAL_CASTLING){
             // Change Cache to follow new move extra :)
             PlayedMoves.back().Extra.square = m.Extra.From->Square;
 
@@ -340,6 +340,10 @@ bool Board::MovePiece(Move m){ // REQUIRES A VALID MOVE TO BE PASSED IN
             board[m.Extra.From->Square] = m.Extra.To;
             board[m.Extra.square] = m.Extra.From;
             m.Extra.From->Square = m.Extra.square;
+        }
+        else if(m.Extra.type == SPECIAL_PROMOTION){
+            board[m.Extra.square] = m.Extra.To;
+            m.Extra.To->Square = m.Extra.square;
         }
     }
 
@@ -386,6 +390,10 @@ void Board::UndoMove(){
             board[Move.Extra.From->Square] = new Piece();
             board[Move.Extra.square] = Move.Extra.From;
             Move.Extra.From->Square = Move.Extra.square;
+        }
+        else if(Move.Extra.type == SPECIAL_PROMOTION){
+            board[Move.move.Start] = Move.Extra.From;
+            Move.Extra.From->Square = Move.move.Start;
         }
     }
 
