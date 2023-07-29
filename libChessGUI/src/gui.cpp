@@ -349,7 +349,7 @@ void GameWindow::mouse_callback(GLFWwindow* window, int button, int action, int 
             if (m.Start == CurrentHoveredSquare && m.End == NewSquare){
                 if (GlobWin->OnMoveWanted){ // Is there a move callback
                     // If so see if it will let us move
-                    if(GlobWin->OnMoveWanted(m)){ // Move permitted
+                    if(GlobWin->OnMoveWanted(m, true)){ // Move permitted
                         Moves = GlobWin->GetHost()->MovePiece(m);
                     }
                     break; // Prevent making move anyway
@@ -394,6 +394,12 @@ void GameWindow::mouse_callback(GLFWwindow* window, int button, int action, int 
 
         for(Move m : MoveList){
             if (m.Start == CurrentHoveredSquare){
+                if (GlobWin->OnMoveWanted){ // Is there a move callback
+                    if(!GlobWin->OnMoveWanted(m, false)){ // Move permitted
+                        continue;
+                    }
+                }
+
                 // Highlight end
                 HighlightedSquares.push_back(&GlobWin->BoardSquares[m.End]);
 

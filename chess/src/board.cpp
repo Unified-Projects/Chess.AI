@@ -522,6 +522,8 @@ bool Board::MovePiece(Move m){ // REQUIRES A VALID MOVE TO BE PASSED IN
         ((board[m.End]->c == WHITE) ? WhitePieces : BlackPieces).remove(board[m.End]);
     }
 
+    // TODO: PROMOTION DOES NOT WORK!
+
     // Actual board swaps
     board[m.End] = board[m.Start];
     board[m.Start] = new Piece();
@@ -586,7 +588,7 @@ void Board::UndoMove(){
     //     }
     // }
 
-    // TODO: PROMOTION DOES NOT WORK!
+    // TODO: Castling wont undo.
 
     // Move Extras
     if(Move.Extra.type){

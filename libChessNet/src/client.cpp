@@ -1,5 +1,7 @@
 #include <chessNet/client.h>
 #include <iostream>
+#include <chrono>
+#include <thread>
 
 #include <iostream>
 
@@ -55,7 +57,7 @@ void Client::wait_for_message()
 void Client::do_connect(const asio::ip::tcp::resolver::results_type& endpoints)
 {
     asio::async_connect(socket_, endpoints,
-        [this](std::error_code ec, const asio::ip::tcp::endpoint&)
+        [this, endpoints](std::error_code ec, const asio::ip::tcp::endpoint&)
         {
             if (!ec)
             {
@@ -64,7 +66,17 @@ void Client::do_connect(const asio::ip::tcp::resolver::results_type& endpoints)
             }
             else
             {
-                std::cerr << "Connect Error: " << ec.message() << std::endl;
+                std::cerr << "Connect Error: " << ec.message() << "\n";
+                std::cerr << "Retry in 3 seconds...\n";
+
+                // Wait for 3 seconds before retrying
+                asio::steady_timer timer(io_context_);
+                timer.expires_after(std::chrono::seconds(3));
+                timer.async_wait([this, endpoints](std::error_code /*ec*/)
+                {
+                    // Retry the connection
+                    do_connect(endpoints);
+                });
             }
         });
 }

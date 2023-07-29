@@ -29,6 +29,7 @@ private:
     std::thread worker_thread_;
     std::function<void(const std::array<char, 1024>&)> on_message_;
 
+    // For wait for message
     std::condition_variable message_cv_;
     std::mutex message_mutex_;
     bool message_received_ = false;

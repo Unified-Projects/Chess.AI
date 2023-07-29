@@ -32,12 +32,16 @@ bool MoveBypass = false;
 std::array<char, 1024> Recievd;
 bool MessageToHandle = false;
 
-bool MoveCallback(Move& m){
+bool MoveCallback(Move& m, bool played){
     if(MoveBypass){
         return true;
     }
 
     bool Movable = board.CurrentMove == Player;
+
+    if(!played){
+        return Movable;
+    }
 
     if(Movable){ // We want to tell the other
         ChessPacket ChessData;
@@ -120,13 +124,13 @@ void MainGame(const char * FEN){
 
             // Correct Move Packet
             Move m = ChessData.PlayedMove;
-            if(ChessData.MoveExtraFrom_Square != -1){
+            if(ChessData.MoveExtraFrom_Square >= 0 && ChessData.MoveExtraFrom_Square <= 63){
                 m.Extra.From = board.board[ChessData.MoveExtraFrom_Square];
             }
             else{
                 m.Extra.From = new Piece();
             }
-            if(ChessData.MoveExtraTo_Square != -1){
+            if(ChessData.MoveExtraTo_Square >= 0 && ChessData.MoveExtraTo_Square <= 63){
                 m.Extra.To = board.board[ChessData.MoveExtraTo_Square];
             }
             else{
