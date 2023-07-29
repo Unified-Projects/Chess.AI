@@ -26,7 +26,13 @@ void TestPossibleMoves(Board* board, int layer, int& moves, int& checkmates, uin
 
         bool ValidMove = board->MovePiece(m);
 
-        TestPossibleMoves(board, layer-1, moves, checkmates, iterations);
+        
+        if(ValidMove && board->UpdateMate()){
+            // Checkmate
+            checkmates++;
+        }
+        else
+            TestPossibleMoves(board, layer-1, moves, checkmates, iterations);
 
         // Increments
         iterations++;
@@ -53,6 +59,8 @@ struct CustomBoard{
 
 std::vector<CustomBoard> Boards = {
     {"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ", 6, {48, 2039, 97862, 4085603, 193690690, 8031647685}, {0, 0, 1, 43, 30171, 360003}},
+    
+    // May run into issues as we dont read all the FEN! // TODO:
     {"r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1", 6, {6, 264, 9467, 422333, 15833292, 706045033}, {0, 0, 22, 5, 50562, 81076}},
     {"r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1 ", 6, {6, 264, 9467, 422333, 15833292, 706045033}, {0, 0, 22, 5, 50562, 81076}},
     {"rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8  ", 5, {44, 1486, 62379, 2103487, 89941194}, {}, false}

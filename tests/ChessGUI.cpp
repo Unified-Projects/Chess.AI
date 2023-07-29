@@ -8,13 +8,33 @@
 #include <vector>
 #include <string>
 
+#include "argparse.h"
+
 // Board
 Board board;
 
-int main()
+int main(int argc, char** argv)
 {
+    // Load inputs
+    InputParser parser(argc, argv);
+    const char* FEN = "";
+
+    if(parser.cmdOptionExists("-h") || parser.cmdOptionExists("--help")){
+        std::cout << "For usage of app:\n  -f [FEN]\n      Specify starting FEN" << std::endl;
+        return -1;
+    }
+
+    if(parser.getCmdOption("-f").size() > 0){
+        FEN = parser.getCmdOption("-f").c_str();
+    }
+
     // Generate board
-    board.InitBoard();
+    if(!FEN[0]){
+        board.InitBoard();
+    }
+    else{
+        board.InitBoard(FEN);
+    }
 
     // Standard for move validation and generation
     PrecomputeEdges();

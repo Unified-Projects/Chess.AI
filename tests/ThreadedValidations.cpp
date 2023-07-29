@@ -153,18 +153,20 @@ void ThreadedPossibleMoves(Board* board, int splitcoutIndex, int splitcout, int 
         }
 
         bool ValidMove = board->MovePiece(m);
+        
+        if(ValidMove && board->UpdateMate()){
+            // Checkmate
+        }
+        else
+            ThreadedPossibleMoves(board, splitcoutIndex, splitcout, layer-1);
 
-        // Validator Code
+        // If layer == 1:
         if(layer == 1 && ValidMove){
-            // Attempt move validation
             ValidateFen(board);
         }
 
-        ThreadedPossibleMoves(board, splitcoutIndex, splitcout, layer-1);
-
         // If valid move undo
         if(ValidMove){
-            // board->LogBoard();
             board->UndoMove();
         }
     }
@@ -172,7 +174,7 @@ void ThreadedPossibleMoves(Board* board, int splitcoutIndex, int splitcout, int 
     return;
 }
 
-int ThreadedValidations(int threadcount, int layerNumber){
+int ThreadedValidations(int threadcount, int layerNumber, const char * FEN){
     std::list<std::thread*> ActiveThreads;
 
     // Load fens or issues arise
@@ -182,7 +184,12 @@ int ThreadedValidations(int threadcount, int layerNumber){
 
     for(int i = 0; i < threadcount; i++){
         Board* board = new Board(); // Each need their own board
-        board->InitBoard();
+        if(!FEN[0]){
+            board->InitBoard();
+        }
+        else{
+            board->InitBoard(FEN);
+        }
         std::thread* t = new std::thread(ThreadedPossibleMoves, board, i, threadcount, layerNumber);
 
         ActiveThreads.push_back(t);
@@ -236,10 +243,11 @@ int main(int argc, char** argv){
     // Set defaults
     int ThreadCount = 4;
     int LayerCount = 5;
+    const char* FEN = "";
 
     // Get Layer count from parser
     if(parser.cmdOptionExists("-h") || parser.cmdOptionExists("--help")){
-        std::cout << "For usage of test:\n  -t [Thread count]\n     Specifies the number of threads to use\n  -l [Layer count]\n      To specify the number of layers to use\n  -i [Input file path]\n      To specify the file that the valid fens are csv in\n  -o [Output file path]\n     To specify where all invalid results are to be outputted to" << std::endl;
+        std::cout << "For usage of test:\n  -f [FEN]\n     Specifies what FEN it's using\n  -t [Thread count]\n     Specifies the number of threads to use\n  -l [Layer count]\n     To specify the number of layers to use\n  -i [Input file path]\n     To specify the file that the valid fens are csv in\n  -o [Output file path]\n     To specify where all invalid results are to be outputted to" << std::endl;
         return -1;
     }
 
@@ -263,6 +271,11 @@ int main(int argc, char** argv){
         OutputFile = parser.getCmdOption("-o").c_str();
     }
 
+    // Get fen option
+    if(parser.getCmdOption("-f").size() > 0){
+        FEN = parser.getCmdOption("-f").c_str();
+    }
+
     // Run validator
-    return ThreadedValidations(ThreadCount, LayerCount);
+    return ThreadedValidations(ThreadCount, LayerCount, FEN);
 }

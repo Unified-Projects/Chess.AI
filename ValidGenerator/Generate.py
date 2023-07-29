@@ -2,7 +2,10 @@ import chess
 import json
 
 def generate_fens_after_half_moves(half_moves):
-    board = chess.Board()
+
+    # CUSTOM FEN VERSION
+    board = chess.Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ")
+    # board = chess.Board()
     fens = []
     total_positions = 0
 
@@ -28,7 +31,7 @@ def generate_fens_after_half_moves(half_moves):
     return fens
 
 # Example usage
-half_moves = 5  # Number of half-moves
+half_moves = 2  # Number of half-moves
 fens = generate_fens_after_half_moves(half_moves)
 
 # Save the dictionary as a JSON file with nicely formatted structure
