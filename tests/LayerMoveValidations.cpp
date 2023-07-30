@@ -141,6 +141,13 @@ int main(int argc, char** argv){
     else
         board.InitBoard(CustomStartingFen); // TODO: Future issue (This wont load whole FEN string only the board due to spaces in the token)
 
+    // Nodes per second calculations
+    float NPS = 0;
+    clock_t TimeTaken = 0;
+
+    // Failed
+    bool Failed = false;
+
     for (int Layer = 1; Layer <= LayerCount; Layer++){
         // Averages
         int Moves = 0;
@@ -159,12 +166,17 @@ int main(int argc, char** argv){
             Times += TimeTaken;
         }
 
+        // Save for NPS Calculations
+        NPS += Moves;
+        TimeTaken += Times;
+
         // Actuall Testing
         if(Moves/Repetitions != ShannonLimit[Layer-1] && !UsingCustomFen){
             // Wrong Ammount of moves so failed
             std::cout << FMT("Error: ", ERR) << FMT("Wrong Move Count. Got: ", NORMAL) << Moves / Repetitions << FMT(" Where Expecting: ", NORMAL) << ShannonLimit[Layer-1] << std::endl;
             std::cout << FMT("Info: ", WARN) << Moves / Repetitions << FMT(" Moves and ", NORMAL) << Checkmates / Repetitions << FMT(" Checkmates ", NORMAL) << FMT("(" + std::to_string(Times/Repetitions) + "ms)", TIME) << std::endl;
-            return -1;
+            Failed = true;
+            break;
         }
 
         if(ShannonCheckmateToggle[Layer-1] && !UsingCustomFen){
@@ -172,13 +184,17 @@ int main(int argc, char** argv){
                 // Wrong ammount of checkmates
                 std::cout << FMT("Error: ", ERR) << FMT("Wrong Checkmate Count. Got: ", NORMAL) << Checkmates / Repetitions << FMT(" Where Expecting: ", NORMAL) << ShannonCheckmate[Layer-1] << std::endl;
                 std::cout << FMT("Info: ", WARN) << Moves / Repetitions << FMT(" Moves and ", NORMAL) << Checkmates / Repetitions << FMT(" Checkmates ", NORMAL) << FMT("(" + std::to_string(Times/Repetitions) + "ms)", TIME) << std::endl;
-                return -1;
+                Failed = true;
+                break;
             }
         }
         
         std::cout << FMT("Success: ", SUCCESS) << FMT("Correct Counts. Got: ", NORMAL) << Checkmates / Repetitions << FMT(" Checkmates and ", NORMAL) << Moves / Repetitions << FMT(" Moves ", NORMAL) << FMT("(" + std::to_string(Times/Repetitions) + "ms)", TIME) << std::endl;
     }
 
-    // End
-    return 0;
+    // NPS Logging (Reference: Qperft has 190 Million NPS)
+    std::cout << FMT("NPS: ", WARN) << (NPS / (TimeTaken / 1000)) << std::endl;
+
+    // End (Failed needed for CTests)
+    return (Failed) ? -1 : 0;
 }

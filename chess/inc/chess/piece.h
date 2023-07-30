@@ -64,6 +64,57 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
     };
 //
 
+// TODO CHANGES
+/*
+    Bit Layout of piece in a board:
+    
+    The piece type in first 3 bits (Follows Enum)
+    0 NULL Or Not
+    0      1        0      1        0       1
+    0 Pawn 0 Bishop 1 Rook 1 Knight 0 Queen 0 King
+    0      0        0      0        1       1
+        0 White 1 Black
+            0 Movements::SLIDE
+            0 Movements::SLIDE_HORIZONTAL
+            0 Movements::SLIDE_DIAGONAL
+            0 Movements::PAWN_MOVMENT
+            0 Movements::KNIGHT_MOVMENT
+            0 Movements::KING_MOVMENT
+            0 Movements::EN_PASSENT // TODO: Enable when within piece range to not need to keep using If statements
+            UNUSED // 0 Movements::CASTLING // TODO: use to cancel castling capabilites when moved
+            INSTEAD
+            0 Has Moved // More efficient and easier
+                0 // Unused
+                0 // Unused
+                0 // Unused
+
+    A total of 13 bits used to store this data
+    Allowing the entire board to be represented as a short (16-bit value)
+
+    // Notes
+    We no longer store the pieces current square position so we may need to adjust stuff to give the information
+
+    // Undo move easier
+    Since we no longer manage pointers and shit
+    We can just cache the board and then restore the array pointer to board
+    So no management of shitty MoveExtras and stuff
+
+    // Check Management (Maybe not idk)
+    We hold a bitmap (uint64_t) and use bit masks to access each individual bit
+    It will mention the spaces on the board that are being attacked
+
+    // Move lists
+    We can store both colours in separate lists so that we can always access the others moves
+*/
+
+// Accessors as Macros (Not functions as to be efficient)
+#define IsNull(piece) piece & 0b0000000000000001 // First Bit
+#define GetType(piece) piece & 0b0000000000001110 // Next 3 bits
+#define GetColour(piece) piece & 0b0000000000010000 // Next 1 bits
+#define GetCapabilites(piece, capability) (piece >> 4) & capability // Next 7 bits
+#define GetMoved(piece) piece & 0b0001000000000000 // Next 1 bits
+#define GetUnused(piece) piece & 0b1110000000000000 // Next 3 bits
+
 // Basic Piece definition
     struct Piece{
         friend class Board;
