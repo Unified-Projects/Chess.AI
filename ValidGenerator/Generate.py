@@ -4,8 +4,8 @@ import json
 def generate_fens_after_half_moves(half_moves):
 
     # CUSTOM FEN VERSION
-    board = chess.Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ")
-    # board = chess.Board()
+    # board = chess.Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ")
+    board = chess.Board()
     fens = []
     total_positions = 0
 
@@ -15,7 +15,7 @@ def generate_fens_after_half_moves(half_moves):
             fens.append(board.fen())
             position_count += 1
             total_positions += 1
-            if total_positions % 1000 == 0:
+            if total_positions % 10000 == 0:
                 print(f"Generated {total_positions} FENs")
             return position_count
 
@@ -31,7 +31,7 @@ def generate_fens_after_half_moves(half_moves):
     return fens
 
 # Example usage
-half_moves = 2  # Number of half-moves
+half_moves = 5  # Number of half-moves
 fens = generate_fens_after_half_moves(half_moves)
 
 # Save the dictionary as a JSON file with nicely formatted structure

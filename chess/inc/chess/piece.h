@@ -68,7 +68,7 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
 /*
     Bit Layout of piece in a board:
     
-    The piece type in first 3 bits (Follows Enum)
+    The piece type in first 4 bits (Follows Enum, except negative)
     0 NULL Or Not
     0      1        0      1        0       1
     0 Pawn 0 Bishop 1 Rook 1 Knight 0 Queen 0 King
