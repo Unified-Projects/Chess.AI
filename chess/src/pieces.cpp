@@ -121,7 +121,7 @@ void GenerateSlidingMoves(int Square, Piece* piece, Board* b){
                 break; // Wrong, so change direction
             }
 
-            b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
+            b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), {0}});
 
             // If attacking place
             if(targetPiece->GetC() != piece->GetC() && targetPiece->GetC() != NULL_COLOUR){
@@ -158,7 +158,7 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
                 b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), MoveExtra{SPECIAL_PROMOTION, targetSquare, piece, new Queen(piece->GetC())}});
             }
             else{ // Norm
-                b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
+                b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), {0}});
             }
         }
         else if (abs(offset) == 16) {
@@ -186,7 +186,7 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
                 b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), MoveExtra{SPECIAL_PROMOTION, targetSquare, piece, new Queen(piece->GetC())}});
             }
             else{ // Norm
-                b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
+                b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), {0}});
             }
         }
         else if (abs(offset) == 7 || abs(offset) == 9) {
@@ -194,7 +194,7 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
             if(targetPiece->GetT() == NULL_TYPE){
                 // En-passent check
                 int EnPassentSquare = targetSquare + ((piece->GetC() == WHITE) ? -8 : 8);
-
+                // TODO: Incorrect Ammount but somehow adds 3000 moves
                 if(Square >= ((piece->GetC() == WHITE) ? 32 : 24) && Square <= ((piece->GetC() == WHITE) ? 39 : 31)){ // En-passent possible
                     if(b->board[EnPassentSquare]->moveCount == 1 && b->PlayedMoves.back().MovedPiece == b->board[EnPassentSquare] && b->board[EnPassentSquare]->GetT() == PAWN){
                         b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), {SPECIAL_EN_PASSENT, EnPassentSquare, b->board[EnPassentSquare], new Piece()}});
@@ -212,7 +212,7 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
                 // }
                 // continue;
             }
-            else if(targetPiece->GetC() != piece->GetC()) {
+            else if(targetPiece->GetC() != piece->GetC() && targetPiece->GetT() != NULL_TYPE) {
                 // rEGULAR dINGNAL mOVEMENT
                 // all good
 
@@ -222,7 +222,7 @@ void GeneratePawnMovements(int Square, Piece* piece, Board* b){
                     b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), MoveExtra{SPECIAL_PROMOTION, targetSquare, piece, new Queen(piece->GetC())}});
                 }
                 else{ // Norm
-                    b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
+                    b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), {0}});
                 }
             }
         }
@@ -244,7 +244,7 @@ void GenerateKnightMovements(int Square, Piece* piece, Board* b){
             continue; // Wrong, so change direction
         }
 
-        b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
+        b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), {0}});
     }
 }
 
@@ -265,7 +265,7 @@ void GenerateKingMovements(int Square, Piece* piece, Board* b){
             continue; // Wrong, so change direction
         }
 
-        b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT()});
+        b->MoveList.push_back(Move{Square, targetSquare, targetPiece->GetT(), {0}});
     }
 
     // TODO: Castling More checks needed so not perfect
@@ -287,7 +287,7 @@ void GenerateKingMovements(int Square, Piece* piece, Board* b){
         // Check if rook is there
         if (b->board[Square+3]->GetT() == ROOK && b->board[Square+3]->moveCount == 0) {
             // Check if path is clear
-            if (b->board[Square+1]->GetT() == NULL_TYPE && b->board[Square+2]->GetT()) {
+            if (b->board[Square+1]->GetT() == NULL_TYPE && b->board[Square+2]->GetT() == NULL_TYPE) {
                 b->MoveList.push_back(Move{Square, Square+2, NULL_TYPE, {SPECIAL_CASTLING, Square+1, b->board[Square+3], new Piece()}});
             }
         }

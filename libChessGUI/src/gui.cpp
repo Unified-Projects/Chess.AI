@@ -330,7 +330,6 @@ void GameWindow::mouse_callback(GLFWwindow* window, int button, int action, int 
         return;
     }
 
-
     // Ingnore from here if we are off screen
     if(CursorX > GlobWin->BoardX || CursorY > GlobWin->BoardY){
         return;

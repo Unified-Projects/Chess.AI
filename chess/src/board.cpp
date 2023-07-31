@@ -312,6 +312,8 @@ std::list<Move> Board::GenerateMoves(){
 
     MoveList = {};
 
+    // TODO: Promotion issue where queen cant move after promoting
+
     // Loop over all squares
     // for (int Square = 0; Square < 64; Square++){ - Optimised Out
     for(Piece* p : (CurrentMove == WHITE) ? WhitePieces : BlackPieces){
@@ -386,21 +388,30 @@ bool Board::UpdateMate(){
     return true;
 }
 
+int cast = 0;
+int en = 0;
+
 bool Board::MovePiece(Move m){ // REQUIRES A VALID MOVE TO BE PASSED IN
     // Can't take king
     if(m.Taking == KING){
         return false;
     }
 
+    // Can't Move a Null-Piece
+    if(board[m.Start]->t == NULL_TYPE){
+        // BIG ISSUE
+        std::cout << "ERR Cannot move null piece" << std::endl;
+    }
+
     PlayedMoves.push_back(MoveCache{board[m.Start], board[m.End], m, m.Extra});
 
     // If taking piece
-    if (board[m.End]->t != NULL_TYPE){
+    if (board[m.End]->t != NULL_TYPE){ // TODO: Assuming that colours are correct
         // Remove from corresponding list
         ((board[m.End]->c == WHITE) ? WhitePieces : BlackPieces).remove(board[m.End]);
     }
 
-    // TODO: PROMOTION DOES NOT WORK!
+    // TODO: PROMOTION DOES NOT WORK! (It cannot move post)
 
     // Actual board swaps
     board[m.End] = board[m.Start];
@@ -415,6 +426,10 @@ bool Board::MovePiece(Move m){ // REQUIRES A VALID MOVE TO BE PASSED IN
         if(m.Extra.type == SPECIAL_EN_PASSENT){
             board[m.Extra.square] = m.Extra.To; // Kill piece
             ((board[m.Extra.square]->c == WHITE) ? WhitePieces : BlackPieces).remove(m.Extra.From); // Remove from pieces colours
+
+            // Tests
+            en++;
+            std::cout << "En-Passent: " << en << std::endl;
         }
         else if(m.Extra.type == SPECIAL_CASTLING){
             // Change Cache to follow new move extra :)
@@ -485,9 +500,9 @@ void Board::UndoMove(){
     UpdateCheck();
 
     // If piece taken
-    if (board[Move.move.End]->t != NULL_TYPE){
+    if (Move.TargetPiece->t != NULL_TYPE){
         // Restore to corresponding list
-        ((board[Move.move.End]->c == WHITE) ? WhitePieces : BlackPieces).push_back(board[Move.move.End]);
+        ((Move.TargetPiece->c == WHITE) ? WhitePieces : BlackPieces).push_back(Move.TargetPiece);
     }
 
     // Decrease move count and restore positions
