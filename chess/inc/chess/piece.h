@@ -59,7 +59,7 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
         KING_MOVMENT = 0x20,
 
         // Special
-        EN_PASSENT = 0x40,
+        EN_PASSENT = 0x40, // TODO: FIX SPELLING EN_PASSANT
         CASTLING = 0x80,
     };
 //
@@ -137,7 +137,7 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
 #define IsNull(piece) piece & 0b0000000000000001 // First Bit
 #define GetType(piece) piece & 0b0000000000001110 // Next 3 bits
 #define GetColour(piece) piece & 0b0000000000010000 // Next 1 bits
-#define GetCapabilites(piece, capability) (piece >> 4) & capability // Next 7 bits
+#define GetMoveCapabilites(piece, capability) (piece >> 4) & capability // Next 7 bits
 #define GetMoved(piece) piece & 0b0001000000000000 // Next 1 bits
 #define GetUnused(piece) piece & 0b1110000000000000 // Next 3 bits
 
@@ -165,7 +165,7 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
 #define SetHasMoved(value, flag) value = ((value & ~(0x1 << HAS_MOVED_SHIFT)) | ((flag & 0x1) << HAS_MOVED_SHIFT))
 
 // Macros for setting piece to each type
-#define SetPiece(value, type, color, movement) do { \
+#define SetPieceInfo(value, type, color, movement) do { \
     SetNullFlag(value, 0); \
     SetPieceType(value, type); \
     SetPieceColour(value, color); \
@@ -173,12 +173,12 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
 } while(0)
 
 #define SET_NULL(value) SetNullFlag(value, 1)
-#define SET_PAWN(value, color) SetPiece(value, PAWN, color, PAWN_MOVMENT)
-#define SET_BISHOP(value, color) SetPiece(value, BISHOP, color, SLIDE | SLIDE_DIAGONAL)
-#define SET_ROOK(value, color) SetPiece(value, ROOK, color, SLIDE | SLIDE_HORIZONTAL)
-#define SET_KNIGHT(value, color) SetPiece(value, KNIGHT, color, KNIGHT_MOVMENT)
-#define SET_QUEEN(value, color) SetPiece(value, QUEEN, color, SLIDE | SLIDE_HORIZONTAL | SLIDE_DIAGONAL)
-#define SET_KING(value, color) SetPiece(value, KING, color, KING_MOVMENT)
+#define SET_PAWN(value, color) SetPieceInfo(value, PAWN, color, PAWN_MOVMENT)
+#define SET_BISHOP(value, color) SetPieceInfo(value, BISHOP, color, SLIDE | SLIDE_DIAGONAL)
+#define SET_ROOK(value, color) SetPieceInfo(value, ROOK, color, SLIDE | SLIDE_HORIZONTAL)
+#define SET_KNIGHT(value, color) SetPieceInfo(value, KNIGHT, color, KNIGHT_MOVMENT)
+#define SET_QUEEN(value, color) SetPieceInfo(value, QUEEN, color, SLIDE | SLIDE_HORIZONTAL | SLIDE_DIAGONAL)
+#define SET_KING(value, color) SetPieceInfo(value, KING, color, KING_MOVMENT)
 
 // Basic Piece definition
     struct Piece{

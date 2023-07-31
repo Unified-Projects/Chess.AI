@@ -83,6 +83,17 @@ void Board::InitBoard(std::string FEN) {
     const char* FEN_STR = FEN.c_str();
     int LocalRank = 7;
     int LocalFile = 0;
+    int Section = 0;
+
+    // Easier Visuals
+    enum Sections{
+        FEN_BOARD = 0x00,
+        FEN_ACTIVE_COLOUR,
+        FEN_CASTLING_RIGHTS,
+        FEN_EN_PASSANT,
+        FEN_HALF_MOVES,
+        FEN_FULL_MOVES
+    };
 
     // TODO: Fix loading of board, currently backwards
     // // Iterate over the FEN inputted notation for parsing
@@ -95,52 +106,125 @@ void Board::InitBoard(std::string FEN) {
                 will start from default.
         */
 
-        // Check if it is a digit
-        if (*FEN_STR >= '1' && *FEN_STR <= '8') {
-            for (int i = 0; i < *FEN_STR - 48; i++) {
-                board[(LocalRank * 8) + LocalFile + i] = new Piece();
-                board[(LocalRank * 8) + LocalFile + i]->Square = (LocalRank * 8) + LocalFile + i;
+        // Use if statements as we use continue / break and switch would break them
+        if(Section == FEN_BOARD){ // This section loads the board info
+            { // Extra indents
+                // Check if it is a digit
+                if (*FEN_STR >= '1' && *FEN_STR <= '8') {
+                    for (int i = 0; i < *FEN_STR - 48; i++) {
+                        board[(LocalRank * 8) + LocalFile + i] = new Piece();
+                        board[(LocalRank * 8) + LocalFile + i]->Square = (LocalRank * 8) + LocalFile + i;
+                    }
+
+                    LocalFile += *FEN_STR - 48;
+                    continue;
+                }
+
+                // New board row
+                if (*FEN_STR == '/') {
+                    LocalFile = 0;
+                    LocalRank--;
+                    continue;
+                }
+
+                // Section end so we stop loading board information
+                if (*FEN_STR == ' ') { // Section Ends are specific to the section
+                    Section++;
+                    continue;
+                }
+
+                // Piece assignment according to map
+                Piece* newPiece = pieceMapper[*FEN_STR]->Clone();
+                board[(LocalRank * 8) + LocalFile] = newPiece;
+                newPiece->Square = (LocalRank * 8) + LocalFile;
+
+                if (newPiece->t == KING){
+                    if (newPiece->c == WHITE){
+                        WhiteKing = newPiece;
+                    }
+                    else{
+                        BlackKing = newPiece;
+                    }
+                }
+
+                if (newPiece->c == WHITE){
+                    WhitePieces.push_back(newPiece);
+                }
+                else{
+                    BlackPieces.push_back(newPiece);
+                }
+
+                // Move horizonatally
+                LocalFile++;
+            }
+        }
+        else if(Section == FEN_ACTIVE_COLOUR){
+            if(*FEN_STR == 'b' || *FEN_STR == 'B'){
+                // Blacks turn
+                CurrentMove = BLACK;
+            }
+            else if(*FEN_STR == 'w' || *FEN_STR == 'W'){
+                // Whites turn
+                CurrentMove = WHITE;
+            }
+            else{ // Section Ends
+                Section++;
+                continue;
+            }
+        }
+        else if(Section == FEN_CASTLING_RIGHTS){
+            // TODO: Store if castle and then allow castling if board allow it
+            // Note: This is not a required feature as we will mostly work with standard boards! (Except testing)
+
+            if(*FEN_STR == 'q' || *FEN_STR == 'B'){
+                // Black Queen Castle
+            }
+            else if(*FEN_STR == 'k'){
+                // Black King Castle
+            }
+            else if(*FEN_STR == 'Q'){
+                // White Queen Castle
+            }
+            else if(*FEN_STR == 'K'){
+                // White King Castle
+            }
+            else if(*FEN_STR == '-'){
+                // None
+            }
+            else{ // Section Ends
+                Section++;
+                continue;
+            }
+        }
+        else if(Section == FEN_EN_PASSANT){
+            if(*FEN_STR == ' ') { // Section Ends
+                Section++;
+                continue;
             }
 
-            LocalFile += *FEN_STR - 48;
-            continue;
-        }
-
-        // New board row
-        if (*FEN_STR == '/') {
-            LocalFile = 0;
-            LocalRank--;
-            continue;
-        }
-
-        // Section end so we end
-        if (*FEN_STR == ' ') {
-            break;
-        }
-
-        // Piece assignment according to map
-        Piece* newPiece = pieceMapper[*FEN_STR]->Clone();
-        board[(LocalRank * 8) + LocalFile] = newPiece;
-        newPiece->Square = (LocalRank * 8) + LocalFile;
-
-        if (newPiece->t == KING){
-            if (newPiece->c == WHITE){
-                WhiteKing = newPiece;
+            if(*FEN_STR == '-'){
+                // No targets
             }
             else{
-                BlackKing = newPiece;
+                // This and next char stuff to outline target square
             }
         }
+        else if(Section == FEN_HALF_MOVES){
+            if(*FEN_STR == ' ') { // Section Ends
+                Section++;
+                continue;
+            }
 
-        if (newPiece->c == WHITE){
-            WhitePieces.push_back(newPiece);
+            // Some sort of character processing to get the number
         }
-        else{
-            BlackPieces.push_back(newPiece);
-        }
+        else if(Section == FEN_FULL_MOVES){
+            if(*FEN_STR == ' ') { // Section Ends
+                Section++;
+                continue;
+            }
 
-        // Move horizonatally
-        LocalFile++;
+            // Some sort of character processing to get the number
+        }
     }
 
     // Current Move
