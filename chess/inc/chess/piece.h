@@ -70,23 +70,23 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
     
     The piece type in first 4 bits (Follows Enum, except negative)
     0 NULL Or Not
-    0      1        0      1        0       1
-    0 Pawn 0 Bishop 1 Rook 1 Knight 0 Queen 0 King
-    0      0        0      0        1       1
-        0 White 1 Black
-            0 Movements::SLIDE
-            0 Movements::SLIDE_HORIZONTAL
-            0 Movements::SLIDE_DIAGONAL
-            0 Movements::PAWN_MOVMENT
-            0 Movements::KNIGHT_MOVMENT
-            0 Movements::KING_MOVMENT
-            0 Movements::EN_PASSENT // TODO: Enable when within piece range to not need to keep using If statements
-            UNUSED // 0 Movements::CASTLING // TODO: use to cancel castling capabilites when moved
-            INSTEAD
-            0 Has Moved // More efficient and easier
-                0 // Unused
-                0 // Unused
-                0 // Unused
+        0      1        0      1        0       1
+        0 Pawn 0 Bishop 1 Rook 1 Knight 0 Queen 0 King
+        0      0        0      0        1       1
+            0 White 1 Black
+                0 Movements::SLIDE
+                0 Movements::SLIDE_HORIZONTAL
+                0 Movements::SLIDE_DIAGONAL
+                0 Movements::PAWN_MOVMENT
+                0 Movements::KNIGHT_MOVMENT
+                0 Movements::KING_MOVMENT
+                0 Movements::EN_PASSENT // TODO: Enable when within piece range to not need to keep using If statements
+                UNUSED // 0 Movements::CASTLING // TODO: use to cancel castling capabilites when moved
+                INSTEAD
+                0 Has Moved // More efficient and easier
+                    0 // Unused
+                    0 // Unused
+                    0 // Unused
 
     A total of 13 bits used to store this data
     Allowing the entire board to be represented as a short (16-bit value)
@@ -107,6 +107,32 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
     We can store both colours in separate lists so that we can always access the others moves
 */
 
+/* Expected Data
+/----------------------------------------------------------\
+| Piece Type     | Binary Representation (from MSB to LSB) |
+|----------------------------------------------------------|
+| Null           | 0000 0000000 0 0001                     |
+|----------------------------------------------------------|
+| Pawn (White)   | 0000 0000000 0 0000                     |
+| Pawn (Black)   | 0000 0000000 1 0000                     |
+|----------------------------------------------------------|
+| Bishop (White) | 0000 0000101 0 0010                     |
+| Bishop (Black) | 0000 0000101 1 0010                     |
+|----------------------------------------------------------|
+| Rook (White)   | 0000 0000010 0 0100                     |
+| Rook (Black)   | 0000 0000010 1 0100                     |
+|----------------------------------------------------------|
+| Knight (White) | 0000 0001000 0 0110                     |
+| Knight (Black) | 0000 0001000 1 0110                     |
+|----------------------------------------------------------|
+| Queen (White)  | 0000 0001111 0 1000                     |
+| Queen (Black)  | 0000 0001111 1 1000                     |
+|----------------------------------------------------------|
+| King (White)   | 0000 0010000 0 1010                     |
+| King (Black)   | 0000 0010000 1 1010                     |
+\----------------------------------------------------------/
+*/
+
 // Accessors as Macros (Not functions as to be efficient)
 #define IsNull(piece) piece & 0b0000000000000001 // First Bit
 #define GetType(piece) piece & 0b0000000000001110 // Next 3 bits
@@ -114,6 +140,45 @@ extern void GenerateKingMovements(int Square, Piece* piece, Board* b);
 #define GetCapabilites(piece, capability) (piece >> 4) & capability // Next 7 bits
 #define GetMoved(piece) piece & 0b0001000000000000 // Next 1 bits
 #define GetUnused(piece) piece & 0b1110000000000000 // Next 3 bits
+
+// Piece Configurations (Mutator Macros)
+
+#define PIECE_TYPE_SHIFT 1
+#define NULL_FLAG_SHIFT 0
+#define PIECE_COLOR_SHIFT 4
+#define MOVEMENT_SHIFT 5
+#define HAS_MOVED_SHIFT 12
+
+// Set type of piece
+#define SetPieceType(value, type) value = ((value & ~(0x7 << PIECE_TYPE_SHIFT)) | ((type & 0x7) << PIECE_TYPE_SHIFT))
+
+// Set Null flag (0 for not null, 1 for null)
+#define SetNullFlag(value, flag) value = ((value & ~(0x1 << NULL_FLAG_SHIFT)) | ((flag & 0x1) << NULL_FLAG_SHIFT))
+
+// Set colour of piece (0 for white, 1 for black)
+#define SetPieceColour(value, color) value = ((value & ~(0x1 << PIECE_COLOR_SHIFT)) | ((color & 0x1) << PIECE_COLOR_SHIFT))
+
+// Set movement flags
+#define SetMovements(value, movement) value = ((value & ~(0x7F << MOVEMENT_SHIFT)) | ((movement & 0x7F) << MOVEMENT_SHIFT))
+
+// Set Has Moved flag (1 for moved, 0 for not moved)
+#define SetHasMoved(value, flag) value = ((value & ~(0x1 << HAS_MOVED_SHIFT)) | ((flag & 0x1) << HAS_MOVED_SHIFT))
+
+// Macros for setting piece to each type
+#define SetPiece(value, type, color, movement) do { \
+    SetNullFlag(value, 0); \
+    SetPieceType(value, type); \
+    SetPieceColour(value, color); \
+    SetMovements(value, movement); \
+} while(0)
+
+#define SET_NULL(value) SetNullFlag(value, 1)
+#define SET_PAWN(value, color) SetPiece(value, PAWN, color, PAWN_MOVMENT)
+#define SET_BISHOP(value, color) SetPiece(value, BISHOP, color, SLIDE | SLIDE_DIAGONAL)
+#define SET_ROOK(value, color) SetPiece(value, ROOK, color, SLIDE | SLIDE_HORIZONTAL)
+#define SET_KNIGHT(value, color) SetPiece(value, KNIGHT, color, KNIGHT_MOVMENT)
+#define SET_QUEEN(value, color) SetPiece(value, QUEEN, color, SLIDE | SLIDE_HORIZONTAL | SLIDE_DIAGONAL)
+#define SET_KING(value, color) SetPiece(value, KING, color, KING_MOVMENT)
 
 // Basic Piece definition
     struct Piece{
