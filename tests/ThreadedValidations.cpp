@@ -92,11 +92,18 @@ void CacheFoundFen(std::string FEN){
     FoundFens.push_back(FEN);
 }
 
-bool ValidateFen(Board* b){
+// Skipping Point
+uint64_t SkipTo = 0;
 
+bool ValidateFen(Board* b){
     if (ValidFens.empty()) {
         LoadFens();
         std::cout << "Loaded Fens" << std::endl;
+    }
+
+    if(SkipTo != Validated){
+        Validated++;
+        return true; // Skipped
     }
 
     // Convert board to fen
@@ -247,7 +254,7 @@ int main(int argc, char** argv){
 
     // Get Layer count from parser
     if(parser.cmdOptionExists("-h") || parser.cmdOptionExists("--help")){
-        std::cout << "For usage of test:\n  -f [FEN]\n     Specifies what FEN it's using\n  -t [Thread count]\n     Specifies the number of threads to use\n  -l [Layer count]\n     To specify the number of layers to use\n  -i [Input file path]\n     To specify the file that the valid fens are csv in\n  -o [Output file path]\n     To specify where all invalid results are to be outputted to" << std::endl;
+        std::cout << "For usage of test:\n  -f [FEN]\n     Specifies what FEN it's using\n  -t [Thread count]\n     Specifies the number of threads to use\n  -l [Layer count]\n     To specify the number of layers to use\n  -i [Input file path]\n     To specify the file that the valid fens are csv in\n  -o [Output file path]\n     To specify where all invalid results are to be outputted to\  -s [Offset]\n     Set a starting point for validations so that you don't have to repeat" << std::endl;
         return -1;
     }
 
@@ -259,6 +266,11 @@ int main(int argc, char** argv){
     // Get thread option
     if(parser.getCmdOption("-t").size() > 0){
         ThreadCount = atoi(parser.getCmdOption("-t").c_str());
+    }
+
+    // Get skipto option
+    if(parser.getCmdOption("-s").size() > 0){
+        SkipTo = atoi(parser.getCmdOption("-s").c_str());
     }
 
     // Get input option
