@@ -101,7 +101,7 @@ bool ValidateFen(Board* b){
         std::cout << "Loaded Fens" << std::endl;
     }
 
-    if(SkipTo != Validated){
+    if(SkipTo > Validated){
         Validated++;
         return true; // Skipped
     }
@@ -164,8 +164,9 @@ void ThreadedPossibleMoves(Board* board, int splitcoutIndex, int splitcout, int 
         if(ValidMove && board->UpdateMate()){
             // Checkmate
         }
-        else
+        else if(ValidMove){
             ThreadedPossibleMoves(board, splitcoutIndex, splitcout, layer-1);
+        }
 
         // If layer == 1:
         if(layer == 1 && ValidMove){
@@ -228,7 +229,7 @@ int ThreadedValidations(int threadcount, int layerNumber, const char * FEN){
             }
         }
 
-        if(!Found){
+        if(!Found && !SkipTo){
             StoreText("MISSED: " + s);
         }
     }
@@ -254,7 +255,7 @@ int main(int argc, char** argv){
 
     // Get Layer count from parser
     if(parser.cmdOptionExists("-h") || parser.cmdOptionExists("--help")){
-        std::cout << "For usage of test:\n  -f [FEN]\n     Specifies what FEN it's using\n  -t [Thread count]\n     Specifies the number of threads to use\n  -l [Layer count]\n     To specify the number of layers to use\n  -i [Input file path]\n     To specify the file that the valid fens are csv in\n  -o [Output file path]\n     To specify where all invalid results are to be outputted to\  -s [Offset]\n     Set a starting point for validations so that you don't have to repeat" << std::endl;
+        std::cout << "For usage of test:\n  -f [FEN]\n     Specifies what FEN it's using\n  -t [Thread count]\n     Specifies the number of threads to use\n  -l [Layer count]\n     To specify the number of layers to use\n  -i [Input file path]\n     To specify the file that the valid fens are csv in\n  -o [Output file path]\n     To specify where all invalid results are to be outputted to\n  -s [Offset]\n     Set a starting point for validations so that you don't have to repeat" << std::endl;
         return -1;
     }
 

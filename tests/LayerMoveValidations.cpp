@@ -13,7 +13,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
-
+int IssueCount = 1;
 void TestPossibleMoves(Board* board, int layer, int& moves, int& checkmates, uint64_t& iterations){
     if(layer == 0){
         return;
@@ -26,13 +26,15 @@ void TestPossibleMoves(Board* board, int layer, int& moves, int& checkmates, uin
 
         bool ValidMove = board->MovePiece(m);
 
-        
         if(ValidMove && board->UpdateMate()){
             // Checkmate
-            checkmates++;
+            if(layer == 1){
+                checkmates++;
+            }
         }
-        else
+        else if(ValidMove){
             TestPossibleMoves(board, layer-1, moves, checkmates, iterations);
+        }
 
         // Increments
         iterations++;
@@ -174,7 +176,7 @@ int main(int argc, char** argv){
         if(Moves/Repetitions != ShannonLimit[Layer-1] && !UsingCustomFen){
             // Wrong Ammount of moves so failed
             std::cout << FMT("Error: ", ERR) << FMT("Wrong Move Count. Got: ", NORMAL) << Moves / Repetitions << FMT(" Where Expecting: ", NORMAL) << ShannonLimit[Layer-1] << std::endl;
-            std::cout << FMT("Info: ", WARN) << Moves / Repetitions << FMT(" Moves and ", NORMAL) << Checkmates / Repetitions << FMT(" Checkmates ", NORMAL) << FMT("(" + std::to_string(Times/Repetitions) + "ms)", TIME) << std::endl;
+            std::cout << FMT("Info: ", WARN) << Moves / Repetitions << FMT(" Moves and ", NORMAL) << Checkmates / Repetitions << FMT(" Checkmates ", NORMAL) << FMT("(" + std::to_string((int)(Times/Repetitions)) + "ms)", TIME) << std::endl;
             Failed = true;
             break;
         }
@@ -183,13 +185,16 @@ int main(int argc, char** argv){
             if(ShannonCheckmate[Layer-1] != Checkmates / Repetitions){
                 // Wrong ammount of checkmates
                 std::cout << FMT("Error: ", ERR) << FMT("Wrong Checkmate Count. Got: ", NORMAL) << Checkmates / Repetitions << FMT(" Where Expecting: ", NORMAL) << ShannonCheckmate[Layer-1] << std::endl;
-                std::cout << FMT("Info: ", WARN) << Moves / Repetitions << FMT(" Moves and ", NORMAL) << Checkmates / Repetitions << FMT(" Checkmates ", NORMAL) << FMT("(" + std::to_string(Times/Repetitions) + "ms)", TIME) << std::endl;
+                std::cout << FMT("Info: ", WARN) << Moves / Repetitions << FMT(" Moves and ", NORMAL) << Checkmates / Repetitions << FMT(" Checkmates ", NORMAL) << FMT("(" + std::to_string((int)(Times/Repetitions)) + "ms)", TIME) << std::endl;
                 Failed = true;
                 break;
             }
         }
         
-        std::cout << FMT("Success: ", SUCCESS) << FMT("Correct Counts. Got: ", NORMAL) << Checkmates / Repetitions << FMT(" Checkmates and ", NORMAL) << Moves / Repetitions << FMT(" Moves ", NORMAL) << FMT("(" + std::to_string(Times/Repetitions) + "ms)", TIME) << std::endl;
+        std::cout << FMT("Success: ", SUCCESS) << FMT("Correct Counts. Got: ", NORMAL) << Checkmates / Repetitions << FMT(" Checkmates and ", NORMAL) << Moves / Repetitions << FMT(" Moves ", NORMAL) << FMT("(" + std::to_string((int)(Times/Repetitions)) + "ms)", TIME) << std::endl;
+    
+        // Re-initialse board
+        board.InitBoard();
     }
 
     // NPS Logging (Reference: Qperft has 190 Million NPS)

@@ -66,8 +66,8 @@ void Board::InitBoard(std::string FEN) {
                 QK defines that the Rooks on both the queens side and the kings side
                     are playable.
 
-        Section 4: Moves
-            Will be a list of moves that have been played ('-' means no moves)
+        Section 4: En Passent
+            If En Passent is possible and where ('-' means no moves)
 
         Section 5: Half Clock
             Number of moves since the last capture or pawn advance
@@ -78,6 +78,27 @@ void Board::InitBoard(std::string FEN) {
     */
 
     // TODO: Error Checking on the inputted FEN
+
+    // Re-init all
+    // Check management
+    Check = false;
+    Stale = false;
+    Mate = false;
+
+    // Color
+    CheckedColour = NULL_COLOUR;
+    CurrentMove = WHITE;
+
+    // King savings
+    WhiteKing = nullptr;
+    BlackKing = nullptr;
+
+    // Pieces
+    WhitePieces = {};
+    BlackPieces = {};
+
+    MoveList = {};
+    PreviousGeneration = NULL_COLOUR; // Caching
 
     // Used for iteration and a local position vector for setting pieces
     const char* FEN_STR = FEN.c_str();
@@ -369,7 +390,7 @@ bool Board::UpdateCheck(){
         }
     }
 
-    return false; // Not in check
+    return Check; // Not in check
 }
 
 bool Board::UpdateMate(){
@@ -427,9 +448,9 @@ bool Board::MovePiece(Move m){ // REQUIRES A VALID MOVE TO BE PASSED IN
             board[m.Extra.square] = m.Extra.To; // Kill piece
             ((board[m.Extra.square]->c == WHITE) ? WhitePieces : BlackPieces).remove(m.Extra.From); // Remove from pieces colours
 
-            // Tests
-            en++;
-            std::cout << "En-Passent: " << en << std::endl;
+            // // Tests TODO:
+            // en++;
+            // std::cout << "En-Passent: " << en << std::endl;
         }
         else if(m.Extra.type == SPECIAL_CASTLING){
             // Change Cache to follow new move extra :)
@@ -489,6 +510,7 @@ void Board::UndoMove(){
             board[Move.Extra.From->Square] = new Piece();
             board[Move.Extra.square] = Move.Extra.From;
             Move.Extra.From->Square = Move.Extra.square;
+            // TODO : Move count
         }
         else if(Move.Extra.type == SPECIAL_PROMOTION){
             board[Move.move.Start] = Move.Extra.From;
