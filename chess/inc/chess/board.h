@@ -16,16 +16,13 @@
 // Extras for special moves
 enum SpecialMoveType{
     SPECIAL_EN_PASSENT = 1,
-    SPECIAL_CASTLING = 2,
-    SPECIAL_PROMOTION = 3
+    SPECIAL_CASTLING_KING = 2,
+    SPECIAL_CASTLING_QUEEN = 3,
+    SPECIAL_PROMOTION = 4
 };
 struct MoveExtra{ // TODO: Maybe integrate to make a better Promotion system or try to remove
-    int type = 0;
-    int square;
-
-    // For caching
-    Piece* From;
-    Piece* To;
+    int Type = 0;
+    int Square;
 };
 
 // Moves
@@ -38,29 +35,15 @@ struct Move{
     MoveExtra Extra{};
 };
 
-// For caching previous moves
-struct MoveCache{
-    // Pieces
-    Piece* MovedPiece;
-    Piece* TargetPiece;
-
-    // Positions
-    Move move;
-
-    MoveExtra Extra;
-};
-
 class Board {
     friend struct Piece;
 public: // Standardised
     // Define standard map to FEN kesy to our defined pieces
-    static std::map<char, Piece*> pieceMapper;
+    static std::map<char, Type> pieceMapper;
     static std::map<Type, char> typeMapper; // Usefull for the move notation and checking if it is valid
 
 public: // Private board management
-    Piece* board[64] = {};
-
-    void SetPiece(int X, int Y, Piece* p);
+    short* board;
 
     // Check management
     bool Check = false;
@@ -72,12 +55,12 @@ public: // Private board management
     Colour CurrentMove = WHITE;
 
     // King savings
-    Piece* WhiteKing = nullptr;
-    Piece* BlackKing = nullptr;
+    int WhiteKing = -1;
+    int BlackKing = -1;
 
-    // Pieces
-    std::list<Piece*> WhitePieces = {};
-    std::list<Piece*> BlackPieces = {};
+    // // Pieces
+    std::list<int> WhitePieces = {};
+    std::list<int> BlackPieces = {};
 
 public: // Setup / De-setup
     // Probably should do something with me
@@ -90,30 +73,8 @@ public: // Setup / De-setup
     void InitBoard(std::string FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
 public: // Gameplay
-    // Get a piece from the board (Used by pieces for validation purposes)
-    // Piece* GetPieceAtPosition(int X, int Y);
-    // Piece* GetPieceAtPosition(char X, int Y);
-
-    // // Play a move, independent of colour
-    // bool PlayMove(std::string notation) {UNIMPLEMENTED return false;}; // Try to use standard notations //TODO: Pipe into MovePiece after translating
-    // bool MovePiece(int startX, int startY, int endX, int endY, bool ignoreCheck=false); // Simpler moving function
-    // void UndoMove(); // Simple undo previous move
-
-    // // Check Updater
-    // bool UpdateCheck();
-    // bool UpdateCheckmate();
-    // bool UpdateStalemate();
-    // bool IsCheck(){return Check;}
-
-    // // Get Pieces
-    // std::list<Piece*> GetWhitePieces() {return std::list<Piece*>(this->WhitePieces);}
-    // std::list<Piece*> GetBlackPieces() {return std::list<Piece*>(this->BlackPieces);}
-
-    // std::list<std::pair<int, int>> MoveGen(Type t);
-
-public: // Gameplay
     // Get piece
-    Piece* GetSquare(int square){return board[square];}
+    short GetSquare(int square){return board[square];}
 
     // Move generation
     std::list<Move> MoveList;
@@ -125,7 +86,10 @@ public: // Gameplay
     void UndoMove();
 
     // Current Played Moves
-    std::vector<MoveCache> PlayedMoves;
+    std::vector<Move> PlayedMoves;
+    std::vector<short*> Boards;
+    std::vector<std::list<int>> WhiteLists;
+    std::vector<std::list<int>> BlackLists; // TODO: Some day,
 
     // Game conditions
     bool UpdateCheck();

@@ -53,15 +53,15 @@ void StoreBoard(Board* b){
     // Convert Board Moves to String
     std::string Moves = "";
 
-    for (MoveCache m : b->PlayedMoves){
-        Moves += Board::typeMapper[m.MovedPiece->GetT()];
-        Moves += "." + std::string((m.MovedPiece->GetC() == WHITE) ? "W" : "B");
-        Moves += ":";
-        Moves += std::to_string(m.move.Start);
-        Moves += ":";
-        Moves += std::to_string(m.move.End);
-        Moves += "\n";
-    }
+    // for (Move m : b->PlayedMoves){
+    //     Moves += Board::typeMapper[GetType(b->board[m.Start])];
+    //     Moves += "." + std::string((GetColour(b->board[m.End]) == WHITE) ? "W" : "B");
+    //     Moves += ":";
+    //     Moves += std::to_string(m.Start);
+    //     Moves += ":";
+    //     Moves += std::to_string(m.End);
+    //     Moves += "\n";
+    // }
 
     fileOUT << b->ConvertToFen() << "\n" << Moves << std::endl; // append "some stuff" to the end of the file
 
@@ -160,7 +160,7 @@ void ThreadedPossibleMoves(Board* board, int splitcoutIndex, int splitcout, int 
         }
 
         bool ValidMove = board->MovePiece(m);
-        
+
         if(ValidMove && board->UpdateMate()){
             // Checkmate
         }
@@ -263,7 +263,7 @@ int main(int argc, char** argv){
     if(parser.getCmdOption("-l").size() > 0){
         LayerCount = atoi(parser.getCmdOption("-l").c_str());
     }
-    
+
     // Get thread option
     if(parser.getCmdOption("-t").size() > 0){
         ThreadCount = atoi(parser.getCmdOption("-t").c_str());

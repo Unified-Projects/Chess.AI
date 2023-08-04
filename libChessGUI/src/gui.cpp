@@ -146,7 +146,7 @@ void GameWindow::Attach(Board* game) {
 
     for(int y = 0; y < 8; y++){
         for(int x = 0; x < 8; x++){
-            BoardPieces.push_back(PieceSquare(x, y, Mapper->GetTex(host->board[(y*8)+x]->GetT(), host->board[(y*8)+x]->GetC())));
+            BoardPieces.push_back(PieceSquare(x, y, Mapper->GetTex(GetType(host->board[(y*8)+x]), GetColour(host->board[(y*8)+x]))));
         }
     }
 }
@@ -172,7 +172,7 @@ void GameWindow::Update(){
     if(host){
         for(int y = 0; y < 8; y++){
             for(int x = 0; x < 8; x++){
-                BoardPieces.at((y * 8) + x).tex = Mapper->GetTex(host->board[(y*8)+x]->GetT(), host->board[(y*8)+x]->GetC());
+                BoardPieces.at((y * 8) + x).tex = Mapper->GetTex(GetType(host->board[(y*8)+x]), GetColour(host->board[(y*8)+x]));
             }
         }
     }

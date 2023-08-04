@@ -48,12 +48,6 @@ bool MoveCallback(Move& m, bool played){
 
         ChessData.PlayedMove = std::move(m);
 
-        // Move Extra Conversions as we cant use pointers
-        if(m.Extra.type){
-            ChessData.MoveExtraFrom_Square = m.Extra.From->Square;
-            ChessData.MoveExtraTo_Square = m.Extra.To->Square;
-        }
-
         // Packege and send
         if(ServerSettup){
             server->send_to_all(ChessData.to_bytes());
@@ -124,20 +118,8 @@ void MainGame(const char * FEN){
 
             // Correct Move Packet
             Move m = ChessData.PlayedMove;
-            if(ChessData.MoveExtraFrom_Square >= 0 && ChessData.MoveExtraFrom_Square <= 63){
-                m.Extra.From = board.board[ChessData.MoveExtraFrom_Square];
-            }
-            else{
-                m.Extra.From = new Piece();
-            }
-            if(ChessData.MoveExtraTo_Square >= 0 && ChessData.MoveExtraTo_Square <= 63){
-                m.Extra.To = board.board[ChessData.MoveExtraTo_Square];
-            }
-            else{
-                m.Extra.To = new Piece();
-            }
 
-            std::cout << "From: " << m.Start << " To: " << m.End << std::endl; 
+            std::cout << "From: " << m.Start << " To: " << m.End << std::endl;
 
             // Play the move
             MoveBypass = true;

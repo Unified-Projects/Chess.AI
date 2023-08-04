@@ -45,7 +45,7 @@ struct ChessSetupPacket{
 };
 
 struct ChessPacket{
-    const short PacketLength = 84;
+    const short PacketLength = 68;
 
     static const std::size_t SIZE = 1024; // Packet Size
 
@@ -55,7 +55,7 @@ struct ChessPacket{
     Move PlayedMove;
 
     // Move Extra Conversions as we cant use pointers
-    int MoveExtraFrom_Square;
+    int MoveExtraFrom_Square; // TODO: NOT NEEDED
     int MoveExtraTo_Square;
 
     // Terminator
