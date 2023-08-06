@@ -13,6 +13,9 @@ ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c*
 # Define as library and not executable so that it can be used in other programs
 add_library(LibChessGUI STATIC ${SRC})
 
+# Add dependencies to stop compile error
+add_dependencies(LibChessGUI OpenGL SOIL2 GLM)
+
 # Libraries requried by this library
 target_link_libraries(LibChessGUI PRIVATE LibChess soil2 glfw3 ${OPENGL_LIBRARIES})
 

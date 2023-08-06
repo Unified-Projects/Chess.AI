@@ -23,7 +23,7 @@ std::map<Type, char> Board::typeMapper = {
         {BISHOP, 'b'}, {BISHOP, 'B'},
         {QUEEN, 'q'}, {QUEEN, 'Q'},
         {KING, 'k'}, {KING, 'K'},
-        {NULL_TYPE, ' '}
+        {NULL_TYPE, '.'} // Looks easier to understand the board
     };
 
 Board::Board() {
@@ -555,9 +555,109 @@ bool Board::UpdateMate(){
 
     Mate = false;
 
+    // TODO: ABSOFUCINGLOOTLY Breaks double check ;)
+
     for (Move m : Moves){
+        for(Move c : Checkables){
+            // Now see if we intersect the path
+            if(c.MoveType & SLIDE_HORIZONTAL || c.MoveType == SLIDE && !(m.MoveType & KING_MOVMENT)){ // King cant do this method!
+                int Increment = 0;
+
+                // Find increment
+                if(!(c.Start - c.End % 8)){ // Horizontal
+                    Increment = 8;
+                }
+                else if (abs(c.Start - c.End) < 8){ // Verticle
+                    Increment = 1;
+                }
+                else{
+                    goto POST_IF_HORIZONAL_STATEMENT; // PAIN BUT YES
+                }
+                
+                // Direction
+                int Direction = Increment;
+                if((c.Start - c.End) < 0){ // backwards
+                    Direction *= -1;
+                }
+
+                // Now do we intersect
+                if(!((c.End - m.End) % Increment)){
+                    if((m.End - c.Start) * (m.End - c.End) <= 0){
+                        return false;
+                    }
+                }
+
+                // std::cout << "Horizontal" << std::endl;
+                // std::cout << c.Start << " " << c.End << " " << m.Start << " " << m.End << " " << Direction << std::endl;
+            } POST_IF_HORIZONAL_STATEMENT:
+            if(c.MoveType & SLIDE_DIAGONAL || c.MoveType == SLIDE && !(m.MoveType & KING_MOVMENT)){ // No king escaping
+                int Increment = 0;
+
+                // Find increment
+                if(!((c.End - c.Start) % 9)){ // Horizontal
+                    Increment = 9;
+                }
+                else if(!((c.End - c.Start) % 7)){ // Verticle
+                    Increment = 7;
+                }
+                else{
+                    // Escape the if statment
+                    goto POST_IF_DIAGONAL_STATEMENT; // I KNOW BUT FUCK YOUR OPINION, I am not making a web of nested if statements
+                }
+                
+                // Direction
+                int Direction = Increment;
+                if((c.End - c.Start) < 0){ // backwards
+                    Direction *= -1;
+                }
+
+                // Now do we intersect
+                if(!((c.End - m.End) % Increment)){
+                    if((m.End - c.Start) * (m.End - c.End) <= 0){
+                        return false;
+                    }
+                }
+
+                // std::cout << "Digaonal" << std::endl;
+                // std::cout << c.Start << " " << c.End << " " << m.Start << " " << m.End << " " << Direction << std::endl;
+            } POST_IF_DIAGONAL_STATEMENT:
+            if(c.MoveType & KNIGHT_MOVMENT){
+                if(m.End == c.Start){ // Need to kill night
+                    // We can kill the knight
+                    return false;
+                }
+                if(m.Start == c.End){ // Or king moves out of way
+                    return false;
+                }
+            }
+            if(c.MoveType & PAWN_MOVMENT){
+                // Should work ?
+                if(((c.End - c.Start) % 7) == 0 || ((c.End - c.Start) % 9) == 0){
+                    
+                }
+                else{
+                    
+                }
+
+                return false;
+            }
+        }
+    }
+
+    // for (Move m : Moves){
+    //     bool Valid = MovePiece(m);
+
+    //     if(Valid){
+    //         UndoMove();
+            // return false;
+    //     }
+    // }
+
+    // Mate = true;
+
+    // for (Move m : Moves){
         // bool Valid = MovePiece(m);
-        MovePiece(m, true);
+        // MovePiece(m, true);
 
         // if(Valid){ // All un-check moves are considered valid
         //     UndoMove();
@@ -565,48 +665,48 @@ bool Board::UpdateMate(){
         // }
 
         // Now try regenerate all checked moves
-        MoveList = {};
-        for (Move m : Checkables){
-            short piece = board[m.Start];
+    //     MoveList = {};
+    //     for (Move m : Checkables){
+    //         short piece = board[m.Start];
 
-            if(GetColour(piece) == CheckedColour){
-                continue; // We dont want to calculate our moves
-            }
+    //         if(GetColour(piece) == CheckedColour){
+    //             continue; // We dont want to calculate our moves
+    //         }
 
-            // Sliding piece
-            if(GetMoveCapabilites(piece, SLIDE)){
-                // Generate all possible sliding moves for that piece
-                GenerateSlidingMoves(m.Start, this);
-            }
-            else if(GetMoveCapabilites(piece, PAWN_MOVMENT)){
-                GeneratePawnMovements(m.Start, this);
-            }
-            else if(GetMoveCapabilites(piece, KNIGHT_MOVMENT)){
-                GenerateKnightMovements(m.Start, this);
-            }
-            else if(GetMoveCapabilites(piece, KING_MOVMENT)){
-                GenerateKingMovements(m.Start, this);
-            }
-        }
+    //         // Sliding piece
+    //         if(GetMoveCapabilites(piece, SLIDE)){
+    //             // Generate all possible sliding moves for that piece
+    //             GenerateSlidingMoves(m.Start, this);
+    //         }
+    //         else if(GetMoveCapabilites(piece, PAWN_MOVMENT)){
+    //             GeneratePawnMovements(m.Start, this);
+    //         }
+    //         else if(GetMoveCapabilites(piece, KNIGHT_MOVMENT)){
+    //             GenerateKnightMovements(m.Start, this);
+    //         }
+    //         else if(GetMoveCapabilites(piece, KING_MOVMENT)){
+    //             GenerateKingMovements(m.Start, this);
+    //         }
+    //     }
 
-        bool Escaped = true;
+    //     bool Escaped = true;
 
-        // Now see if we still take king
-        for(Move m : MoveList){
-            if (m.Taking == KING){ // Not escaped check
-                UndoMove();
-                Escaped = false;
-                break;
-            }
-        }
+    //     // Now see if we still take king
+    //     for(Move m : MoveList){
+    //         if (m.Taking == KING){ // Not escaped check
+    //             UndoMove();
+    //             Escaped = false;
+    //             break;
+    //         }
+    //     }
 
-        if(Escaped){
-            UndoMove();
-            return false;
-        }
-    }
+    //     if(Escaped){
+    //         UndoMove();
+    //         return false;
+    //     }
+    // }
 
-    Mate = true;
+    // Mate = true;
 
     return true;
 }

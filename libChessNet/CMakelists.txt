@@ -12,6 +12,9 @@ set(_WIN32_WINNT 0x0601)
 # Define as library and not executable so that it can be used in other programs
 add_library(LibChessNet STATIC ${SRC})
 
+# Add dependencies to stop compile error
+add_dependencies(LibChessNet NetworkingLib)
+
 # Libraries requried by this library
 target_link_libraries(LibChessNet PRIVATE ws2_32 wsock32 LibChess)
 
