@@ -644,6 +644,8 @@ bool Board::UpdateMate(){
         }
     }
 
+    // TODO: IF Not in check we can update the Generated Move list to hold only the moves that escape check :))
+
     // for (Move m : Moves){
     //     bool Valid = MovePiece(m);
 
