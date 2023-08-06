@@ -33,6 +33,8 @@ struct Move{
     Type Taking; // For check and mate
 
     MoveExtra Extra{};
+
+    char MoveType;
 };
 
 class Board {
@@ -49,6 +51,7 @@ public: // Private board management
     bool Check = false;
     bool Stale = false;
     bool Mate = false;
+    int CheckCount = 0;
 
     // Color
     Colour CheckedColour = NULL_COLOUR;
@@ -79,17 +82,18 @@ public: // Gameplay
     // Move generation
     std::list<Move> MoveList;
     Colour PreviousGeneration = NULL_COLOUR; // Caching
+    bool RegenNeeded = false;
     std::list<Move> GenerateMoves();
 
     // Move Moving Moves
-    bool MovePiece(Move m);
+    bool MovePiece(Move m, bool Forced = false);
     void UndoMove();
 
     // Current Played Moves
     std::vector<Move> PlayedMoves;
     std::vector<short*> Boards;
     std::vector<std::list<int>> WhiteLists;
-    std::vector<std::list<int>> BlackLists; // TODO: Some day,
+    std::vector<std::list<int>> BlackLists; // TODO: Some day mem efficient
 
     // Game conditions
     bool UpdateCheck();

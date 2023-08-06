@@ -101,13 +101,21 @@ bool ValidateFen(Board* b){
         std::cout << "Loaded Fens" << std::endl;
     }
 
+    // Convert board to fen
+    std::string boardFen = b->ConvertToFen();
+
+    // DEBUG PURPOSES ONLY
+    if(!(Validated % 1000)){
+        std::cout << FMT("Validated: ", NORMAL) << Validated << std::endl;
+    }
+
+    // Cache it
+    CacheFoundFen(boardFen);
+
     if(SkipTo > Validated){
         Validated++;
         return true; // Skipped
     }
-
-    // Convert board to fen
-    std::string boardFen = b->ConvertToFen();
 
     // Get str length
     int i = boardFen.size();
@@ -116,13 +124,6 @@ bool ValidateFen(Board* b){
         if(fen.find(boardFen) != std::string::npos){
             Validated++;
 
-            // DEBUG PURPOSES ONLY
-            if(!(Validated % 1000)){
-                std::cout << FMT("Validated: ", NORMAL) << Validated << std::endl;
-            }
-
-            // Cache it
-            CacheFoundFen(fen);
 
             return true;
         }
@@ -133,11 +134,6 @@ bool ValidateFen(Board* b){
 
     Validated++;
     Invalid++;
-
-    // DEBUG PURPOSES ONLY
-    if(!(Validated % 1000)){
-        std::cout << FMT("Validated: ", NORMAL) << Validated << std::endl;
-    }
 
     return false;
 }

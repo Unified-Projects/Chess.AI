@@ -112,6 +112,17 @@ void GenerateSlidingMoves(int Square, Board* b){
     int StartIndex = (GetMoveCapabilites(piece, SLIDE_DIAGONAL)) ? 4 : 0;
     int EndIndex = (GetMoveCapabilites(piece, SLIDE_HORIZONTAL)) ? 4 : 8;
 
+    char Capabs = 0x00;
+
+    if(GetMoveCapabilites(piece, SLIDE_DIAGONAL)){
+        Capabs += SLIDE_DIAGONAL;
+    }
+    else if(GetMoveCapabilites(piece, SLIDE_HORIZONTAL)){
+        Capabs += SLIDE_HORIZONTAL;
+    }
+
+    Capabs += SLIDE;
+
     // Check all directions possible
     for (int directionI = StartIndex; directionI < EndIndex; directionI++){
         for(int nToEdge = 0; nToEdge < SquaresToEdge[Square][directionI]; nToEdge++){
@@ -123,7 +134,7 @@ void GenerateSlidingMoves(int Square, Board* b){
                 break; // Wrong, so change direction
             }
 
-            b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {0}});
+            b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {0}, Capabs});
 
             // If attacking place
             if(GetColour(targetPiece) != GetColour(piece) && GetColour(targetPiece) != NULL_COLOUR){
@@ -150,6 +161,10 @@ void GeneratePawnMovements(int Square, Board* b){
         int targetSquare = Square + offset;
         short targetPiece = b->board[targetSquare];
 
+        if(GetColour(targetPiece) == GetColour(piece)){ // No Attacky Fweind
+            continue;
+        }
+
         if (abs(offset) == 8) {
             // Blocked by friend
             if(GetType(targetPiece) != NULL_TYPE){
@@ -159,10 +174,10 @@ void GeneratePawnMovements(int Square, Board* b){
             // Now see if this is a promotion issue
             if(targetSquare >= ((GetColour(piece) == WHITE) ? 56 : 0) && targetSquare <= ((GetColour(piece) == WHITE) ? 63 : 7)){ // Time to promote
                 // TODO PICKER?
-                b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), MoveExtra{SPECIAL_PROMOTION, targetSquare}});
+                b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), MoveExtra{SPECIAL_PROMOTION, targetSquare}, PAWN_MOVMENT});
             }
             else{ // Norm
-                b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {0}});
+                b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {0}, PAWN_MOVMENT});
             }
         }
         else if (abs(offset) == 16) {
@@ -187,10 +202,10 @@ void GeneratePawnMovements(int Square, Board* b){
             // Now see if this is a promotion issue
             if(targetSquare >= ((GetColour(piece) == WHITE) ? 56 : 0) && targetSquare <= ((GetColour(piece) == WHITE) ? 63 : 7)){ // Time to promote
                 // TODO PICKER?
-                b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), MoveExtra{SPECIAL_PROMOTION, targetSquare}});
+                b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), MoveExtra{SPECIAL_PROMOTION, targetSquare}, PAWN_MOVMENT});
             }
             else{ // Norm
-                b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {0}});
+                b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {0}, PAWN_MOVMENT});
             }
         }
         else if (abs(offset) == 7 || abs(offset) == 9) {
@@ -200,8 +215,8 @@ void GeneratePawnMovements(int Square, Board* b){
                 int EnPassentSquare = targetSquare + ((GetColour(piece) == WHITE) ? -8 : 8);
                 // TODO: Incorrect Ammount but somehow adds 3000 moves
                 if(Square >= ((GetColour(piece) == WHITE) ? 32 : 24) && Square <= ((GetColour(piece) == WHITE) ? 39 : 31)){ // En-passent possible
-                    if(GetMoved(b->board[EnPassentSquare]) == 1 && b->PlayedMoves.back().End == EnPassentSquare && GetType(b->board[EnPassentSquare]) == PAWN){
-                        b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {SPECIAL_EN_PASSENT, EnPassentSquare}});
+                    if(GetMoved(b->board[EnPassentSquare]) && b->PlayedMoves.back().End == EnPassentSquare && b->PlayedMoves.back().Start == EnPassentSquare + ((GetColour(piece) == WHITE) ? 16 : -16) && GetType(b->board[EnPassentSquare]) == PAWN){
+                        b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {SPECIAL_EN_PASSENT, EnPassentSquare}, PAWN_MOVMENT + EN_PASSENT});
                     }
                 }
             }
@@ -212,10 +227,10 @@ void GeneratePawnMovements(int Square, Board* b){
                 // Now see if this is a promotion issue
                 if(targetSquare >= ((GetColour(piece) == WHITE) ? 56 : 0) && targetSquare <= ((GetColour(piece) == WHITE) ? 63 : 7)){ // Time to promote
                     // TODO: PICKER?
-                    b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), MoveExtra{SPECIAL_PROMOTION, targetSquare}});
+                    b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), MoveExtra{SPECIAL_PROMOTION, targetSquare}, PAWN_MOVMENT});
                 }
                 else{ // Norm
-                    b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {0}});
+                    b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {0}, PAWN_MOVMENT});
                 }
             }
         }
@@ -239,7 +254,7 @@ void GenerateKnightMovements(int Square, Board* b){
             continue; // Wrong, so change direction
         }
 
-        b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {0}});
+        b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {0}, KNIGHT_MOVMENT});
     }
 }
 
@@ -262,7 +277,7 @@ void GenerateKingMovements(int Square, Board* b){
             continue; // Wrong, so change direction
         }
 
-        b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {0}});
+        b->MoveList.push_back(Move{Square, targetSquare, GetType(targetPiece), {0}, KING_MOVMENT});
     }
 
     // TODO: Castling More checks needed so not perfect
@@ -275,7 +290,7 @@ void GenerateKingMovements(int Square, Board* b){
         if (GetType(b->board[Square-4]) == ROOK && !GetMoved(b->board[Square-4])) {
             // Check if path is clear
             if (GetType(b->board[Square-3]) == NULL_TYPE && GetType(b->board[Square-2]) == NULL_TYPE && GetType(b->board[Square-1]) == NULL_TYPE) {
-                b->MoveList.push_back(Move{Square, Square-2, NULL_TYPE, {SPECIAL_CASTLING_QUEEN, Square-4}});
+                b->MoveList.push_back(Move{Square, Square-2, NULL_TYPE, {SPECIAL_CASTLING_QUEEN, Square-4}, KING_MOVMENT});
             }
         }
 
@@ -285,7 +300,7 @@ void GenerateKingMovements(int Square, Board* b){
         if (GetType(b->board[Square+3]) == ROOK && !GetMoved(b->board[Square+3])) {
             // Check if path is clear
             if (GetType(b->board[Square+1]) == NULL_TYPE && GetType(b->board[Square+2]) == NULL_TYPE) {
-                b->MoveList.push_back(Move{Square, Square+2, NULL_TYPE, {SPECIAL_CASTLING_KING, Square+3}});
+                b->MoveList.push_back(Move{Square, Square+2, NULL_TYPE, {SPECIAL_CASTLING_KING, Square+3}, KING_MOVMENT});
             }
         }
     }

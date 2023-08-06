@@ -198,7 +198,7 @@ int main(int argc, char** argv){
     }
 
     // NPS Logging (Reference: Qperft has 190 Million NPS)
-    std::cout << FMT("NPS: ", WARN) << (NPS / (TimeTaken / 1000)) << std::endl;
+    std::cout << FMT("NPS: ", WARN) << (NPS / (TimeTaken / 1000.f)) << std::endl;
 
     // End (Failed needed for CTests)
     return (Failed) ? -1 : 0;

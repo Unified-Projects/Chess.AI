@@ -31,7 +31,7 @@ def generate_fens_after_half_moves(half_moves):
     return fens
 
 # Example usage
-half_moves = 5  # Number of half-moves
+half_moves = 4  # Number of half-moves
 fens = generate_fens_after_half_moves(half_moves)
 
 # Save the dictionary as a JSON file with nicely formatted structure

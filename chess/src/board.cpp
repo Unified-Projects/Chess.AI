@@ -49,7 +49,7 @@ Board::Board() {
 
     return;
 }
-
+int c = 1;
 void Board::InitBoard(std::string FEN) {
     /* FEN NOTATION
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -303,6 +303,8 @@ void Board::InitBoard(std::string FEN) {
     // Current Move
     CurrentMove = WHITE;
 
+    c = 1;
+
     // See if either in check
     // UpdateCheck();
 
@@ -379,24 +381,19 @@ std::string Board::ConvertToFen() { // TODO: EFFICIENCY CHECK
 }
 
 std::list<Move> Board::GenerateMoves(){
-    // if (CurrentMove == PreviousGeneration){
-    //     return MoveList;
-    // }
+    if (CurrentMove == PreviousGeneration && !RegenNeeded){
+        return MoveList;
+    }
 
     MoveList = {};
 
-    // TODO: Promotion issue where queen cant move after promoting
+    // If we are in double check we can only move king
+    if(CurrentMove == CheckedColour && CheckCount > 1){
+        GenerateKingMovements((CurrentMove == WHITE) ? WhiteKing : BlackKing, this);
+    }
 
     // Loop over all squares
-    // for (int Square = 0; Square < 64; Square++){ - Optimised Out
     for(int square : (CurrentMove == WHITE) ? WhitePieces : BlackPieces){
-        // Piece* p = board[Square]; // Select Piece - Optimised Out
-
-        // Ensure its the pieces turn to move - Optimised Out
-        // if(p->c != CurrentMove){
-        //     continue;
-        // }
-
         short piece = board[square];
 
         // Sliding piece
@@ -416,49 +413,200 @@ std::list<Move> Board::GenerateMoves(){
     }
 
     // Store for if we want to reload it :)
-    // PreviousGeneration = CurrentMove;
+    PreviousGeneration = CurrentMove;
+    RegenNeeded = false;
 
     return MoveList;
 }
 
 bool Board::UpdateCheck(){
     // Generate next moves
-    std::list<Move> Moves = GenerateMoves();
+    // std::list<Move> Moves = GenerateMoves();
+
+    // // Reset check moves
+    // Checkmoves = {};
+
+    // // Reset check
+    // Check = false;
+    // CheckCount = 0;
+
+    // // // See if any target king
+    // for(Move m : Moves){
+    //     if (m.Taking == KING){
+    //         Check = true;
+    //         CheckedColour = (CurrentMove == WHITE) ? BLACK : WHITE;
+
+    //         // Add to checkmate paths
+    //         // Checkmoves.push_back(m);
+
+    //         CheckCount++;
+
+    //         // return true; Dissabled as we want all routes of check
+    //     }
+    // }
+
+    // Save current move list
+    std::list<Move> Moves = std::list<Move>(MoveList);
+    MoveList = {};
 
     // Reset check moves
     Checkmoves = {};
 
     // Reset check
     Check = false;
+    CheckedColour = NULL_COLOUR;
+    CheckCount = 0;
 
-    // See if any target king
-    for(Move m : Moves){
-        if (m.Taking == KING){
+    // Get who we want in check
+    int Square = (CurrentMove == WHITE) ? WhiteKing : BlackKing;
+
+    // Generate All moves valid from the king and see if taking same move type
+    
+    // SLIDING HORIZONTAL
+    SetMovements(board[Square], (SLIDE | SLIDE_HORIZONTAL)); // Configure correct
+    GenerateSlidingMoves(Square, this);
+
+    // SLIDING DIAGONAL
+    SetMovements(board[Square], (SLIDE | SLIDE_DIAGONAL)); // Configure correct
+    GenerateSlidingMoves(Square, this);
+
+    // QUEEN Needs separate
+    SetMovements(board[Square], (SLIDE)); // Configure correct
+    GenerateSlidingMoves(Square, this);
+
+    // PAWN MOVEMENTS
+    SetMovements(board[Square], EN_PASSENT); // Configure correct
+    GeneratePawnMovements(Square, this);
+
+    // KNIGHT MOVEMENTS
+    SetMovements(board[Square], KNIGHT_MOVMENT); // Configure correct
+    GenerateKnightMovements(Square, this);
+
+    SetMovements(board[Square], KING_MOVMENT); // Configure correct
+
+    // Get who we want in check
+    Square = (GetColour(board[Square]) == WHITE) ? BlackKing : WhiteKing;
+
+    // Generate All moves valid from the king and see if taking same move type
+    
+    // SLIDING HORIZONTAL
+    SetMovements(board[Square], SLIDE | SLIDE_HORIZONTAL); // Configure correct
+    GenerateSlidingMoves(Square, this);
+
+    // SLIDING DIAGONAL
+    SetMovements(board[Square], SLIDE | SLIDE_DIAGONAL); // Configure correct
+    GenerateSlidingMoves(Square, this);
+
+    // QUEEN Needs separate
+    SetMovements(board[Square], (SLIDE)); // Configure correct
+    GenerateSlidingMoves(Square, this);
+
+    // PAWN MOVEMENTS
+    SetMovements(board[Square], EN_PASSENT); // Configure correct
+    GeneratePawnMovements(Square, this);
+
+    // KNIGHT MOVEMENTS
+    SetMovements(board[Square], KNIGHT_MOVMENT); // Configure correct
+    GenerateKnightMovements(Square, this);
+
+    SetMovements(board[Square], KING_MOVMENT); // Configure correct
+
+    // Now look over the movements
+    for (Move m : MoveList){
+        // Get the piece
+        short p = board[m.End];
+
+        if(IsNull(p)){ // Do nothing if null position
+            continue;
+        }
+
+        // See if the piece there has said capabilities
+        if((char)(GetMoveCapabilites(p, 0x7F)) == m.MoveType){
+
+            // Check possible
             Check = true;
-            CheckedColour = (CurrentMove == WHITE) ? BLACK : WHITE;
+            CheckCount++;
 
-            // Add to checkmate paths
-            Checkmoves.push_back(m);
+            // Check colour
+            CheckedColour = (GetColour(board[m.Start]) == WHITE) ? WHITE : BLACK;
 
-            // return true; Dissabled as we want all routes of check
+            // Inverse move to follow formatting and save it
+            Checkmoves.push_back(Move{m.End, m.Start, KING, MoveExtra{m.Extra.Type, m.Start}, m.MoveType});
+
+            continue;
         }
     }
+
+    // Restore move list
+    MoveList = Moves;
 
     return Check; // Not in check
 }
 
 bool Board::UpdateMate(){
+    // If no check then we dont need to try this
+    if(!Check || CheckedColour != CurrentMove){
+        return false;
+    }
+
     // Generate next moves
     std::list<Move> Moves = GenerateMoves();
+    std::list<Move> Checkables = Checkmoves;
+
+    Mate = false;
 
     for (Move m : Moves){
-        bool Valid = MovePiece(m);
+        // bool Valid = MovePiece(m);
+        MovePiece(m, true);
 
-        if(Valid){ // All un-check moves are considered valid
+        // if(Valid){ // All un-check moves are considered valid
+        //     UndoMove();
+        //     return false;
+        // }
+
+        // Now try regenerate all checked moves
+        MoveList = {};
+        for (Move m : Checkables){
+            short piece = board[m.Start];
+
+            if(GetColour(piece) == CheckedColour){
+                continue; // We dont want to calculate our moves
+            }
+
+            // Sliding piece
+            if(GetMoveCapabilites(piece, SLIDE)){
+                // Generate all possible sliding moves for that piece
+                GenerateSlidingMoves(m.Start, this);
+            }
+            else if(GetMoveCapabilites(piece, PAWN_MOVMENT)){
+                GeneratePawnMovements(m.Start, this);
+            }
+            else if(GetMoveCapabilites(piece, KNIGHT_MOVMENT)){
+                GenerateKnightMovements(m.Start, this);
+            }
+            else if(GetMoveCapabilites(piece, KING_MOVMENT)){
+                GenerateKingMovements(m.Start, this);
+            }
+        }
+
+        bool Escaped = true;
+
+        // Now see if we still take king
+        for(Move m : MoveList){
+            if (m.Taking == KING){ // Not escaped check
+                UndoMove();
+                Escaped = false;
+                break;
+            }
+        }
+
+        if(Escaped){
             UndoMove();
             return false;
         }
     }
+
+    Mate = true;
 
     return true;
 }
@@ -466,47 +614,74 @@ bool Board::UpdateMate(){
 int cast = 0;
 int en = 0;
 
-bool Board::MovePiece(Move m){ // REQUIRES A VALID MOVE TO BE PASSED IN
+bool Board::MovePiece(Move m, bool Forced){ // REQUIRES A VALID MOVE TO BE PASSED IN
     // Can't take king
     if(m.Taking == KING){
         return false;
     }
 
-    if(GetType(board[m.Start]) == NULL_TYPE){
-        // BIG ISSUE
-        std::cout << "ERR Cannot move null piece" << std::endl;
-    }
+    short startPiece = board[m.Start];
+    Type startPieceType = GetType(startPiece);
 
+    short endPiece = board[m.End];
+    Type endPieceType = GetType(endPiece);
+
+    // if(startPieceType == NULL_TYPE){ // TODO: Ensure not needed
+    //     // BIG ISSUE
+    //     std::cout << "ERR Cannot move null piece" << std::endl;
+    // }
+
+    // Piece List
+    std::list<int>& startPieceList = (GetColour(startPiece) == WHITE) ? WhitePieces : BlackPieces;
+
+    // Cache Move
     PlayedMoves.push_back(m);
-
-    // If taking piece
-    if (GetType(board[m.End]) != NULL_TYPE){ // TODO: Assuming that colours are correct
-        // Remove from corresponding list
-        ((GetColour(board[m.End]) == WHITE) ? WhitePieces : BlackPieces).remove(m.End);
-    }
-
-    // Backupe Borde
-    short* BackBoard = new short[64];
-    // std::memset(BackBoard, 0, 128); // Not needed?
-    memcpy(BackBoard, board, 128);
-    Boards.push_back(BackBoard);
 
     // Backupe piecese piee
     WhiteLists.push_back(std::list<int>(WhitePieces));
     BlackLists.push_back(std::list<int>(BlackPieces));
+
+    // If taking piece
+    if (endPieceType != NULL_TYPE){ // TODO: Assuming that colours are correct
+        // Remove from corresponding list
+        std::list<int>& endPieceList = (GetColour(endPiece) == WHITE) ? WhitePieces : BlackPieces;
+        endPieceList.remove(m.End);
+    }
+
+    // Modify the Pieces List to update piece positioning
+    startPieceList.remove(m.Start);
+    startPieceList.push_back(m.End);
+
+    // If the king is moving we need to adjust positions accordingly
+    if(m.MoveType == KING_MOVMENT){
+        if(m.Start == WhiteKing){
+            WhiteKing = m.End;
+        } else{
+            BlackKing = m.End;
+        }
+    }
+
+    // Backupe Borde
+    short* BackBoard = new short[64];
+    memcpy(BackBoard, board, 128);
+    Boards.push_back(BackBoard);
 
     // Actual board swaps
     board[m.End] = board[m.Start];
     SET_NULL(board[m.Start]);
 
     // For en-passent and castling and piece general
-    SetHasMoved(board[m.End], 1);
+    SET_MOVED(board[m.End]);
+
+    // Require Move Regen
+    RegenNeeded = true;
 
     // Move Extras
     if(m.Extra.Type){
         if(m.Extra.Type == SPECIAL_EN_PASSENT){
             board[m.Extra.Square] = board[m.Start]; // Kill piece
-            ((GetColour(board[m.Extra.Square]) == WHITE) ? WhitePieces : BlackPieces).remove(m.Start); // Remove from pieces colours
+            std::list<int>& extraPieceList = (GetColour(board[m.Extra.Square]) == WHITE) ? WhitePieces : BlackPieces;
+            extraPieceList.remove(m.Start); // Remove from pieces colours
         }
         else if(m.Extra.Type == SPECIAL_CASTLING_KING){
             // Move rook
@@ -524,6 +699,11 @@ bool Board::MovePiece(Move m){ // REQUIRES A VALID MOVE TO BE PASSED IN
         }
     }
 
+    if(Forced){ // Skip all check management
+        CurrentMove = (CurrentMove == WHITE) ? BLACK : WHITE;
+        return true;
+    }
+
     // Change next to move
     CurrentMove = (CurrentMove == WHITE) ? BLACK : WHITE;
 
@@ -533,7 +713,7 @@ bool Board::MovePiece(Move m){ // REQUIRES A VALID MOVE TO BE PASSED IN
     // TODO: Check is only considered when a move is attempted, until then the check is unknown!
 
     // See if check has changed
-    if(Check && CheckedColour == ((CurrentMove == WHITE) ? BLACK : WHITE)){
+    if(Check && CheckedColour == GetColour(startPiece)){
         // Invalid as king in check
         UndoMove();
 
@@ -554,6 +734,15 @@ void Board::UndoMove(){
     Move m = PlayedMoves.back();
     PlayedMoves.pop_back();
 
+    // If the king is moving we need to adjust positions accordingly
+    if(m.MoveType == KING_MOVMENT){
+        if(m.End == WhiteKing){
+            WhiteKing = m.Start;
+        } else{
+            BlackKing = m.Start;
+        }
+    }
+
     // Swap Board Pointers
     delete board; // Deletes mEMORY
     board = Boards.back();
@@ -564,6 +753,12 @@ void Board::UndoMove(){
     BlackPieces = BlackLists.back();
     WhiteLists.pop_back();
     BlackLists.pop_back();
+
+    // Swap Moves
+    CurrentMove = (CurrentMove == WHITE) ? BLACK : WHITE;
+
+    // Regen is no longer required
+    RegenNeeded = false;
 
     return;
 }

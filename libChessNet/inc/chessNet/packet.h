@@ -45,7 +45,7 @@ struct ChessSetupPacket{
 };
 
 struct ChessPacket{
-    const short PacketLength = 68;
+    const short PacketLength = 69;
 
     static const std::size_t SIZE = 1024; // Packet Size
 
