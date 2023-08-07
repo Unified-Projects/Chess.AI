@@ -397,7 +397,10 @@ std::list<Move> Board::GenerateMoves(){
         short piece = board[square];
 
         // Sliding piece
-        if(GetMoveCapabilites(piece, SLIDE)){
+        if(GetMoveCapabilites(piece, KING_MOVMENT)){ // TODO: Move to bottom once issue is found where king can perfom sliding moves (Check may leave king with sliding moves)
+            GenerateKingMovements(square, this);
+        }
+        else if(GetMoveCapabilites(piece, SLIDE)){
             // Generate all possible sliding moves for that piece
             GenerateSlidingMoves(square, this);
         }
@@ -406,9 +409,6 @@ std::list<Move> Board::GenerateMoves(){
         }
         else if(GetMoveCapabilites(piece, KNIGHT_MOVMENT)){
             GenerateKnightMovements(square, this);
-        }
-        else if(GetMoveCapabilites(piece, KING_MOVMENT)){
-            GenerateKingMovements(square, this);
         }
     }
 
@@ -540,8 +540,14 @@ bool Board::UpdateCheck(){
     // Restore move list
     MoveList = Moves;
 
+
     return Check; // Not in check
 }
+
+// TODO: DEL ME
+int Stats[6] = {
+    0, 0, 0, 0, 0, 0
+};
 
 bool Board::UpdateMate(){
     // If no check then we dont need to try this
@@ -560,7 +566,7 @@ bool Board::UpdateMate(){
     for (Move m : Moves){
         for(Move c : Checkables){
             // Now see if we intersect the path
-            if(c.MoveType & SLIDE_HORIZONTAL || c.MoveType == SLIDE && !(m.MoveType & KING_MOVMENT)){ // King cant do this method!
+            if((c.MoveType & SLIDE_HORIZONTAL || c.MoveType == SLIDE) && !(m.MoveType & KING_MOVMENT)){ // King cant do this method!
                 int Increment = 0;
 
                 // Find increment
@@ -590,14 +596,14 @@ bool Board::UpdateMate(){
                 // std::cout << "Horizontal" << std::endl;
                 // std::cout << c.Start << " " << c.End << " " << m.Start << " " << m.End << " " << Direction << std::endl;
             } POST_IF_HORIZONAL_STATEMENT:
-            if(c.MoveType & SLIDE_DIAGONAL || c.MoveType == SLIDE && !(m.MoveType & KING_MOVMENT)){ // No king escaping
+            if((c.MoveType & SLIDE_DIAGONAL || c.MoveType == SLIDE ) && !(m.MoveType & KING_MOVMENT)){ // No king escaping
                 int Increment = 0;
 
                 // Find increment
-                if(!((c.End - c.Start) % 9)){ // Horizontal
+                if(!((c.End - c.Start) % 9)){
                     Increment = 9;
                 }
-                else if(!((c.End - c.Start) % 7)){ // Verticle
+                else if(!((c.End - c.Start) % 7)){
                     Increment = 7;
                 }
                 else{
@@ -630,21 +636,77 @@ bool Board::UpdateMate(){
                     return false;
                 }
             }
-            if(c.MoveType & PAWN_MOVMENT){
+            if(c.MoveType & PAWN_MOVMENT){ // Dont actually know if function // TODO:
                 // Should work ?
                 if(((c.End - c.Start) % 7) == 0 || ((c.End - c.Start) % 9) == 0){
+                    int Increment = 0;
+
+                    // Find increment
+                    if(!((c.End - c.Start) % 9)){ // Horizontal
+                        Increment = 9;
+                    }
+                    else if(!((c.End - c.Start) % 7)){ // Verticle
+                        Increment = 7;
+                    }
                     
+                    // Direction
+                    int Direction = Increment;
+                    if((c.End - c.Start) < 0){ // backwards
+                        Direction *= -1;
+                    }
+
+                    // Now do we intersect
+                    if(!((c.End - m.End) % Increment)){
+                        if((m.End - c.Start) * (m.End - c.End) <= 0){
+                            return false;
+                        }
+                    }
                 }
                 else{
+                    int Increment = 0;
+
+                    // Find increment
+                    if(!(c.Start - c.End % 8)){ // Horizontal
+                        Increment = 8;
+                    }
+                    else if (abs(c.Start - c.End) < 8){ // Verticle
+                        Increment = 1;
+                    }
                     
+                    // Direction
+                    int Direction = Increment;
+                    if((c.Start - c.End) < 0){ // backwards
+                        Direction *= -1;
+                    }
+
+                    // Now do we intersect
+                    if(!((c.End - m.End) % Increment)){
+                        if((m.End - c.Start) * (m.End - c.End) <= 0){
+                            return false;
+                        }
+                    }
                 }
 
                 return false;
+            }
+            if(m.MoveType & KING_MOVMENT){
+                if (m.End)
             }
         }
     }
 
     // TODO: IF Not in check we can update the Generated Move list to hold only the moves that escape check :))
+
+    // TODO: Could move into check
+
+    // TODO: List
+    /*
+        Update this function to respond to pinning and that the move wont put us in check.
+            To do this track all attacking squares and then if the king moves into a attacking square or a piece moves out of a path
+
+        FUUUUUUUUCK THIS IS GONNA BE DIFFICULT TO OPTIMISE
+        // MAYBE NOT DO THIS
+    */
 
     // for (Move m : Moves){
     //     bool Valid = MovePiece(m);
@@ -710,11 +772,21 @@ bool Board::UpdateMate(){
 
     // Mate = true;
 
+    // Increase Stats
+    Stats[GetType(board[Checkables.front().Start])] += 1;
+
+    // Display stats
+    // std::cout << "STATS: " << std::endl;
+    // std::cout << "PAWN: " << Stats[PAWN] << std::endl;
+    // std::cout << "ROOK: " << Stats[ROOK] << std::endl;
+    // std::cout << "BISHOP: " << Stats[BISHOP] << std::endl;
+    // std::cout << "QUEEN: " << Stats[QUEEN] << std::endl;
+    // std::cout << "END STATS\n" << std::endl;
+
+    std::cout << ConvertToFen() << std::endl;
+
     return true;
 }
-
-int cast = 0;
-int en = 0;
 
 bool Board::MovePiece(Move m, bool Forced){ // REQUIRES A VALID MOVE TO BE PASSED IN
     // Can't take king

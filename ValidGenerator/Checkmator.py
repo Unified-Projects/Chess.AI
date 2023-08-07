@@ -31,7 +31,7 @@ def generate_fens_after_half_moves(half_moves):
     return checkmate_positions
 
 # Example usage
-half_moves = 4  # Number of half-moves
+half_moves = 5  # Number of half-moves
 fens = generate_fens_after_half_moves(half_moves)
 
 # Piece type to name mapping
