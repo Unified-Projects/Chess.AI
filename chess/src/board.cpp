@@ -563,7 +563,7 @@ bool Board::UpdateMate(){
 
     // TODO: ABSOFUCINGLOOTLY Breaks double check ;)
 
-    for (Move m : Moves){
+    /*for (Move m : Moves){
         for(Move c : Checkables){
             // Now see if we intersect the path
             if((c.MoveType & SLIDE_HORIZONTAL || c.MoveType == SLIDE) && !(m.MoveType & KING_MOVMENT)){ // King cant do this method!
@@ -693,7 +693,9 @@ bool Board::UpdateMate(){
                 if (m.End)
             }
         }
-    }
+    }*/
+
+    // NOTE: PUT ON HOLD DUE TO ULTRA COMPLEXITIES
 
     // TODO: IF Not in check we can update the Generated Move list to hold only the moves that escape check :))
 
@@ -708,14 +710,14 @@ bool Board::UpdateMate(){
         // MAYBE NOT DO THIS
     */
 
-    // for (Move m : Moves){
-    //     bool Valid = MovePiece(m);
+    for (Move m : Moves){
+        bool Valid = MovePiece(m);
 
-    //     if(Valid){
-    //         UndoMove();
-            // return false;
-    //     }
-    // }
+        if(Valid){
+            UndoMove();
+            return false;
+        }
+    }
 
     // Mate = true;
 
@@ -773,7 +775,7 @@ bool Board::UpdateMate(){
     // Mate = true;
 
     // Increase Stats
-    Stats[GetType(board[Checkables.front().Start])] += 1;
+    // Stats[GetType(board[Checkables.front().Start])] += 1;
 
     // Display stats
     // std::cout << "STATS: " << std::endl;
@@ -783,7 +785,7 @@ bool Board::UpdateMate(){
     // std::cout << "QUEEN: " << Stats[QUEEN] << std::endl;
     // std::cout << "END STATS\n" << std::endl;
 
-    std::cout << ConvertToFen() << std::endl;
+    // std::cout << ConvertToFen() << std::endl;
 
     return true;
 }
