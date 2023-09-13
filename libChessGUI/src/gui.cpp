@@ -151,7 +151,7 @@ void GameWindow::Attach(Board* game) {
     }
 }
 
-std::chrono::_V2::steady_clock::time_point next_frame;
+std::chrono::steady_clock::time_point next_frame;
 bool timer_done = false;
 
 // Management

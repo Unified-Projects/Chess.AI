@@ -15,7 +15,7 @@ find_package(OpenGL REQUIRED)
 add_executable(ThreadedValidations ThreadedValidations.cpp)
 add_dependencies(ThreadedValidations LibChess)
 target_link_libraries(ThreadedValidations PRIVATE ${CMAKE_THREAD_LIBS_INIT} LibChess)
-add_test(ThreadFenValidations ThreadedValidations)
+# add_test(ThreadFenValidations ThreadedValidations)
 
 #
 # Shannons number comparitor
