@@ -1,7 +1,7 @@
 
 # Project: Chess.AI
 
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/Unified-Projects/Chess.AI/blob/main/LICENCE.md) ![GitHub release (with filter)](https://img.shields.io/github/v/release/Unified-Projects/Chess.AI)
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/Unified-Projects/Chess.AI/blob/main/LICENCE.md) ![GitHub release (with filter)](https://img.shields.io/github/v/release/Unified-Projects/Chess.AI?filter=*)
 
 This projects purpose is to get an understanding of efficiency and the Min-Max algorithm used in a competitive chess engine. Efficiency has taken a big part in the development due to the engine needing to be able to predict several moves ahead without adding much delay to the game. As of now our engine has a NPS (Nodes / Moves per secon) of  `300,000` which may seem like a lot but other implementations are in the millions.
 
