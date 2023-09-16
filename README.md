@@ -16,9 +16,7 @@ Currently there is no competition against a functional chess AI / Engine
 We do have a GUI library that allows you to play a game of chess locally on one window or even though a online session using our server app. They do work and well enough to be able to play a game happily.
 
 ![Screenshot of the GUI app locally open with no moves](https://github.com/Unified-Projects/Chess.AI/blob/main/images/Standard.png)
-
 ![Screenshot showing the possible move highlights](https://github.com/Unified-Projects/Chess.AI/blob/main/images/Highlights.png)
-
 ![Screenshot showing server application open with info screen open](https://github.com/Unified-Projects/Chess.AI/blob/main/images/Server.png)
 
 ### Controls
@@ -26,9 +24,25 @@ We do have a GUI library that allows you to play a game of chess locally on one 
 In both the server based app and local app
 
     I   : Will open the info menu
-
     Esc : Will quit the game
 
 For normal moves, you can drag pieces.
 
 Local app has access to the undo move function using `Ctrl-Z`
+
+## Installation
+
+This will compile the whole feature-set:
+
+```bash
+  mkdir Build
+  cmake ..
+  make
+```
+
+The GUI based apps will be located in the test folder, or can be downloaded from the **release page**!
+
+## Authors
+
+- [@Seggys116](https://www.github.com/Seggys116)
+- [@Wilbur42](https://www.github.com/Wilbur42)
