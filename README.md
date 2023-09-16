@@ -3,7 +3,7 @@
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/Unified-Projects/Chess.AI/blob/main/LICENCE.md) ![GitHub release (with filter)](https://img.shields.io/github/v/release/Unified-Projects/Chess.AI?filter=*)
 
-This projects purpose is to get an understanding of efficiency and the Min-Max algorithm used in a competitive chess engine. Efficiency has taken a big part in the development due to the engine needing to be able to predict several moves ahead without adding much delay to the game. As of now our engine has a NPS (Nodes / Moves per secon) of  `300,000` which may seem like a lot but other implementations are in the millions.
+This projects purpose is to get an understanding of efficiency and the Min-Max algorithm used in a competitive chess engine. Efficiency has taken a big part in the development due to the engine needing to be able to predict several moves ahead without adding much delay to the game. As of now our engine has a NPS (Nodes / Moves per second) of  `300,000` which may seem like a lot but other implementations are in the millions.
 
 We have yet to start on the actual "AI" aspect of this project due to being held up by a failing implementation of chess that only worked up to 5 moves. We still have checks that need to be implemented, such as Castling not allowing you to move through check, and so it will continue to be delayed untill the chess engine is fully functional and passes all checks implemented using C-Test.
 
@@ -28,7 +28,7 @@ In both the server based app and local app
 
 For normal moves, you can drag pieces.
 
-Local app has access to the undo move function using `Ctrl-Z`
+Local app has access to the undo move function using `Ctrl + Z`
 
 ## Installation
 
